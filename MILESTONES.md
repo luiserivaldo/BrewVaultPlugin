@@ -77,8 +77,9 @@ known vulnerabilities, and `npm run check` passed strict typecheck,
 Obsidian-specific ESLint, a repeated typecheck, and the production esbuild
 bundle. The generated 650-byte `main.js` is ignored. Manifest/package version
 `0.1.0`, minimum Obsidian version `1.13.7`, and `isDesktopOnly: true` agree.
-`git diff --check` passed. This completion entry ships with the D0 foundation
-commit on `develop` and is pushed to the configured project remote.
+`git diff --check` passed. The foundation is committed locally on `develop` as
+`1607fc0`; publication is not claimed because both available GitHub
+authentication paths failed as recorded below.
 
 ---
 
@@ -236,6 +237,11 @@ style customization.
       installs a nested deprecated ESLint 9 for some of its plugins. BrewVault
       PDF directly runs ESLint 10.9.0, all checks pass, and `npm audit` reports
       zero vulnerabilities. Recheck when the Obsidian lint plugin updates.
+- [ ] **GitHub authentication:** `origin` is configured for
+      `https://github.com/luiserivaldo/BrewVaultPlugin.git`, but this process has
+      no HTTPS credential helper or GitHub CLI, and its credential-free SSH
+      fallback has no authorized private key. Restore authentication before the
+      next mandated milestone push.
 
 ## Handoff log
 
@@ -265,10 +271,16 @@ audited 328 with zero vulnerabilities. `npm run check` passed typecheck, lint,
 and production build. The manifest/version consistency check, ignore rules,
 generated-bundle check, and `git diff --check` passed.
 
-Commit/push result: this handoff entry is included in the D0 foundation commit
-and pushed to `origin/develop`. `main` remains at the initial repository commit.
+Commit/push result: foundation commit `1607fc0` exists locally on `develop`.
+`git push -u origin develop` failed with `fatal: could not read Username for
+'https://github.com': No such device or address`. No credential helper or
+GitHub CLI is installed. An SSH authentication check using GitHub's verified
+host key also failed with `Permission denied (publickey)`. Nothing was pushed.
+`main` remains at initial commit `9102d4d`.
 
-Next pickup: M0 is the next product work on `develop`.
+Next pickup: restore GitHub authentication and push `develop`, then begin M0 on
+`develop`.
 
 New risks or blockers: the Obsidian ESLint plugin's nested ESLint 9 deprecation
-warning is non-blocking and recorded above.
+warning is non-blocking; GitHub authentication blocks the required push. Both
+are recorded above.
