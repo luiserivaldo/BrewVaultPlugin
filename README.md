@@ -116,6 +116,31 @@ Use a class followed by its content inside a single pair of braces:
 The attack deals {{damage 2d6 piercing}} damage.
 ```
 
+Inline tag content supports Markdown formatting. For example, an attribution
+can italicize its source title:
+
+```markdown
+{{quote
+The thief crept through the shadows, watching for danger.
+
+{{attribution Unknown, *Darkness Rising*}}
+}}
+```
+
+### Stat fields and vertical spacing
+
+Use `::` between a stat label and its value. Each source line becomes a
+separate rendered row and the delimiter itself is hidden:
+
+```markdown
+**Armor Class** :: 14 (chain mail, shield)
+**Hit Points**  :: 136 (1d4 + 5)
+**Speed**       :: 18 ft.
+```
+
+Place `:` on its own line to add one line of vertical space between template
+sections. Use `::` on its own line for two lines of space.
+
 ### Page and column breaks
 
 Place break directives on their own lines:

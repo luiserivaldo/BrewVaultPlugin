@@ -46,13 +46,13 @@ export function inlineSpanRule(state: StateInline, silent: boolean): boolean {
 		.flatMap((className: string) => [className, `brew-${className}`])
 		.join(" ");
 
-	const openToken = state.push("brew_span_open", "span", 1);
-	openToken.attrSet("class", classNames);
-
-	const textToken = state.push("text", "", 0);
-	textToken.content = content;
-
-	state.push("brew_span_close", "span", -1);
+	// Keep nested Markdown delimiters isolated from the outer inline parser.
+	// Appending a nested parse directly to state.tokens corrupts markdown-it's
+	// emphasis delimiter indexes in constructs such as
+	// {{bonus **Proficiency Bonus** +3}}.
+	const token = state.push("brew_span", "span", 0);
+	token.attrSet("class", classNames);
+	token.content = content;
 
 	// Absolute end position: "{{" + inner (up to closeIdx) + "}}"
 	state.pos = start + 2 + closeIdx + 2;

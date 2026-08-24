@@ -4,6 +4,7 @@ import { inlineSpanRule } from "./rules/inlineSpan";
 import { pageBreakRule } from "./rules/pageBreak";
 import { columnBreakRule } from "./rules/columnBreak";
 import { wikilinkRule } from "./rules/wikilink";
+import { templateLineRule } from "./rules/templateLine";
 
 /**
  * Builds a fresh markdown-it instance configured for Homebrewery-flavored
@@ -25,6 +26,9 @@ export function createBrewMarkdownEngine(): MarkdownIt {
 	// but after "code"/"blockquote" so those still take precedence).
 	md.block.ruler.before("fence", "brew_page_break", pageBreakRule);
 	md.block.ruler.before("fence", "brew_column_break", columnBreakRule);
+	md.block.ruler.before("fence", "brew_template_line", templateLineRule, {
+		alt: ["paragraph", "reference", "blockquote", "list"],
+	});
 	md.block.ruler.before("fence", "brew_block_container", blockContainerRule, {
 		alt: ["paragraph", "reference", "blockquote", "list"],
 	});
@@ -39,6 +43,12 @@ export function createBrewMarkdownEngine(): MarkdownIt {
 	// render as a malformed "<>" via markdown-it's default renderToken).
 	md.renderer.rules.brew_page_break = () => PAGE_BREAK_SENTINEL;
 	md.renderer.rules.brew_column_break = () => '<div class="columnSplit"></div>';
+	md.renderer.rules.brew_template_spacer = (tokens, index) =>
+		`<div${md.renderer.renderAttrs(tokens[index])}></div>`;
+	md.renderer.rules.brew_span = (tokens, index) => {
+		const token = tokens[index];
+		return `<span${md.renderer.renderAttrs(token)}>${md.renderInline(token.content)}</span>`;
+	};
 
 	return md;
 }

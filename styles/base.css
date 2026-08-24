@@ -96,6 +96,22 @@
 	height: 0;
 }
 
+/* Homebrewery template line directives. */
+.brewDefinitionLine {
+	display: block;
+	overflow-wrap: break-word;
+}
+
+.brewBlank {
+	display: block;
+	height: 1em;
+	margin: 0;
+}
+
+.brewBlank-2 { height: 2em; }
+.brewBlank-3 { height: 3em; }
+.brewBlank-4 { height: 4em; }
+
 /* Generic {{block}} container: themes may further style specific
    brew-<className> classes (e.g. brew-note, brew-classTable). */
 .brewBlock {
