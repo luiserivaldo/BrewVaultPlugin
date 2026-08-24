@@ -5,3 +5,15 @@ src/generated/
 *.js.map
 .DS_Store
 dist/
+
+# Local development and agent handoff documentation. Public installation,
+# usage, build, limitations, and acknowledgements are consolidated in README.
+/AGENTS.md
+/ARCHITECTURE.md
+/BUILD_FROM_SOURCE.md
+/MILESTONES.md
+/PROGRESS.md
+/THIRD_PARTY_NOTICES.md
+/USAGE.md
+/docs/
+/examples/
