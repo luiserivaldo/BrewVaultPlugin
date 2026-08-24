@@ -44,15 +44,23 @@ void test("unfinished blocks and fenced examples remain visible", () => {
 });
 
 void test("explicit layout directives are detected independently", () => {
-	const source = ["Opening", "\\page", "Middle", "\\column", "Ending"].join("\n");
+	const source = [
+		"Opening",
+		"\\page",
+		"Middle",
+		"\\column",
+		"Ending",
+		"\\page",
+	].join("\n");
 
 	assert.deepEqual(
 		findHomebrewerySyntax(source)
 			.filter(({ kind }) => kind.endsWith("break"))
 			.map(({ kind, label }) => ({ kind, label })),
 		[
-			{ kind: "page-break", label: "Page break" },
+			{ kind: "page-break", label: "Page 2 starts" },
 			{ kind: "column-break", label: "Column break" },
+			{ kind: "page-break", label: "Page 3 starts" },
 		]
 	);
 });

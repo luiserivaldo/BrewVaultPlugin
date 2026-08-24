@@ -33,6 +33,34 @@ class BlockDelimiterWidget extends WidgetType {
 	}
 }
 
+class LayoutBreakWidget extends WidgetType {
+	constructor(
+		private readonly label: string,
+		private readonly pageBreak: boolean
+	) {
+		super();
+	}
+
+	eq(other: LayoutBreakWidget): boolean {
+		return other.label === this.label && other.pageBreak === this.pageBreak;
+	}
+
+	toDOM(): HTMLElement {
+		const element = document.createElement("span");
+		element.className = this.pageBreak
+			? "brewvault-edit-layout-break is-page-break"
+			: "brewvault-edit-layout-break is-column-break";
+		element.textContent = this.label;
+		element.setAttribute("role", "separator");
+		element.setAttribute("aria-label", this.label);
+		return element;
+	}
+
+	ignoreEvent(): boolean {
+		return false;
+	}
+}
+
 class HomebreweryEditModeView {
 	decorations: DecorationSet;
 	private constructs: HomebrewerySyntaxConstruct[];
@@ -71,21 +99,43 @@ function buildDecorations(
 	constructs: readonly HomebrewerySyntaxConstruct[]
 ): DecorationSet {
 	const selections = view.state.selection.ranges;
-	const ranges = constructs
-		.filter((construct) => construct.kind === "block-open" || construct.kind === "block-close")
-		.filter((construct) => isVisible(view, construct))
-		.filter(
-			(construct) =>
-				!view.hasFocus || !selectionTouchesConstruct(selections, construct)
-		)
-		.map((construct) =>
-			Decoration.replace({
-				widget: new BlockDelimiterWidget(
-					construct.label,
-					construct.kind === "block-close"
-				),
-			}).range(construct.from, construct.to)
+	const ranges: ReturnType<Decoration["range"]>[] = [];
+
+	for (const construct of constructs) {
+		if (!isVisible(view, construct)) continue;
+
+		const sourceIsSelected =
+			view.hasFocus && selectionTouchesConstruct(selections, construct);
+		if (construct.kind === "block-open" || construct.kind === "block-close") {
+			if (!sourceIsSelected) {
+				ranges.push(
+					Decoration.replace({
+						widget: new BlockDelimiterWidget(
+							construct.label,
+							construct.kind === "block-close"
+						),
+					}).range(construct.from, construct.to)
+				);
+			}
+			continue;
+		}
+
+		const pageBreak = construct.kind === "page-break";
+		ranges.push(
+			Decoration.line({
+				class: pageBreak
+					? "brewvault-edit-break-line is-page-break"
+					: "brewvault-edit-break-line is-column-break",
+			}).range(construct.lineFrom)
 		);
+		if (!sourceIsSelected) {
+			ranges.push(
+				Decoration.replace({
+					widget: new LayoutBreakWidget(construct.label, pageBreak),
+				}).range(construct.from, construct.to)
+			);
+		}
+	}
 
 	return Decoration.set(ranges, true);
 }

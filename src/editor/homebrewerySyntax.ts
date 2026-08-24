@@ -42,6 +42,7 @@ export function findHomebrewerySyntax(source: string): HomebrewerySyntaxConstruc
 	const blockStack: PendingBlock[] = [];
 	let fence: FenceState | null = null;
 	let lineFrom = 0;
+	let explicitPageNumber = 1;
 
 	while (lineFrom <= source.length) {
 		const newline = source.indexOf("\n", lineFrom);
@@ -98,13 +99,17 @@ export function findHomebrewerySyntax(source: string): HomebrewerySyntaxConstruc
 					});
 				}
 			} else if (trimmed === "\\page" || trimmed === "\\column") {
+				if (trimmed === "\\page") explicitPageNumber++;
 				constructs.push({
 					kind: trimmed === "\\page" ? "page-break" : "column-break",
 					from: contentFrom,
 					to: contentTo,
 					lineFrom,
 					lineTo,
-					label: trimmed === "\\page" ? "Page break" : "Column break",
+					label:
+						trimmed === "\\page"
+							? `Page ${explicitPageNumber} starts`
+							: "Column break",
 				});
 			}
 		}

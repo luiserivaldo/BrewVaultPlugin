@@ -11,6 +11,8 @@ export interface BrewVaultSettings {
 	pageHeightPx: number;
 	/** Debounce, in milliseconds, between a file change and a re-render. */
 	debounceMs: number;
+	/** Present Homebrewery structure as labels and separators in Markdown edit mode. */
+	homebreweryEditMode: boolean;
 }
 
 export const LEGACY_DEFAULT_EXPORT_FOLDER = "BrewVault Exports";
@@ -21,6 +23,7 @@ export const DEFAULT_SETTINGS: BrewVaultSettings = {
 	pageWidthPx: 816,
 	pageHeightPx: 1056,
 	debounceMs: 250,
+	homebreweryEditMode: true,
 };
 
 export interface NormalizedSettings {
@@ -44,6 +47,11 @@ export function normalizeStoredSettings(
 			: DEFAULT_SETTINGS.theme;
 
 	const rawExportFolder = stored?.exportFolder;
+	const rawHomebreweryEditMode = stored?.homebreweryEditMode;
+	const homebreweryEditMode =
+		typeof rawHomebreweryEditMode === "boolean"
+			? rawHomebreweryEditMode
+			: DEFAULT_SETTINGS.homebreweryEditMode;
 	const trimmedExportFolder =
 		typeof rawExportFolder === "string" && rawExportFolder.trim().length > 0
 			? rawExportFolder.trim()
@@ -58,12 +66,16 @@ export function normalizeStoredSettings(
 		...(stored ?? {}),
 		theme,
 		exportFolder,
+		homebreweryEditMode,
 	};
 
 	return {
 		settings,
 		shouldPersist:
-			!stored || rawTheme !== theme || rawExportFolder !== exportFolder,
+			!stored ||
+			rawTheme !== theme ||
+			rawExportFolder !== exportFolder ||
+			rawHomebreweryEditMode !== homebreweryEditMode,
 	};
 }
 
