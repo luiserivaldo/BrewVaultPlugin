@@ -286,3 +286,12 @@ Verification note: the uploaded project archive contains an incomplete
 `node_modules` tree, so local `npm run build` reaches the generated-CSS step but
 cannot resolve the archived TypeScript/dependency packages. This is an archive
 verification limitation, not yet evidence that M6 passes a clean `npm install`.
+
+## 2026-08-24 — 0.1.0 release-candidate fixes
+
+- Fixed first-install theme initialization by validating persisted theme data, falling back to PHB, and persisting normalized defaults immediately.
+- Added `BrewVault Exports` as the default vault-root file export folder plus a configurable vault-relative export-folder setting.
+- Added curated PHB/SRD/Blank PDF export commands while keeping the normal PDF command tied to the configured theme.
+- Recorded SRD visual parity differences (texture, font metrics, spacing, separator details) as follow-up rather than blocking this checkpoint.
+- Recorded wide/split Homebrewery table semantics and a pre-export Homebrewery HTML editor as future milestone work.
+- Reset the public plugin version to `0.1.0` for the first release line.

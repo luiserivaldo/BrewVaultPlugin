@@ -33,6 +33,19 @@ export class BrewVaultSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
+			.setName("Export folder")
+			.setDesc("Vault-relative folder for BrewVault exports. It is created automatically when needed.")
+			.addText((text) =>
+				text
+					.setPlaceholder("BrewVault Exports")
+					.setValue(this.plugin.settings.exportFolder)
+					.onChange(async (value) => {
+						this.plugin.settings.exportFolder = value.trim() || "BrewVault Exports";
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
 			.setName("Page width (px)")
 			.setDesc("Rendered page width. Default 816px approximates 8.5in at 96dpi.")
 			.addText((text) =>

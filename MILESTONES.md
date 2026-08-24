@@ -26,7 +26,8 @@ Chromium/Electron layout or printing.
 | 5 | M5 — In-app PDF print path | `DONE` | PDF command opens Chromium/Electron print flow |
 | 6 | M6 — Export parity and automatic pagination | `IN PROGRESS` | Match Homebrewery Letter/PHB output and prevent silent overflow |
 | 7 | M7 — Theme parity expansion | `NOT STARTED` | Add the remaining upstream Homebrewery themes |
-| 8 | M8 — Obsidian assets and release hardening | `NOT STARTED` | Vault assets, diagnostics, packaging, and release verification |
+| 8 | M8 — Obsidian assets and release hardening | `IN PROGRESS` | Vault assets, diagnostics, packaging, and release verification |
+| 9 | M9 — Advanced Homebrewery editing and layout | `NOT STARTED` | Wide/split tables and an editable pre-export Homebrewery HTML stage |
 
 ---
 
@@ -163,6 +164,16 @@ The first side-by-side exports exposed four release-blocking mismatches:
       that must move intact at a page boundary.
 - [ ] Verify that fixture produces 3+ pages in a real Obsidian Chromium runtime.
 
+### 0.1.0 live-test follow-up
+
+The first real-vault M6 test added the following release requirements:
+
+- [x] First install must always resolve an absent/invalid persisted theme to PHB and persist normalized defaults; preview must never receive an undefined theme class.
+- [x] File-based exports default to a vault-root `BrewVault Exports` folder, created automatically, with a configurable vault-relative output folder in plugin settings.
+- [x] Keep the normal PDF command tied to the configured theme and add only three curated one-off PDF commands: PHB, SRD, and Blank.
+- [ ] SRD visual parity still differs from upstream Homebrewery in parchment texture, font metrics, margins/padding, and heading separator treatment. This is tracked for theme-parity work rather than blocking the current pagination/export plumbing.
+- [ ] Homebrewery `{{wide}}` / split-table behavior does not yet map cleanly onto automatic page separation. Advanced table semantics and an editable pre-export Homebrewery HTML stage are deferred to M9. Explicit source `\page` remains the deterministic workaround for such layouts in 0.1.0.
+
 ### Acceptance criteria
 
 - PDF output reports `612 x 792 pt` (US Letter) with no A4 fallback.
@@ -205,11 +216,36 @@ pagination/export fixes.
 **Goal:** support real vault resources and prepare a reproducible public plugin
 release.
 
-**Status:** `NOT STARTED`
+**Status:** `IN PROGRESS`
 
-**Planned work:** Obsidian embeds/wikilinks/local images, missing-asset warnings,
+**Delivered toward 0.1.0:** normalized first-install settings, configurable
+vault-relative `BrewVault Exports` output folder, stable curated theme-specific
+PDF command IDs, and release version reset to `0.1.0`.
+
+**Remaining work:** Obsidian embeds/wikilinks/local images, missing-asset warnings,
 custom CSS, cancellation/overwrite safety, cross-platform test matrix, release
 artifacts, dependency/license checks, and Community Plugin submission.
+
+---
+
+## M9 — Advanced Homebrewery editing and layout
+
+**Goal:** close the gap between plain Obsidian Markdown and Homebrewery's richer
+pre-export authoring surface without changing source notes implicitly.
+
+**Status:** `NOT STARTED`
+
+**Planned work:**
+
+- Support Homebrewery-style wide/split table semantics, including blocks that
+  deliberately span both columns and interact predictably with pagination.
+- Add a **Homebrewery HTML Edit** workflow that opens the rendered export copy
+  for temporary HTML/Homebrewery-specific edits before export while leaving the
+  original `.md` untouched.
+- Preserve **Export current file as Homebrewery PDF** as the deterministic
+  default `.md` path; edited-export behavior must be explicitly invoked.
+- Define how explicit `\page`, automatic pagination, `{{wide}}`, and split tables
+  resolve conflicts, with explicit source/page-edit directives taking precedence.
 
 ---
 
@@ -228,3 +264,8 @@ Obsidian test.
 Swinekin, plus a multi-page overflow regression fixture.
 **Next pickup:** install the branch into Obsidian, run the two supplied samples,
 and record PDF page size plus visual comparison before marking M6 done.
+
+### 2026-08-24 — 0.1.0 live-vault follow-up
+
+**What changed:** repaired default-theme initialization; added configurable `BrewVault Exports`; added curated PHB/SRD/Blank one-off PDF commands; reset release version to `0.1.0`.
+**Deferred:** exact SRD visual parity and advanced wide/split table handling. A Homebrewery HTML Edit stage is now explicitly planned in M9.

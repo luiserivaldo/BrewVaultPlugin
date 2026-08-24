@@ -141,3 +141,18 @@ These are tracked in `MILESTONES.md`.
 inline spans, `\page`, and `\column` together — copy it into a vault with
 BrewVault enabled and run **Open Homebrewery Preview** on it to see
 everything in this guide in one place.
+
+## Export folder
+
+BrewVault creates `BrewVault Exports` in the vault root the first time a file-based export needs it. Change this under **Settings → BrewVault → Export folder**. Paths are vault-relative and nested folders are created automatically.
+
+`Export current file as HTML` writes `<note-name>.brew.html` into that folder. PDF commands open Chromium/Electron's Save as PDF flow; the system dialog controls the final PDF destination.
+
+## PDF theme commands
+
+- **Export current file as Homebrewery PDF** — uses the theme configured in BrewVault settings.
+- **Export current file as Homebrewery PDF in PHB style** — one-off PHB export.
+- **Export current file as Homebrewery PDF in SRD style** — one-off SRD export.
+- **Export current file as Homebrewery PDF in Blank style** — one-off Blank export.
+
+The one-off commands do not change the saved preview/default export theme. Their stable command IDs are intended to remain suitable for command-palette and Obsidian CLI use.

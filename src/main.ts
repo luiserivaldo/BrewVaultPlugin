@@ -1,5 +1,5 @@
-import { Notice, Plugin, TFile, WorkspaceLeaf } from "obsidian";
-import { BrewVaultSettings, DEFAULT_SETTINGS } from "./settings/types";
+import { Notice, normalizePath, Plugin, TFile, TFolder, WorkspaceLeaf } from "obsidian";
+import { BrewVaultSettings, BrewTheme, DEFAULT_SETTINGS } from "./settings/types";
 import { BrewVaultSettingTab } from "./settings/SettingTab";
 import { HomebreweryView, HOMEBREWERY_VIEW_TYPE } from "./view/HomebreweryView";
 import { renderBrewMarkdown } from "./renderer";
@@ -43,15 +43,41 @@ export default class BrewVaultPlugin extends Plugin {
 			},
 		});
 
-		// --- Milestone 5: print to PDF without leaving Obsidian ---
+		// Default PDF export uses the theme selected in BrewVault settings.
+		this.addPdfExportCommand(
+			"export-current-file-as-pdf",
+			"Export current file as Homebrewery PDF"
+		);
+
+		// Curated theme-specific commands are intentionally limited to the three
+		// baseline styles. Besides being convenient in the command palette, the
+		// stable command IDs are suitable for Obsidian CLI invocation.
+		this.addPdfExportCommand(
+			"export-current-file-as-pdf-phb",
+			"Export current file as Homebrewery PDF in PHB style",
+			"phb"
+		);
+		this.addPdfExportCommand(
+			"export-current-file-as-pdf-srd",
+			"Export current file as Homebrewery PDF in SRD style",
+			"srd"
+		);
+		this.addPdfExportCommand(
+			"export-current-file-as-pdf-blank",
+			"Export current file as Homebrewery PDF in Blank style",
+			"blank"
+		);
+	}
+
+	private addPdfExportCommand(id: string, name: string, theme?: BrewTheme): void {
 		this.addCommand({
-			id: "export-current-file-as-pdf",
-			name: "Export current file as Homebrewery PDF",
+			id,
+			name,
 			checkCallback: (checking) => {
 				const file = this.app.workspace.getActiveFile();
 				const canRun = !!file && file.extension === "md";
 				if (canRun && !checking) {
-					this.exportFileAsPdf(file as TFile);
+					void this.exportFileAsPdf(file as TFile, theme);
 				}
 				return canRun;
 			},
@@ -60,8 +86,8 @@ export default class BrewVaultPlugin extends Plugin {
 
 	/**
 	 * Renders `file` the same way the live preview does, then writes a
-	 * self-contained HTML file (theme CSS inlined) next to it in the vault,
-	 * named "<note-name>.brew.html". See ARCHITECTURE.md §8/§9.1.
+	 * self-contained HTML file (theme CSS inlined) into the configured vault
+	 * export folder, named "<note-name>.brew.html". See ARCHITECTURE.md §8/§9.1.
 	 */
 	async exportFileAsHtml(file: TFile): Promise<void> {
 		try {
@@ -82,7 +108,8 @@ export default class BrewVaultPlugin extends Plugin {
 				this.settings.pageHeightPx
 			);
 
-			const outPath = file.path.replace(/\.md$/, "") + ".brew.html";
+			const exportFolder = await this.ensureExportFolder();
+			const outPath = normalizePath(`${exportFolder}/${file.basename}.brew.html`);
 			const existing = this.app.vault.getAbstractFileByPath(outPath);
 			if (existing instanceof TFile) {
 				await this.app.vault.modify(existing, html);
@@ -112,24 +139,31 @@ export default class BrewVaultPlugin extends Plugin {
 	 * in this environment — see PROGRESS.md's verification notes. If it
 	 * doesn't work on your system, "Export current file as HTML" is the reliable fallback.
 	 */
-	async exportFileAsPdf(file: TFile): Promise<void> {
+	async exportFileAsPdf(file: TFile, themeOverride?: BrewTheme): Promise<void> {
 		try {
+			const theme = themeOverride ?? this.settings.theme;
 			const source = await this.app.vault.cachedRead(file);
 			const renderedPages = renderBrewMarkdown(source);
 			const pages = await paginateBrewPages(renderedPages, {
-				theme: this.settings.theme,
+				theme,
 				pageWidthPx: this.settings.pageWidthPx,
 				pageHeightPx: this.settings.pageHeightPx,
 			});
 
 			const html = buildStandaloneHtml(
 				pages,
-				this.settings.theme,
+				theme,
 				BUNDLED_THEME_CSS,
 				file.basename,
 				this.settings.pageWidthPx,
 				this.settings.pageHeightPx
 			);
+
+			// The Chromium print dialog still owns the final PDF filename. Ensure the
+			// configured export folder exists first so all file-based BrewVault
+			// exports have a predictable vault destination and users have a ready
+			// target when saving from the system dialog.
+			await this.ensureExportFolder();
 
 			const iframe = document.createElement("iframe");
 			iframe.style.cssText = "position:fixed; right:0; bottom:0; width:0; height:0; border:0;";
@@ -166,19 +200,64 @@ export default class BrewVaultPlugin extends Plugin {
 	}
 
 	async loadSettings(): Promise<void> {
-		const stored = (await this.loadData()) as
-			| (Partial<BrewVaultSettings> & { theme?: BrewVaultSettings["theme"] | "journal" })
-			| null;
-		const normalized = { ...(stored ?? {}) };
+		const stored = (await this.loadData()) as Record<string, unknown> | null;
+		const rawTheme = stored?.theme;
+		const theme: BrewTheme = this.isBrewTheme(rawTheme)
+			? rawTheme
+			: rawTheme === "journal"
+				? "srd"
+				: DEFAULT_SETTINGS.theme;
 
-		// M6 renamed the old local "journal" approximation to the SRD/UA theme.
-		// Migrate existing plugin data so upgraded vaults do not end up with a
-		// theme class that no longer exists.
-		if (normalized.theme === "journal") {
-			normalized.theme = "srd";
+		const exportFolder =
+			typeof stored?.exportFolder === "string" && stored.exportFolder.trim().length > 0
+				? stored.exportFolder.trim()
+				: DEFAULT_SETTINGS.exportFolder;
+
+		this.settings = {
+			...DEFAULT_SETTINGS,
+			...(stored ?? {}),
+			theme,
+			exportFolder,
+		} as BrewVaultSettings;
+
+		// Persist normalized defaults on first install (and repair invalid legacy
+		// data) so preview rendering never receives an undefined/unknown theme.
+		if (!stored || rawTheme !== theme || stored.exportFolder !== exportFolder) {
+			await this.saveData(this.settings);
+		}
+	}
+
+	private isBrewTheme(value: unknown): value is BrewTheme {
+		return value === "phb" || value === "srd" || value === "blank";
+	}
+
+	private async ensureExportFolder(): Promise<string> {
+		const configured = this.settings.exportFolder.trim() || DEFAULT_SETTINGS.exportFolder;
+		const normalized = normalizePath(configured)
+			.replace(/^\/+/, "")
+			.replace(/\/+$/, "");
+
+		if (!normalized || normalized === "." || normalized.startsWith("../")) {
+			throw new Error("BrewVault export folder must be a vault-relative folder path.");
 		}
 
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, normalized) as BrewVaultSettings;
+		let current = "";
+		for (const segment of normalized.split("/").filter(Boolean)) {
+			current = current ? `${current}/${segment}` : segment;
+			const existing = this.app.vault.getAbstractFileByPath(current);
+			if (!existing) {
+				await this.app.vault.createFolder(current);
+			} else if (!(existing instanceof TFolder)) {
+				throw new Error(`BrewVault export path is not a folder: ${current}`);
+			}
+		}
+
+		if (this.settings.exportFolder !== normalized) {
+			this.settings.exportFolder = normalized;
+			await this.saveSettings();
+		}
+
+		return normalized;
 	}
 
 	async saveSettings(): Promise<void> {

@@ -53,3 +53,11 @@ module-by-module.
 ## Roadmap
 
 Milestone 6 is focused on Homebrewery export parity and automatic pagination. Later milestones add the remaining upstream themes, vault assets, and release hardening.
+
+## 0.1.0 release behavior
+
+- First-install settings are normalized and persisted; PHB is always the default theme when no valid theme has been saved.
+- File-based exports are written to `BrewVault Exports` at the vault root by default. The folder is created automatically and can be changed in BrewVault settings.
+- PDF export uses the currently selected theme. Additional curated commands export using PHB, SRD, or Blank without changing the saved default theme.
+- PDF generation still uses Chromium/Electron's print dialog, so the operating-system Save as PDF dialog owns the final PDF filename/location.
+- Wide/split Homebrewery tables and a pre-export Homebrewery HTML editor are deferred to a later milestone.
