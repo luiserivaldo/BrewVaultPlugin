@@ -13,20 +13,13 @@ import { buildStandaloneHtml } from "./export/buildStandaloneHtml";
 import { allocateExportPath } from "./export/allocateExportPath";
 import { BUNDLED_THEME_CSS } from "./generated/themeCss";
 import { ElectronPdfExporter } from "./electron/ElectronPdfExporter";
-import { homebreweryEditModeExtension } from "./editor/homebreweryEditMode";
-import type { Extension } from "@codemirror/state";
 
 export default class BrewVaultPlugin extends Plugin {
 	settings: BrewVaultSettings = DEFAULT_SETTINGS;
 	private readonly pdfExporter = new ElectronPdfExporter();
-	private readonly editorExtensions: Extension[] = [];
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
-		if (this.settings.homebreweryEditMode) {
-			this.editorExtensions.push(homebreweryEditModeExtension);
-		}
-		this.registerEditorExtension(this.editorExtensions);
 
 		this.registerView(HOMEBREWERY_VIEW_TYPE, (leaf) => new HomebreweryView(leaf, this));
 
@@ -225,14 +218,6 @@ export default class BrewVaultPlugin extends Plugin {
 
 	async saveSettings(): Promise<void> {
 		await this.saveData(this.settings);
-	}
-
-	refreshHomebreweryEditMode(): void {
-		this.editorExtensions.splice(0, this.editorExtensions.length);
-		if (this.settings.homebreweryEditMode) {
-			this.editorExtensions.push(homebreweryEditModeExtension);
-		}
-		this.app.workspace.updateOptions();
 	}
 
 	/** Re-render every open Homebrewery preview leaf (e.g. after a settings change). */

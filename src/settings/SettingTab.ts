@@ -33,21 +33,6 @@ export class BrewVaultSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
-			.setName("Homebrewery edit mode")
-			.setDesc(
-				"Show Homebrewery blocks and explicit page or column breaks as visual editor elements. Select one to edit its source."
-			)
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.homebreweryEditMode)
-					.onChange(async (value) => {
-						this.plugin.settings.homebreweryEditMode = value;
-						await this.plugin.saveSettings();
-						this.plugin.refreshHomebreweryEditMode();
-					})
-			);
-
-		new Setting(containerEl)
 			.setName("Export folder")
 			.setDesc("Vault-relative folder for BrewVault exports. It is created automatically when needed.")
 			.addText((text) =>
