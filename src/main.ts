@@ -4,6 +4,7 @@ import { BrewVaultSettingTab } from "./settings/SettingTab";
 import { HomebreweryView, HOMEBREWERY_VIEW_TYPE } from "./view/HomebreweryView";
 import { renderBrewMarkdown } from "./renderer";
 import { buildStandaloneHtml } from "./export/buildStandaloneHtml";
+import { BUNDLED_THEME_CSS } from "./generated/themeCss";
 import {
 	DESCRIPTIVE_SNIPPET,
 	MONSTER_STAT_BLOCK_SNIPPET,
@@ -85,23 +86,36 @@ export default class BrewVaultPlugin extends Plugin {
 				return canRun;
 			},
 		});
+
+		// --- Milestone 5: print to PDF without leaving Obsidian ---
+		this.addCommand({
+			id: "print-current-file-as-pdf",
+			name: "Print current file as Homebrewery PDF",
+			checkCallback: (checking) => {
+				const file = this.app.workspace.getActiveFile();
+				const canRun = !!file && file.extension === "md";
+				if (canRun && !checking) {
+					this.printFileAsPdf(file as TFile);
+				}
+				return canRun;
+			},
+		});
 	}
 
 	/**
 	 * Renders `file` the same way the live preview does, then writes a
 	 * self-contained HTML file (theme CSS inlined) next to it in the vault,
-	 * named "<note-name>.brew.html". See ARCHITECTURE.md section 8.
+	 * named "<note-name>.brew.html". See ARCHITECTURE.md §8/§9.1.
 	 */
 	async exportFileAsHtml(file: TFile): Promise<void> {
 		try {
 			const source = await this.app.vault.cachedRead(file);
 			const pages = renderBrewMarkdown(source);
-			const themeCss = await this.readBundledThemeCss();
 
 			const html = buildStandaloneHtml(
 				pages,
 				this.settings.theme,
-				themeCss,
+				BUNDLED_THEME_CSS,
 				file.basename,
 				this.settings.pageWidthPx,
 				this.settings.pageHeightPx
@@ -125,20 +139,60 @@ export default class BrewVaultPlugin extends Plugin {
 	}
 
 	/**
-	 * Reads this plugin's own compiled styles.css off disk so the exported
-	 * HTML always matches what the in-app preview is showing (one theme
-	 * stylesheet, not two implementations to keep in sync).
+	 * Builds the same standalone HTML as exportFileAsHtml(), but instead of
+	 * writing it to disk, loads it into a hidden off-screen <iframe> and
+	 * calls that iframe's own window.print() once it finishes loading. This
+	 * opens the normal OS/Electron print dialog (with "Save as PDF" as a
+	 * printer option) without requiring a save-then-reopen-in-browser
+	 * round trip. See ARCHITECTURE.md §9.4.
+	 *
+	 * NOTE: this relies on Electron's Chromium-standard iframe print
+	 * behavior and has not been exercised against a real Obsidian install
+	 * in this environment — see PROGRESS.md's verification notes. If it
+	 * doesn't work on your system, "Export current file as standalone
+	 * Homebrewery HTML" is the reliable fallback.
 	 */
-	private async readBundledThemeCss(): Promise<string> {
-		const cssPath = `${this.app.vault.configDir}/plugins/${this.manifest.id}/styles.css`;
+	async printFileAsPdf(file: TFile): Promise<void> {
 		try {
-			return await this.app.vault.adapter.read(cssPath);
-		} catch (err) {
-			console.warn(
-				"BrewVault: could not read bundled styles.css for export, exporting without theme styling.",
-				err
+			const source = await this.app.vault.cachedRead(file);
+			const pages = renderBrewMarkdown(source);
+
+			const html = buildStandaloneHtml(
+				pages,
+				this.settings.theme,
+				BUNDLED_THEME_CSS,
+				file.basename,
+				this.settings.pageWidthPx,
+				this.settings.pageHeightPx
 			);
-			return "";
+
+			const iframe = document.createElement("iframe");
+			iframe.style.cssText = "position:fixed; right:0; bottom:0; width:0; height:0; border:0;";
+			document.body.appendChild(iframe);
+
+			const cleanup = () => {
+				window.setTimeout(() => iframe.remove(), 1000);
+			};
+
+			iframe.addEventListener("load", () => {
+				const win = iframe.contentWindow;
+				if (!win) {
+					new Notice("BrewVault: couldn't access the print preview window.");
+					cleanup();
+					return;
+				}
+				win.addEventListener("afterprint", cleanup);
+				win.focus();
+				win.print();
+				// Fallback cleanup in case the browser never fires "afterprint"
+				// (some print-to-PDF flows don't).
+				window.setTimeout(cleanup, 30000);
+			});
+
+			iframe.srcdoc = html;
+		} catch (err) {
+			console.error("BrewVault print-to-PDF failed", err);
+			new Notice("BrewVault print-to-PDF failed — see console for details.");
 		}
 	}
 

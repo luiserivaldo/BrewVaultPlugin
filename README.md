@@ -3,7 +3,7 @@
 An Obsidian desktop plugin that renders your Markdown notes as
 Homebrewery-style, paginated D&D 5e documents — right inside Obsidian.
 
-> **Status:** covers Milestones 0–4 of the plan in
+> **Status:** covers Milestones 0–5 of the plan in
 > [`ARCHITECTURE.md`](./ARCHITECTURE.md). See [`PROGRESS.md`](./PROGRESS.md)
 > for exactly what's done and verified, and [`USAGE.md`](./USAGE.md) for a
 > full command reference with expected input/output.
@@ -25,8 +25,11 @@ Homebrewery-style, paginated D&D 5e documents — right inside Obsidian.
   width/height and re-render debounce, in Settings.
 - Snippet-insertion commands for common blocks (monster stat block, note,
   descriptive/read-aloud text).
-- Export the active note to a standalone, self-contained HTML file for
-  printing to PDF from a browser.
+- Export the active note to a standalone, self-contained HTML file, or
+  print it directly to PDF from Obsidian without leaving the app.
+- Fixed-size pages (matching Homebrewery's own behavior) with a visible
+  warning when a page's content overflows, so you know when to add a
+  `\page`/`\column` split.
 
 See [`USAGE.md`](./USAGE.md) for the full command list and syntax
 reference, and [`examples/sample-brew.md`](./examples/sample-brew.md) for
@@ -36,7 +39,7 @@ a note that exercises the syntax end to end.
 
 ```bash
 npm install
-npm run build      # one-shot production build -> main.js, styles.css
+npm run build      # CSS snapshot -> typecheck -> production build (main.js, styles.css)
 npm run dev         # esbuild watch mode
 ```
 
@@ -56,5 +59,5 @@ module-by-module.
 
 ## Roadmap
 
-Milestone 5+ (not built yet): editor↔preview scroll sync, `{{footnote}}`
-variables, direct PDF export without a browser round-trip.
+Milestone 6+ (not built yet): editor↔preview scroll sync, `{{footnote}}`
+variables, true automatic re-pagination (vs. the current overflow warning).

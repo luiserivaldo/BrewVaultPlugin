@@ -129,9 +129,10 @@ destabilizing Obsidian's normal editor/preview.
 | 2 | Homebrewery syntax layer | `markdown-it` custom rules for block containers `{{ }}`, inline spans `{{ }}`, `\page`, `\column`. Multi-page documents render as distinct page elements. Settings for theme variant. |
 | 3 | Authoring aids & themes | Snippet-insertion command for common blocks (starting with a monster stat block), a third theme (`journal`), and settings support for it. |
 | 4 | Export | Command to export the active note's rendered pages as a single, self-contained standalone HTML file (theme CSS inlined) written into the vault — the hand-off point for printing to PDF from a browser, since Obsidian's plugin API has no native "print to PDF" hook. |
-| 5 (future) | Editor↔preview scroll sync, `{{footnote}}`/mustache variables, direct PDF export without a browser round-trip. |
+| 5 | Bug fixes from real-world testing | Build-time CSS embedding (fixes broken export styling), fixed-height pages with an overflow warning (fixes the "one endless page" issue), `break-inside: avoid` on tables (fixes tables splitting across columns), and an in-app "print to PDF" command via a hidden iframe (no browser round-trip required). |
+| 6 (future) | Editor↔preview scroll sync, `{{footnote}}`/mustache variables, true automatic re-pagination (dynamically slicing overflow content into synthetic extra pages). |
 
-This build covers milestones 0–4.
+This build covers milestones 0–5.
 
 ## 5. Settings (v0)
 
@@ -176,7 +177,7 @@ hand-off point instead:
  BrewPage[]
       │
       ▼
- buildStandaloneHtml(pages, theme, title)
+ buildStandaloneHtml(pages, theme, BUNDLED_THEME_CSS, title)
       │  wraps pages in a full <html><head><style>...inlined theme CSS...
       │  </style></head><body>...</body></html> document — no external
       │  file references, so it opens correctly from anywhere
@@ -189,7 +190,85 @@ hand-off point instead:
  `.brewPage` divs since @media print rules are included in the export.
 ```
 
-The exporter reads the plugin's already-built `styles.css` off disk via
-`app.vault.adapter.read()` (same file the live preview loads), so the
-exported HTML always matches what the in-app preview showed — there is
-exactly one theme stylesheet, not two implementations to keep in sync.
+`BUNDLED_THEME_CSS` is a build-time-generated string constant (see §9.1 —
+this replaced an original runtime-disk-read design that turned out to
+fail silently in practice), so the exported HTML always matches what the
+in-app preview showed — there is exactly one theme stylesheet, not two
+implementations to keep in sync, and no file I/O that can fail at export
+time.
+
+## 9. Milestone 5 design — fixes from first real-world Obsidian testing
+
+Early hands-on testing (screenshots + PDF exports from a real vault) surfaced
+four issues, each addressed below.
+
+### 9.1 Exported HTML had no theme CSS applied
+
+**Root cause**: `exportFileAsHtml()` read the plugin's `styles.css` off disk
+at export time via `app.vault.adapter.read()`. That read failed silently
+(caught and swallowed, returning `""`), so every export shipped with only
+the inline layout rules from `buildStandaloneHtml()` and none of the theme
+(`phb`/`journal`/`blank`) rules — confirmed by inspecting the reported
+export's `<style>` block, which contained the `:root`/`body`/`@media print`
+rules but none of the `.brewvault-theme-*` rules.
+
+**Fix**: stop reading CSS from disk at export time entirely. The build
+(`esbuild.config.mjs`) now bundles `styles/index.css` to `styles.css` as
+before, then reads that same output and writes it into a generated module,
+`src/generated/themeCss.ts`, exporting `BUNDLED_THEME_CSS` as a plain
+string constant. The exporter imports that constant directly, so the CSS
+that ships in `main.js` and the CSS that ships in every export are
+guaranteed to be byte-identical, with zero runtime file I/O and zero
+failure mode.
+
+### 9.2 Preview renders as one endless two-column page instead of separate pages
+
+**Root cause**: `.brewPage` used `min-height` (not a fixed `height`). CSS
+multi-column layout with an unbounded height just keeps growing both
+columns to fit *all* content, rather than the fixed-size "sheet of paper"
+Homebrewery pages are meant to be. Real Homebrewery pages are a fixed
+height too — it does not auto-paginate either; long content is expected to
+be split by the *author* using `\page`, and content that isn't split
+simply overflows the page.
+
+**Fix**: `.brewPage` now uses a fixed `height: var(--brew-page-height)`
+with `overflow: hidden`, matching Homebrewery's actual (manual-pagination)
+model instead of silently growing forever. Since a silently-clipped page is
+a worse experience than Homebrewery's own, BrewVault adds something
+Homebrewery doesn't have: after each render, `HomebreweryView` measures
+`scrollHeight` vs `clientHeight` for every page and, if content is being
+clipped, adds a dashed-outline `brewPageOverflow` class plus a small
+"content overflows — add `\page` or `\column`" badge. This is documented
+in `USAGE.md` as expected behavior, not a bug — full automatic
+re-pagination (dynamically slicing overflow into synthetic extra pages) is
+tracked as a Milestone 6 idea, not attempted here, since Homebrewery itself
+doesn't do this and it's a substantial undertaking (would require
+measuring rendered DOM height and re-flowing source content, not just
+CSS).
+
+### 9.3 Tables appeared broken
+
+Tables were re-tested against several real-world shapes (immediately after
+a heading with no blank line, immediately after a paragraph with no blank
+line, alignment-colon syntax, tables nested inside `{{blocks}}`) and all
+parsed and rendered correctly — the Markdown parsing was never the
+problem. The far more likely cause is CSS multi-column layout splitting a
+table's rows across a column boundary, which renders as a visually broken
+table (a row's cells separated from its header) even though the HTML
+itself is well-formed. **Fix**: added `break-inside: avoid-column` to
+table rules in `base.css` so a table is pushed whole into the next column
+rather than split.
+
+### 9.4 No way to produce a PDF without leaving Obsidian
+
+**Fix**: new command "Print current file as Homebrewery PDF" builds the
+same standalone HTML used by the export command (with CSS embedded per
+9.1) into a hidden, off-screen `<iframe>`, then calls the iframe's own
+`window.print()` once it finishes loading. This invokes the normal
+OS/Electron print dialog — including a "Save as PDF" printer — without
+requiring the user to save a file and open it in an external browser
+first. Obsidian's own core "Export to PDF" command isn't reusable here
+because it prints whatever the currently-focused pane is (the Markdown
+editor/reading view), not an arbitrary custom `ItemView`'s DOM; driving
+`print()` on our own iframe sidesteps that limitation entirely.
+

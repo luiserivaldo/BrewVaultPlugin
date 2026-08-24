@@ -114,5 +114,32 @@ export class HomebreweryView extends ItemView {
 			pageEl.innerHTML = page.html;
 			pageEl.createDiv({ cls: "brewPageNumber", text: String(page.index) });
 		}
+
+		this.flagOverflowingPages();
+	}
+
+	/**
+	 * After a render, checks each .brewPage for clipped content (its
+	 * rendered content is taller than the fixed page height allows) and
+	 * flags it visually. Pages are fixed-height by design (see
+	 * ARCHITECTURE.md §9.2, matching Homebrewery's own manual-pagination
+	 * model) — this only adds feedback so overflow isn't silent.
+	 * Deferred a frame so layout has settled before measuring.
+	 */
+	private flagOverflowingPages(): void {
+		window.requestAnimationFrame(() => {
+			const pageEls = this.pagesContainer.querySelectorAll<HTMLElement>(".brewPage");
+			pageEls.forEach((pageEl) => {
+				pageEl.removeClass("brewPageOverflow");
+				pageEl.querySelector(".brewPageOverflowBadge")?.remove();
+
+				const isOverflowing = pageEl.scrollHeight > pageEl.clientHeight + 1;
+				if (isOverflowing) {
+					pageEl.addClass("brewPageOverflow");
+					const badge = pageEl.createDiv({ cls: "brewPageOverflowBadge" });
+					badge.setText("Content overflows — add \\page or \\column");
+				}
+			});
+		});
 	}
 }

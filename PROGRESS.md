@@ -149,11 +149,96 @@ is correct per Obsidian's documented plugin layout, but untested end to
 end). This should be the first thing checked when this is loaded into a
 real vault.
 
-## Next (not started — Milestone 5, out of scope for this pass)
+## Milestone 5 — Fixes from first real-world Obsidian testing
+Status: ✅ Complete
+
+Triggered directly by user-reported feedback (screenshot + exported HTML/PDF
+samples from a real vault) after Milestone 4. Each item below traces to a
+specific piece of that feedback — see `ARCHITECTURE.md` §9 for full root
+cause + fix write-ups.
+
+- [x] **"Export to html works, but does not apply CSS elements."**
+      Root cause confirmed by inspecting the reported `.html` export: its
+      `<style>` block had only the inline layout rules, none of the
+      `.brewvault-theme-*` rules — `app.vault.adapter.read()` was failing
+      silently at export time. Fixed by embedding the built `styles.css`
+      into `main.js` at **build time** instead: `scripts/build-css.mjs`
+      bundles the CSS, then snapshots it into a generated
+      `src/generated/themeCss.ts` (`export const BUNDLED_THEME_CSS = "..."`)
+      that both the exporter and the new PDF-print command import directly.
+      Zero runtime file I/O in this path now.
+- [x] **"Renderer is unaware of Page Separation, rendering a whole document
+      as an incredibly long vertical document in two columns."** Root
+      cause: `.brewPage` used `min-height` instead of a fixed `height`, so
+      CSS multi-column layout just grew forever instead of behaving like a
+      real fixed-size Homebrewery page. Fixed: `.brewPage` is now a fixed
+      `height: var(--brew-page-height)` with `overflow: hidden` — matching
+      Homebrewery's own manual-pagination model (long content is expected
+      to be split by the author with `\page`/`\column`, not
+      auto-paginated — Homebrewery doesn't auto-paginate either). Since a
+      silent clip is worse than Homebrewery's own feedback-free clip,
+      `HomebreweryView.flagOverflowingPages()` now measures each rendered
+      page's `scrollHeight` vs `clientHeight` after render and adds a
+      dashed red outline + "Content overflows — add `\page` or `\column`"
+      badge when content is being cut off.
+- [x] **"Incapable of rendering Obsidian tables."** Re-tested table parsing
+      against several real-world shapes (table directly after a heading
+      with no blank line, directly after a paragraph with no blank line,
+      alignment-colon syntax, tables nested inside `{{blocks}}`) — all
+      parsed and rendered correctly, so this wasn't a parsing bug. The
+      likely actual cause: CSS multi-column layout splitting a table's
+      rows across a column boundary, which looks broken even though the
+      HTML is valid. Fixed: added `break-inside: avoid-column` (+ legacy
+      `page-break-inside: avoid`) to table rules in `base.css` so a table
+      is pushed whole into the next column instead of split mid-row.
+- [x] **"There also needs to be a plugin option to render the pdf as
+      previewed."** New command "Print current file as Homebrewery PDF"
+      (`src/main.ts` → `printFileAsPdf()`): builds the same standalone
+      HTML as the export command, loads it into a hidden off-screen
+      `<iframe>`, and calls the iframe's own `window.print()` once loaded
+      — opening the normal OS/Electron print dialog (with "Save as PDF")
+      without a save-then-reopen-in-browser round trip.
+- [x] Build pipeline restructured: `scripts/build-css.mjs` is now a shared,
+      standalone module used both as an `npm run build` pre-step (so
+      `tsc` has `src/generated/themeCss.ts` to type-check against) and by
+      `esbuild.config.mjs`'s watch mode (re-snapshotting + rebuilding
+      `main.js` whenever a `styles/*.css` file changes).
+
+## Verification performed (Milestone 5)
+
+- `npm run build` (now: CSS snapshot → `tsc -noEmit` → esbuild production)
+  passes clean end to end from a fully wiped `main.js`/`styles.css`/
+  `src/generated/` state.
+- Confirmed `src/generated/themeCss.ts`'s `BUNDLED_THEME_CSS` string
+  contains the `.brewvault-theme-phb .brewPage` rule (previously absent
+  from real exports), a fixed `height:var(--brew-page-height)` declaration
+  for `.brewPage` with **no** `min-height` present, and the new
+  `break-inside:avoid-column` table rule — checked programmatically, not
+  just by eye.
+- Reconstructed the reported "Longren (Dragonfolk)" note as
+  `examples/longren-dragonfolk.md` (from the content in the user's PDFs,
+  since the original `.md` source wasn't attached) and ran it through
+  `buildStandaloneHtml()` with the newly-embedded CSS: confirmed the
+  output starts with `<!DOCTYPE html>`, includes the theme rules, and
+  renders its table.
+- The new `flagOverflowingPages()` overflow-detection logic and
+  `printFileAsPdf()` iframe/`window.print()` flow were code-reviewed for
+  correctness against the DOM/Electron APIs they use, but — like all
+  Obsidian-runtime behavior in this project — **could not be executed
+  against a real Obsidian install** in this environment. These are the
+  first things to check by hand: (1) open the "Homebrewery Preview" pane
+  on a note deliberately longer than one page and confirm the red dashed
+  outline + badge appear where expected, and (2) run "Print current file
+  as Homebrewery PDF" and confirm the OS print dialog opens with content
+  visible in its preview.
+
+## Next (not started — Milestone 6, out of scope for this pass)
 
 - [ ] Editor <-> preview scroll sync
 - [ ] `{{footnote}}` / mustache variable substitution
-- [ ] Direct PDF export without a browser round-trip
+- [ ] True automatic re-pagination (dynamically slicing overflow content
+      into synthetic extra pages, rather than flagging it for the author
+      to split manually)
 - [ ] Dedicated `Key :: Value` legend syntax for stat blocks
 
 ## How to use the plugin
@@ -164,8 +249,15 @@ with expected input/output for each.
 ## How to resume
 
 1. `npm install`
-2. `npm run dev` (esbuild watch mode) or `npm run build` (one-shot)
+2. `npm run dev` (esbuild watch mode — regenerates `src/generated/themeCss.ts`
+   automatically on CSS edits) or `npm run build` (one-shot: CSS snapshot →
+   typecheck → production bundle)
 3. Symlink or copy the built plugin folder (`manifest.json`, `main.js`,
    `styles.css`) into `<vault>/.obsidian/plugins/brewvault/` and enable it
    in Obsidian's Community Plugins settings (with Safe Mode / restricted
    plugin loading off, since this is unpublished).
+
+Note: `src/generated/themeCss.ts` is a build artifact (gitignored) — if
+you clone this repo fresh and jump straight to editing `main.ts` before
+ever running a build, your editor's TypeScript server will show an
+import error for it until you run `npm run build` or `npm run dev` once.

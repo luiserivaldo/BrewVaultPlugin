@@ -18,18 +18,40 @@ or "Homebrewery", or use the ribbon icon (scroll icon in the left sidebar).
 | **Insert note block snippet** | Same as above. | Inserts a `{{note ... }}` block with placeholder callout text. |
 | **Insert descriptive (read-aloud) block snippet** | Same as above. | Inserts a `{{descriptive ... }}` block with placeholder flavor text. |
 | **Export current file as standalone Homebrewery HTML** | Cursor/focus in a `.md` file. | Writes `<note-name>.brew.html` next to the source note in your vault, and shows a confirmation notice. The file is fully self-contained (theme CSS inlined) — open it directly in any browser. |
+| **Print current file as Homebrewery PDF** | Cursor/focus in a `.md` file. | Renders the file the same way the preview does, then directly opens your system's print dialog (with "Save as PDF" as a printer option) — no save-then-reopen-in-browser step needed. |
 
 ## Turning an export into a PDF
 
-Obsidian plugins can't call a system PDF renderer directly, so the export
-command hands off to your browser instead:
+Two ways to get a PDF, from most to least convenient:
 
-1. Run **Export current file as standalone Homebrewery HTML**.
-2. Open the resulting `<note-name>.brew.html` file in Chrome, Firefox, etc.
-   (double-click it in your file manager, or drag it into a browser tab).
-3. Use the browser's **Print → Save as PDF**. The exported file includes a
-   `@media print` rule so each `.brewPage` prints on its own sheet instead
-   of being cut off mid-page.
+1. **Print current file as Homebrewery PDF** (recommended) — opens the
+   system print dialog directly from Obsidian; choose "Save as PDF" as
+   the destination/printer.
+2. **Export current file as standalone Homebrewery HTML**, then:
+   1. Open the resulting `<note-name>.brew.html` file in Chrome, Firefox,
+      etc. (double-click it in your file manager, or drag it into a
+      browser tab).
+   2. Use the browser's **Print → Save as PDF**.
+
+Both paths include a `@media print` rule so each `.brewPage` prints on its
+own sheet instead of being cut off mid-page.
+
+## Pagination: how page size actually works
+
+Pages are a **fixed size** (`816×1056px` by default, matching US Letter at
+96dpi) — they do not grow to fit your content, and BrewVault does not
+auto-paginate long notes into extra pages for you. This matches how real
+Homebrewery pages behave: a page is a fixed "sheet of paper," and long
+content is split by the *author*, using `\page` and `\column`, not
+generated automatically.
+
+If a page's content doesn't fit, it's clipped — but BrewVault flags this
+for you (which stock Homebrewery doesn't): an overflowing page gets a
+dashed red outline and a small "Content overflows — add `\page` or
+`\column`" badge in its top-right corner, both in the live preview and in
+the standalone HTML export. If you see that badge, insert a `\page` (or
+`\column`, if you just want to force the rest into the next column of the
+same page) at the point in your source where you'd like the split.
 
 ## Homebrewery syntax reference
 
@@ -125,9 +147,19 @@ Settings → BrewVault:
 - No dedicated stat-block "legend" (`Key :: Value`) syntax — use bullet
   lists instead, as in the built-in snippet.
 - No editor↔preview scroll sync.
-- No direct PDF export (browser print hand-off only, see above).
+- No true *automatic* re-pagination — see "Pagination" above. Overflow is
+  flagged, not auto-fixed; you still add the `\page`/`\column` yourself,
+  same as in real Homebrewery.
+- The theme CSS is an original approximation of Homebrewery's visual
+  style, not a byte-for-byte copy of its stylesheet, so exact spacing,
+  font choices, and how the browser balances content across the two CSS
+  columns can differ slightly from a native homebrewery.naturalcrit.com
+  export even for identical source text. This is expected, not a bug —
+  if pixel-perfect parity with native Homebrewery output matters for a
+  specific document, treat BrewVault's preview as a close approximation
+  for in-app editing rather than a guaranteed exact match.
 
-These are tracked as Milestone 5+ in `ARCHITECTURE.md`.
+These are tracked as Milestone 6+ in `ARCHITECTURE.md`.
 
 ## Try it yourself
 

@@ -27,11 +27,18 @@
 
 /* The page "sheet of paper" itself. Themes style its background/border;
    this rule only owns layout/sizing so pagination behaves consistently
-   across themes. */
+   across themes.
+
+   IMPORTANT: this is a FIXED height (not min-height), matching how real
+   Homebrewery pages behave — pages don't grow to fit content. If a page's
+   content is taller than it, the overflow is clipped, and the author is
+   expected to split the source with `\page` / `\column`. See the
+   .brewPageOverflow rules below for how BrewVault flags this instead of
+   silently clipping content with no feedback. */
 .brewPage {
 	position: relative;
 	width: var(--brew-page-width);
-	min-height: var(--brew-page-height);
+	height: var(--brew-page-height);
 	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
 	box-sizing: border-box;
 	overflow: hidden;
@@ -39,6 +46,30 @@
 	column-count: 2;
 	column-gap: 40px;
 	flex-shrink: 0;
+}
+
+/* Added by HomebreweryView after render when a page's content is taller
+   than the page itself (i.e. being silently clipped). This is BrewVault's
+   own addition on top of Homebrewery's behavior — Homebrewery gives no
+   such warning, it just clips. */
+.brewPage.brewPageOverflow {
+	outline: 3px dashed #c0392b;
+	outline-offset: -3px;
+}
+
+.brewPageOverflowBadge {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	background: #c0392b;
+	color: #fff;
+	font-size: 0.7em;
+	font-family: sans-serif;
+	padding: 3px 8px;
+	border-radius: 3px;
+	z-index: 10;
+	column-span: all;
+	pointer-events: none;
 }
 
 .brewPage > h1,
@@ -83,6 +114,8 @@
 	width: 100%;
 	border-collapse: collapse;
 	font-size: 0.9em;
+	break-inside: avoid-column;
+	page-break-inside: avoid; /* legacy alias some engines still key off */
 }
 
 .brewvault-pages table th,
