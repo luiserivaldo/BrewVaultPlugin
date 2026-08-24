@@ -22,7 +22,7 @@ HTML + bundled theme + inlined local assets
 isolated Electron print adapter → validated PDF Buffer
         │
         ▼
-Obsidian Vault create/overwrite
+Obsidian Vault create at first unused numbered path
 ```
 
 Homebrewery Edit Mode is a parallel editor-only presentation path:
@@ -72,8 +72,8 @@ import `electron`.
 8. Wait deterministically for fonts and images, measure/paginate if enabled,
    and obtain the PDF buffer from `webContents.printToPDF()`.
 9. Validate the PDF bytes and recheck the source/style fingerprint.
-10. Create or overwrite the configured vault-relative destination through the
-    public Vault API.
+10. Reserve the first unused vault-relative destination (`name`, `name_1`,
+    `name_2`, ...) and create it through the public Vault API.
 11. Destroy all renderer resources in a `finally` path.
 
 ## Security and privacy

@@ -67,5 +67,5 @@ for template compatibility work.
 - First-install settings are normalized and persisted; PHB is always the default theme when no valid theme has been saved.
 - HTML and PDF exports are written to `BrewVault-Exports` at the vault root by default. The folder is created automatically and can be changed in BrewVault settings. Existing settings that still use the exact former default `BrewVault Exports` migrate automatically; custom paths do not.
 - PDF export uses the currently selected theme. Additional curated commands export using PHB, SRD, or Blank without changing the saved default theme.
-- PDF generation uses Obsidian desktop's bundled Chromium directly and overwrites `BrewVault-Exports/<note name>.pdf` without opening an operating-system print/save dialog.
+- PDF generation uses Obsidian desktop's bundled Chromium directly without opening an operating-system print/save dialog. Existing exports are preserved: collisions create `<note name>_1.pdf`, then `_2.pdf`, and so on. HTML exports follow the same numbering policy.
 - Wide/split Homebrewery tables and a pre-export Homebrewery HTML editor are deferred to a later milestone.

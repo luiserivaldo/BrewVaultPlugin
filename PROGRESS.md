@@ -331,3 +331,18 @@ the next live-vault test.
 
 Static verification passes. Native Obsidian editing acceptance is still
 required before M9 completion and the planned `0.1.2` version checkpoint.
+
+## 2026-08-24 — Generated-boundary and collision-copy hotfixes
+
+- Renderer output now retains the zero-based Markdown source line for each
+  top-level block through DOM pagination.
+- Homebrewery Edit Mode projects measured automatic boundaries as dotted
+  **Generated page N starts** separators; explicit `\page` remains a solid,
+  source-backed separator.
+- PDF and HTML exports select the first unused output path: the original name,
+  then `_1`, `_2`, and later numbered copies.
+- Added pure regression tests for source metadata, automatic-boundary filtering,
+  and collision allocation.
+
+Static verification passes. Native Obsidian acceptance and the `0.1.2` version
+milestone remain pending.

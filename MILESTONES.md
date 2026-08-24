@@ -165,8 +165,9 @@ The first side-by-side exports exposed four release-blocking mismatches:
       `printToPDF()` output written directly to the configured vault folder.
 - [x] Default new installs to `BrewVault-Exports` and migrate only the exact
       former default `BrewVault Exports`; preserve custom export paths.
-- [x] Make all configured-theme and PHB/SRD/Blank PDF commands overwrite
-      `<note name>.pdf` in the export folder without opening a dialog.
+- [x] Make all configured-theme and PHB/SRD/Blank PDF commands write directly
+      without opening a dialog; preserve existing exports by allocating
+      `<note name>_1.pdf`, `_2.pdf`, and later copies as needed.
 - [ ] Verify automatic pagination in a real Obsidian Chromium runtime with a
       document long enough to require at least three generated pages.
 - [ ] Re-export **Alter Fate** and **Swinekin** and compare against the supplied
@@ -199,7 +200,7 @@ The first real-vault M6 test added the following release requirements:
 - A single indivisible block larger than one page is visibly flagged rather
   than silently discarded or split into invalid markup.
 - PDF export opens no printer/save dialog, writes to the configured folder, and
-  overwrites an existing same-name PDF.
+  preserves an existing same-name PDF by selecting the next numbered copy.
 
 ### Current implementation checkpoint
 
@@ -264,9 +265,9 @@ Obsidian's Markdown editor without changing source notes.
 - [x] Add pure regression tests and `examples/edit-mode-regression.md`.
 - [ ] Verify label clicking/source reveal, typing, undo/redo, nested blocks,
       separators, setting toggles, and fenced examples in real Obsidian desktop.
-- [ ] Carry renderer source positions through DOM pagination before projecting
-      exact automatic page boundaries into CodeMirror. Never estimate from text
-      length, line count, or character count.
+- [x] Carry renderer source positions through DOM pagination and project exact
+      automatic page boundaries into CodeMirror. No text-length, line-count, or
+      character-count estimate is used.
 
 ### Acceptance criteria
 
@@ -275,6 +276,8 @@ Obsidian's Markdown editor without changing source notes.
 - Unmatched delimiters and fenced examples remain visible.
 - Explicit page and column separators remain stable during typing and undo/redo.
 - Disabling the setting removes all BrewVault editor decorations immediately.
+- DOM-generated boundaries use a visibly different treatment from explicit
+  source `\page` separators and disappear when pagination no longer generates them.
 
 ---
 
@@ -318,6 +321,19 @@ command palette.
 ---
 
 ## Handoff log
+
+### 2026-08-24 — 0.1.2 edit/export hotfix checkpoint
+
+**What changed:** DOM-measured automatic page boundaries now retain exact
+top-level Markdown source lines and appear in Homebrewery Edit Mode as dotted
+**Generated page N starts** separators. Explicit source `\page` directives keep
+their stronger solid treatment. PDF and HTML exports now allocate ascending
+numbered copies instead of overwriting earlier output.
+**What was verified:** focused source-position/collision regression tests,
+TypeScript, the complete automated test suite, production build, and diff checks.
+**What remains:** native Obsidian verification of the generated separator's
+placement and the numbered PDF result. M9 remains `IN PROGRESS`; the version
+stays `0.1.1` until the `0.1.2` native acceptance gate is complete.
 
 ### 2026-08-24 — M6 export parity and automatic pagination
 

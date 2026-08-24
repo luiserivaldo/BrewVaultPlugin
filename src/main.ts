@@ -10,6 +10,7 @@ import { HomebreweryView, HOMEBREWERY_VIEW_TYPE } from "./view/HomebreweryView";
 import { renderBrewMarkdown } from "./renderer";
 import { paginateBrewPages } from "./renderer/paginateDom";
 import { buildStandaloneHtml } from "./export/buildStandaloneHtml";
+import { allocateExportPath } from "./export/allocateExportPath";
 import { BUNDLED_THEME_CSS } from "./generated/themeCss";
 import { ElectronPdfExporter } from "./electron/ElectronPdfExporter";
 import { createHomebreweryEditModeExtension } from "./editor/homebreweryEditMode";
@@ -129,13 +130,8 @@ export default class BrewVaultPlugin extends Plugin {
 			);
 
 			const exportFolder = await this.ensureExportFolder();
-			const outPath = normalizePath(`${exportFolder}/${file.basename}.brew.html`);
-			const existing = this.app.vault.getAbstractFileByPath(outPath);
-			if (existing instanceof TFile) {
-				await this.app.vault.modify(existing, html);
-			} else {
-				await this.app.vault.create(outPath, html);
-			}
+			const outPath = this.allocateExportPath(exportFolder, file.basename, ".brew.html");
+			await this.app.vault.create(outPath, html);
 
 			new Notice(
 				`Exported "${outPath}". Open it in a browser and use Print → Save as PDF.`
@@ -151,7 +147,6 @@ export default class BrewVaultPlugin extends Plugin {
 		try {
 			const theme = themeOverride ?? this.settings.theme;
 			const exportFolder = await this.ensureExportFolder();
-			const outPath = normalizePath(`${exportFolder}/${file.basename}.pdf`);
 			const source = await this.app.vault.cachedRead(file);
 			const renderedPages = renderBrewMarkdown(source);
 			const pages = await paginateBrewPages(renderedPages, {
@@ -170,14 +165,8 @@ export default class BrewVaultPlugin extends Plugin {
 			);
 
 			const pdf = await this.pdfExporter.renderHtmlToPdf(html);
-			const existing = this.app.vault.getAbstractFileByPath(outPath);
-			if (existing instanceof TFile) {
-				await this.app.vault.modifyBinary(existing, pdf);
-			} else if (existing) {
-				throw new Error(`BrewVault PDF output path is not a file: ${outPath}`);
-			} else {
-				await this.app.vault.createBinary(outPath, pdf);
-			}
+			const outPath = this.allocateExportPath(exportFolder, file.basename, ".pdf");
+			await this.app.vault.createBinary(outPath, pdf);
 
 			new Notice(`Exported to ${outPath}`);
 		} catch (err) {
@@ -229,6 +218,15 @@ export default class BrewVaultPlugin extends Plugin {
 		}
 
 		return normalized;
+	}
+
+	private allocateExportPath(folder: string, basename: string, suffix: string): string {
+		return allocateExportPath(
+			folder,
+			basename,
+			suffix,
+			(path) => this.app.vault.getAbstractFileByPath(path) !== null
+		);
 	}
 
 	async saveSettings(): Promise<void> {
