@@ -41,8 +41,16 @@ void test("unfinished tags and fenced examples remain visible source", () => {
 	assert.deepEqual(findHomebreweryTagRanges(source), []);
 });
 
-void test("page directives and inline content are not decorated", () => {
+void test("explicit page directives receive a next-page separator", () => {
 	const source = ["\\page", "Text {{damage 2d6}} here", "\\column"].join("\n");
+	assert.deepEqual(
+		findHomebreweryTagRanges(source).map(({ kind, label }) => ({ kind, label })),
+		[{ kind: "page", label: "Next page starts" }]
+	);
+});
+
+void test("page directives inside fenced examples remain visible source", () => {
+	const source = ["```markdown", "\\page", "```"].join("\n");
 	assert.deepEqual(findHomebreweryTagRanges(source), []);
 });
 

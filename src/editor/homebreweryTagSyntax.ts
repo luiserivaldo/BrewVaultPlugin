@@ -1,5 +1,5 @@
 export interface HomebreweryTagRange {
-	kind: "open" | "close";
+	kind: "open" | "close" | "page";
 	from: number;
 	to: number;
 	label: string;
@@ -63,7 +63,14 @@ export function findHomebreweryTagRanges(source: string): HomebreweryTagRange[] 
 			}
 		} else if (!fence && trimmed.length > 0) {
 			const opener = BLOCK_OPEN_RE.exec(trimmed);
-			if (opener) {
+			if (trimmed === "\\page") {
+				ranges.push({
+					kind: "page",
+					from: contentFrom,
+					to: contentTo,
+					label: "Next page starts",
+				});
+			} else if (opener) {
 				const label = formatHomebreweryTagLabel(opener[1]);
 				stack.push({
 					label,

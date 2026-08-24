@@ -27,3 +27,24 @@
 .brewvault-tag-preview.is-closing {
 	color: var(--text-muted);
 }
+
+.brewvault-page-break-preview {
+	display: inline-flex;
+	width: 100%;
+	align-items: center;
+	gap: 0.75em;
+	color: var(--text-accent);
+	font-family: var(--font-interface);
+	font-size: var(--font-ui-small);
+	font-weight: var(--font-semibold);
+	line-height: 1.4;
+	white-space: nowrap;
+}
+
+.brewvault-page-break-preview::before,
+.brewvault-page-break-preview::after {
+	content: "";
+	min-width: 1.5em;
+	border-top: 2px solid var(--interactive-accent);
+	flex: 1 1 auto;
+}

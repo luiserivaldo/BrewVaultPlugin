@@ -11,13 +11,16 @@ It also preserves existing exports by creating numbered copies.
 ## Next minor release
 
 The isolated `feature/inline-tag-preview-wikilinks` branch targets `0.1.3`
-after practical approval. It adds only two focused changes:
+after practical approval. It adds only three focused changes:
 
 - Matched multiline Homebrewery tags such as `{{wide` … `}}` appear as compact
   labels in Obsidian's editor. Selecting a label reveals the exact source.
 - Obsidian `[[wikilink]]` brackets are omitted from Homebrewery preview, HTML,
   and PDF output. Aliases remain visible as plain text, while unresolved
   `![[embeds]]` are suppressed.
+- Explicit source `\page` directives appear in the Markdown editor as a
+  full-width **Next page starts** separator; selecting it reveals `\page` for
+  editing.
 
 This implementation does not restore generated page-boundary decorations,
 editor settings reconfiguration, or preview-to-editor callbacks from the

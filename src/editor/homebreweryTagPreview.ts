@@ -36,6 +36,25 @@ class HomebreweryTagWidget extends WidgetType {
 	}
 }
 
+class HomebreweryPageBreakWidget extends WidgetType {
+	eq(): boolean {
+		return true;
+	}
+
+	toDOM(): HTMLElement {
+		const element = document.createElement("span");
+		element.className = "brewvault-page-break-preview";
+		element.textContent = "Next page starts";
+		element.setAttribute("role", "separator");
+		element.setAttribute("aria-label", "Explicit page break; next page starts");
+		return element;
+	}
+
+	ignoreEvent(): boolean {
+		return false;
+	}
+}
+
 class HomebreweryTagPreviewView {
 	decorations: DecorationSet;
 	private ranges: HomebreweryTagRange[];
@@ -83,7 +102,10 @@ function buildDecorations(
 		)
 		.map((range) =>
 			Decoration.replace({
-				widget: new HomebreweryTagWidget(range.label, range.kind === "close"),
+				widget:
+					range.kind === "page"
+						? new HomebreweryPageBreakWidget()
+						: new HomebreweryTagWidget(range.label, range.kind === "close"),
 			}).range(range.from, range.to)
 		);
 
