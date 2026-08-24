@@ -41,11 +41,20 @@ void test("unfinished tags and fenced examples remain visible source", () => {
 	assert.deepEqual(findHomebreweryTagRanges(source), []);
 });
 
-void test("explicit page directives receive a next-page separator", () => {
-	const source = ["\\page", "Text {{damage 2d6}} here", "\\column"].join("\n");
+void test("explicit page directives receive sequential page labels", () => {
+	const source = [
+		"Opening",
+		"\\page",
+		"Text {{damage 2d6}} here",
+		"\\column",
+		"\\page",
+	].join("\n");
 	assert.deepEqual(
 		findHomebreweryTagRanges(source).map(({ kind, label }) => ({ kind, label })),
-		[{ kind: "page", label: "Next page starts" }]
+		[
+			{ kind: "page", label: "Page 2" },
+			{ kind: "page", label: "Page 3" },
+		]
 	);
 });
 

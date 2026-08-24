@@ -18,9 +18,9 @@ after practical approval. It adds only three focused changes:
 - Obsidian `[[wikilink]]` brackets are omitted from Homebrewery preview, HTML,
   and PDF output. Aliases remain visible as plain text, while unresolved
   `![[embeds]]` are suppressed.
-- Explicit source `\page` directives appear in the Markdown editor as a
-  full-width **Next page starts** separator; selecting it reveals `\page` for
-  editing.
+- Explicit source `\page` directives appear in the Markdown editor as
+  full-width **Page 2**, **Page 3**, and later numbered separators; selecting
+  one reveals `\page` for editing.
 
 This implementation does not restore generated page-boundary decorations,
 editor settings reconfiguration, or preview-to-editor callbacks from the

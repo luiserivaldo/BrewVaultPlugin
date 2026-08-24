@@ -33,6 +33,7 @@ export function findHomebreweryTagRanges(source: string): HomebreweryTagRange[] 
 	const stack: PendingTag[] = [];
 	let fence: FenceState | null = null;
 	let lineFrom = 0;
+	let pageNumber = 1;
 
 	while (lineFrom <= source.length) {
 		const newline = source.indexOf("\n", lineFrom);
@@ -64,11 +65,12 @@ export function findHomebreweryTagRanges(source: string): HomebreweryTagRange[] 
 		} else if (!fence && trimmed.length > 0) {
 			const opener = BLOCK_OPEN_RE.exec(trimmed);
 			if (trimmed === "\\page") {
+				pageNumber++;
 				ranges.push({
 					kind: "page",
 					from: contentFrom,
 					to: contentTo,
-					label: "Next page starts",
+					label: `Page ${pageNumber}`,
 				});
 			} else if (opener) {
 				const label = formatHomebreweryTagLabel(opener[1]);
