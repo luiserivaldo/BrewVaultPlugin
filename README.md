@@ -1,130 +1,60 @@
-# BrewVault PDF
+# BrewVault
 
-BrewVault PDF is a planned desktop-only Obsidian plugin that renders the active
-Markdown note with Homebrewery-compatible D&D styling and exports it as a PDF.
-It is local-first: vault content stays on the user's computer, and PDF export
-must not require a server, a separate Chromium download, or an external command.
+An Obsidian desktop plugin that renders your Markdown notes as
+Homebrewery-style, paginated D&D 5e documents — right inside Obsidian.
 
-> [!IMPORTANT]
-> The repository currently contains the verified development scaffold and
-> architecture plan only. D0 is complete; PDF export is not implemented yet.
-> The first product milestone is the Electron `printToPDF()` feasibility proof
-> in [MILESTONES.md](MILESTONES.md).
+> **Status:** covers Milestones 0–4 of the plan in
+> [`ARCHITECTURE.md`](./ARCHITECTURE.md). See [`PROGRESS.md`](./PROGRESS.md)
+> for exactly what's done and verified, and [`USAGE.md`](./USAGE.md) for a
+> full command reference with expected input/output.
 
-## Planned workflow
+## What it does today
 
-1. Open a Markdown note in Obsidian desktop.
-2. Run **Export active note as BrewVault PDF**.
-3. Review the Homebrewery-styled preview.
-4. Optionally select a local custom CSS file from the vault.
-5. Choose a destination and export the verified PDF.
+- Adds a "Homebrewery Preview" pane (ribbon icon + command palette entry)
+  that renders the active Markdown note as one or more paginated,
+  themed pages, live-updating as you type.
+- Supports Homebrewery's core authoring syntax on top of standard
+  Markdown:
+  - `{{className\n ... \n}}` — block containers (notes, stat blocks, etc.),
+    including multi-class like `{{monster,wide}}`.
+  - `{{className content}}` — inline styled spans.
+  - `\page` — starts a new page.
+  - `\column` — forces a column break within a page.
+- Three theme variants: `phb` (parchment/ink), `journal` (ink-on-cream,
+  informal), and `blank` (plain page), plus configurable page
+  width/height and re-render debounce, in Settings.
+- Snippet-insertion commands for common blocks (monster stat block, note,
+  descriptive/read-aloud text).
+- Export the active note to a standalone, self-contained HTML file for
+  printing to PDF from a browser.
 
-Obsidian already owns vault discovery, active-file state, metadata caching, and
-link resolution. BrewVault PDF will keep the proven Markdown AST → document IR
-→ Homebrewery serialization work from the earlier BrewVault application while
-replacing its standalone filesystem, web server, Tauri, and Playwright layers.
+See [`USAGE.md`](./USAGE.md) for the full command list and syntax
+reference, and [`examples/sample-brew.md`](./examples/sample-brew.md) for
+a note that exercises the syntax end to end.
 
-## Scope
-
-The first release targets:
-
-- Obsidian desktop on Windows, Linux, and macOS.
-- One active Markdown file per export.
-- Obsidian wikilinks and embeds resolved through Obsidian's public APIs.
-- Homebrewery-compatible default styling.
-- An optional local CSS file for custom styling.
-- Local images, fonts, backgrounds, tables, and explicit page breaks.
-- Chromium PDF generation through the Electron runtime already used by
-  Obsidian.
-- Offline operation with no telemetry.
-
-Explicit non-goals for the first release are mobile support, batch/booklet
-composition, live Markdown editing inside the preview, AI features, web image
-search, and remote rendering services.
-
-## Architecture boundaries
-
-- Use Obsidian's `Vault`, `Workspace`, and `MetadataCache` APIs for vault files,
-  the active note, embeds, link resolution, and change events.
-- Keep Markdown parsing, document IR, Homebrewery serialization, pagination,
-  and rendering independent from Obsidian UI code.
-- Isolate direct Electron access behind one desktop PDF adapter. The M0 spike
-  must prove that adapter against supported Obsidian versions before the
-  renderer is ported.
-- Bundle runtime dependencies into `main.js`; end users must not install Node,
-  npm, Homebrewery, Playwright, Chromium, or a sidecar.
-- Do not modify the source note during preview or export.
-- Do not load remote scripts, styles, images, or fonts in the print renderer.
-
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the proposed module map and
-security boundary.
-
-## Developer setup
-
-Requirements:
-
-- Node.js 20 or newer.
-- npm 10 or newer.
-- Obsidian desktop for manual plugin verification.
-
-From the repository root:
+## Building
 
 ```bash
-npm ci
-npm run check
+npm install
+npm run build      # one-shot production build -> main.js, styles.css
+npm run dev         # esbuild watch mode
 ```
 
-For watch mode:
+## Installing into a vault (unpublished/dev install)
 
-```bash
-npm run dev
-```
+1. `npm run build`.
+2. Copy (or symlink) `manifest.json`, `main.js`, and `styles.css` into
+   `<your-vault>/.obsidian/plugins/brewvault/`.
+3. In Obsidian: Settings → Community plugins → enable "BrewVault".
+   (Community plugins must be enabled, since this isn't published to the
+   official directory.)
 
-The build produces `main.js` at the repository root. For a development install,
-place or symlink this repository at:
+## Project layout
 
-```text
-<Vault>/.obsidian/plugins/brewvault-pdf/
-```
+See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full design write-up,
+module-by-module.
 
-Then enable **BrewVault PDF** under **Settings → Community plugins**. Generated
-`main.js` and source maps are intentionally ignored by Git and must be rebuilt
-locally.
+## Roadmap
 
-## Verification
-
-Run before every milestone commit:
-
-```bash
-npm run typecheck
-npm run lint
-npm run build
-git diff --check
-```
-
-Milestone-specific integration and manual Obsidian checks are recorded in
-[MILESTONES.md](MILESTONES.md). A milestone is not complete merely because its
-implementation exists; its stated acceptance evidence must pass.
-
-## Releases
-
-There is no functional release yet. When release work begins, Git tags must
-exactly match `manifest.json` versions without a leading `v`. Community-plugin
-artifacts will be `main.js`, `manifest.json`, and `styles.css` when styles are
-present.
-
-All unreleased work is committed to `develop`. Short-lived feature branches may
-branch from and merge back into `develop`, but `main` is updated only for a
-verified version release. Tracking/documentation milestones that do not create
-a release are committed and pushed on `develop`.
-
-## License and attribution
-
-BrewVault PDF is free and open-source software under the [MIT License](LICENSE).
-Redistributions must preserve its copyright and license notice.
-
-This project is built with and inspired by other open-source projects,
-especially NaturalCrit's Homebrewery and Obsidian's sample plugin. Their work is
-not relicensed by this project. See
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for licenses, acknowledgements,
-and the attribution policy.
+Milestone 5+ (not built yet): editor↔preview scroll sync, `{{footnote}}`
+variables, direct PDF export without a browser round-trip.

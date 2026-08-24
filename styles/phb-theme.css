@@ -1,0 +1,83 @@
+/* Player's-Handbook-inspired theme: parchment background, warm ink color,
+   serif display headings, drop cap on the first paragraph of a page.
+   This is an original approximation of the "5e look", not a copy of any
+   third-party stylesheet. */
+
+.brewvault-theme-phb .brewPage {
+	background-color: #eee5ce;
+	background-image: radial-gradient(
+			ellipse at top left,
+			rgba(255, 250, 230, 0.6),
+			transparent 60%
+		),
+		radial-gradient(ellipse at bottom right, rgba(120, 90, 40, 0.12), transparent 55%);
+	border: 8px solid #58180d;
+	outline: 1px solid #a9925c;
+	outline-offset: -14px;
+	color: #1a1005;
+	font-family: "Iowan Old Style", Palatino, "Palatino Linotype", Georgia, serif;
+	line-height: 1.35;
+}
+
+.brewvault-theme-phb .brewPage h1,
+.brewvault-theme-phb .brewPage h2,
+.brewvault-theme-phb .brewPage h3 {
+	font-family: "Baskerville Old Face", "Iowan Old Style", Georgia, serif;
+	color: #58180d;
+	border-bottom: 2px solid #58180d80;
+	padding-bottom: 2px;
+	letter-spacing: 0.02em;
+}
+
+.brewvault-theme-phb .brewPage h1 {
+	font-size: 2.1em;
+	text-transform: uppercase;
+}
+
+.brewvault-theme-phb .brewPage h2 {
+	font-size: 1.5em;
+}
+
+.brewvault-theme-phb .brewPage > p:first-of-type::first-letter {
+	float: left;
+	font-family: "Baskerville Old Face", Georgia, serif;
+	font-size: 3.4em;
+	line-height: 0.8;
+	padding: 4px 6px 0 0;
+	color: #58180d;
+}
+
+.brewvault-theme-phb .brewPage a {
+	color: #58180d;
+}
+
+.brewvault-theme-phb .brewPage blockquote {
+	border-left: 3px solid #58180d80;
+	margin-left: 0;
+	padding-left: 1em;
+	font-style: italic;
+}
+
+/* {{note}} */
+.brewvault-theme-phb .brew-note {
+	background: rgba(255, 255, 255, 0.35);
+	border: 1px solid #a9925c;
+}
+
+/* {{descriptive}} — flavor-text style block */
+.brewvault-theme-phb .brew-descriptive {
+	font-style: italic;
+	background: rgba(255, 255, 255, 0.2);
+	border-left: 3px solid #58180d;
+}
+
+/* {{classTable}} / {{monster}} — bordered stat/table container */
+.brewvault-theme-phb .brew-classTable,
+.brewvault-theme-phb .brew-monster {
+	background: rgba(255, 255, 255, 0.45);
+	border: 2px solid #58180d;
+}
+
+.brewvault-theme-phb .brewPageNumber {
+	color: #58180d;
+}

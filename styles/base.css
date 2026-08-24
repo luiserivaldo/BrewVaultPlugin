@@ -1,0 +1,92 @@
+/* Everything is scoped under .brewvault-root so it can never leak into the
+   rest of Obsidian's UI (editor, other panes, etc.). */
+
+.brewvault-root {
+	height: 100%;
+	overflow-y: auto;
+	background: var(--background-secondary);
+	padding: 24px;
+	box-sizing: border-box;
+}
+
+.brewvault-empty {
+	color: var(--text-muted);
+	text-align: center;
+	margin-top: 2em;
+	font-style: italic;
+}
+
+.brewvault-pages {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 24px;
+	--brew-page-width: 816px;
+	--brew-page-height: 1056px;
+}
+
+/* The page "sheet of paper" itself. Themes style its background/border;
+   this rule only owns layout/sizing so pagination behaves consistently
+   across themes. */
+.brewPage {
+	position: relative;
+	width: var(--brew-page-width);
+	min-height: var(--brew-page-height);
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+	box-sizing: border-box;
+	overflow: hidden;
+	padding: 56px 64px;
+	column-count: 2;
+	column-gap: 40px;
+	flex-shrink: 0;
+}
+
+.brewPage > h1,
+.brewPage > h2 {
+	column-span: all;
+}
+
+.brewPageNumber {
+	position: absolute;
+	bottom: 16px;
+	right: 24px;
+	font-size: 0.8em;
+	opacity: 0.6;
+	column-span: all;
+}
+
+/* \column forces a CSS column break at that point in the document. */
+.columnSplit {
+	break-after: column;
+	-webkit-column-break-after: always;
+	height: 0;
+}
+
+/* Generic {{block}} container: themes may further style specific
+   brew-<className> classes (e.g. brew-note, brew-classTable). */
+.brewBlock {
+	break-inside: avoid;
+	margin: 0.75em 0;
+	padding: 0.5em 0.75em;
+	border-radius: 4px;
+}
+
+.brewBlock.brew-wide {
+	column-span: all;
+}
+
+.brewvault-pages img {
+	max-width: 100%;
+}
+
+.brewvault-pages table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.9em;
+}
+
+.brewvault-pages table th,
+.brewvault-pages table td {
+	border: 1px solid currentColor;
+	padding: 4px 8px;
+}

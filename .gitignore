@@ -1,33 +1,6 @@
-# Editors and operating systems
-.vscode/
-.idea/
-*.iml
-.DS_Store
-Thumbs.db
-
-# Dependencies and tooling
 node_modules/
-.eslintcache
-*.tsbuildinfo
-coverage/
-
-# Generated plugin artifacts
 main.js
-*.map
-*.zip
-
-# Local Obsidian development state
-.obsidian/
-data.json
-test-vault/
-
-# Generated documents and temporary output
-output/
-tmp/
-*.tmp
-
-# Local configuration and credentials
-.env
-.env.*
-!.env.example
-*.local
+styles.css
+*.js.map
+.DS_Store
+dist/
