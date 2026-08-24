@@ -1,5 +1,6 @@
 import type { BrewPage } from "../renderer/types";
 import type { BrewTheme } from "../settings/types";
+import { getThemeClassNames } from "../themes/registry";
 
 /**
  * Wraps already-rendered pages into a complete, self-contained HTML
@@ -17,12 +18,13 @@ export function buildStandaloneHtml(
 	pageWidthPx: number,
 	pageHeightPx: number
 ): string {
+	const themeClassNames = getThemeClassNames(theme).join(" ");
 	const pagesHtml = pages
 		.map(
 			(page) => `
-	<div class="brewPage">
+	<div class="page brewPage">
 		${page.html}
-		<div class="brewPageNumber">${page.index}</div>
+		<div class="pageNumber brewPageNumber">${page.index}</div>
 	</div>`
 		)
 		.join("\n");
@@ -64,8 +66,8 @@ ${themeCss}
 }
 </style>
 </head>
-<body class="brewvault-theme-${theme}">
-<div class="brewvault-pages brewvault-theme-${theme}">
+<body class="${themeClassNames}">
+<div class="brewvault-pages ${themeClassNames}">
 ${pagesHtml}
 </div>
 </body>

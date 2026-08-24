@@ -55,11 +55,12 @@ export function blockContainerRule(
 	if (closeLine === -1) return false; // unterminated block, bail out safely
 	if (silent) return true;
 
-	const classNames = openMatch[1]
+	const semanticClasses = openMatch[1]
 		.split(/[,\s]+/)
 		.map((c) => c.trim())
-		.filter(Boolean)
-		.map((c) => `brew-${c}`)
+		.filter(Boolean);
+	const classNames = semanticClasses
+		.flatMap((className) => [className, `brew-${className}`])
 		.join(" ");
 
 	const openToken = state.push("brew_block_open", "div", 1);

@@ -1,5 +1,6 @@
 import type { BrewPage } from "./types";
 import type { BrewTheme } from "../settings/types";
+import { getThemeClassNames } from "../themes/registry";
 
 export interface PaginationOptions {
 	theme: BrewTheme;
@@ -33,7 +34,11 @@ export async function paginateBrewPages(
 	}
 
 	const host = document.createElement("div");
-	host.className = `brewvault-pages brewvault-theme-${options.theme} brewvault-measure-pages`;
+	host.className = [
+		"brewvault-pages",
+		...getThemeClassNames(options.theme),
+		"brewvault-measure-pages",
+	].join(" ");
 	host.style.setProperty("--brew-page-width", `${options.pageWidthPx}px`);
 	host.style.setProperty("--brew-page-height", `${options.pageHeightPx}px`);
 	host.style.cssText +=
@@ -82,7 +87,7 @@ export async function paginateBrewPages(
 
 function createMeasurementPage(host: HTMLElement): HTMLElement {
 	const page = document.createElement("div");
-	page.className = "brewPage brewPageMeasurement";
+	page.className = "page brewPage brewPageMeasurement";
 	host.appendChild(page);
 	return page;
 }

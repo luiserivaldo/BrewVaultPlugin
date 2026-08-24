@@ -1,4 +1,6 @@
-export type BrewTheme = "phb" | "srd" | "blank";
+import type { SelectableThemeId } from "../themes/registry";
+
+export type BrewTheme = SelectableThemeId;
 
 export interface BrewVaultSettings {
 	/** Which theme stylesheet variant to apply to the preview pages. */
