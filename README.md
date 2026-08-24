@@ -1,126 +1,124 @@
 # BrewVault
 
-BrewVault is a desktop-only Obsidian plugin that renders Markdown notes as
-paginated, Homebrewery-style D&D 5e documents and exports them directly to HTML
-or PDF.
-
-Version `0.1.3` restores inline Homebrewery tag labels and explicit numbered
-page separators in the native Obsidian editor, removes wikilink brackets from
-rendered documents, and begins upstream-derived Homebrewery theme parity.
-
-## Current theme-parity development
-
-The isolated `feature/homebrewery-theme-parity` branch targets the approved
-`0.1.3` development release. It includes:
-
-- Matched multiline Homebrewery tags such as `{{wide` … `}}` appear as compact
-  labels in Obsidian's editor. Selecting a label reveals the exact source.
-- Obsidian `[[wikilink]]` brackets are omitted from Homebrewery preview, HTML,
-  and PDF output. Aliases remain visible as plain text, while unresolved
-  `![[embeds]]` are suppressed.
-- Explicit source `\page` directives appear in the Markdown editor as
-  full-width **Page 2**, **Page 3**, and later numbered separators; selecting
-  one reveals `\page` for editing.
-- A theme registry that preserves Blank → 5ePHB → 5eDMG inheritance and keeps
-  Journal and Unearthed Arcana derived from Blank.
-- Upstream-derived Blank and 5ePHB physical measurements, typography,
-  parchment, block styling, tables, stat blocks, and page furniture, bundled
-  for fully offline preview and export.
-
-This implementation does not restore generated page-boundary decorations,
-editor settings reconfiguration, or preview-to-editor callbacks from the
-withdrawn experimental Edit Mode.
+BrewVault is a desktop Obsidian plugin for turning Markdown notes into
+paginated, Homebrewery-style documents. Preview your work inside Obsidian and
+export it directly as a PDF or self-contained HTML file.
 
 ## Features
 
 - Live Homebrewery preview that follows the active Markdown note.
-- Upstream-derived PHB parchment, SRD / Unearthed Arcana, and Blank themes.
-- Standard Markdown plus Homebrewery block, inline, page, and column syntax.
-- DOM-measured automatic pagination without modifying source Markdown.
-- Direct US Letter PDF generation using Obsidian desktop's bundled Chromium.
-- Self-contained HTML export.
+- Player's Handbook parchment, SRD / Unearthed Arcana, and Blank themes.
+- Upstream-derived Homebrewery fonts, page measurements, headings, tables,
+  notes, descriptive boxes, monster blocks, and page furniture.
+- Standard Obsidian Markdown plus Homebrewery blocks, inline tags, page breaks,
+  column breaks, and wide elements.
+- Compact Homebrewery tag labels in the Markdown editor. Select a label to
+  reveal and edit its original source.
+- Numbered editor separators for explicit `\page` directives.
+- Automatic pagination without changing the source Markdown file.
+- Direct US Letter PDF export with backgrounds and fonts preserved.
+- Self-contained HTML export that can be opened without BrewVault.
+- Collision-safe output names: existing exports are preserved as `_1`, `_2`,
+  and later numbered copies.
 - Configurable vault-relative export folder, defaulting to
   `BrewVault-Exports`.
-- Collision-safe exports: existing files are preserved as `_1`, `_2`, and later
-  numbered copies.
-- Entirely local and offline; no external browser, server, or Chromium install
+- Fully local and offline. No external browser, server, or Chromium installation
   is required.
 
 ## Installation
 
-BrewVault is not yet published in Obsidian's Community Plugins directory.
-
-1. Build the plugin with `npm install` followed by `npm run build`.
-2. Create `<vault>/.obsidian/plugins/brewvault/`.
-3. Copy `manifest.json`, `main.js`, and `styles.css` into that folder.
-4. In Obsidian, open **Settings → Community plugins** and enable BrewVault.
-
 BrewVault is desktop-only and requires Obsidian `0.15.0` or newer.
 
-## Quick start
+1. Download or obtain `manifest.json`, `main.js`, and `styles.css` from the
+   BrewVault release package.
+2. Create this folder inside your vault:
 
-1. Open a Markdown note.
-2. Run **Open Homebrewery Preview** from the Command Palette, or select the
-   scroll icon in the ribbon.
-3. Choose a theme and export folder under **Settings → BrewVault**.
-4. Run **Export current file as Homebrewery PDF**.
+   ```text
+   <vault>/.obsidian/plugins/BrewVaultPlugin/
+   ```
 
-For `Alchemist.md`, the first PDF is written to:
+3. Copy the three files into that folder.
+4. Restart Obsidian, or reload the app without saving.
+5. Open **Settings → Community plugins** and enable **BrewVault**.
+
+## Functions
+
+Open the Command Palette with `Ctrl/Cmd + P` to run these functions. The preview
+can also be opened using BrewVault's scroll icon in the ribbon.
+
+| Function | Effect |
+| --- | --- |
+| **Open Homebrewery Preview** | Opens or reveals a live preview of the active Markdown note. |
+| **Export current file as HTML** | Creates a self-contained `.brew.html` file using the selected theme. |
+| **Export current file as Homebrewery PDF** | Creates a PDF using the theme selected in BrewVault settings. |
+| **Export current file as Homebrewery PDF in PHB style** | Creates a one-off PDF using the Player's Handbook parchment theme. |
+| **Export current file as Homebrewery PDF in SRD style** | Creates a one-off PDF using the SRD / Unearthed Arcana theme. |
+| **Export current file as Homebrewery PDF in Blank style** | Creates a one-off PDF using the plain Blank theme. |
+
+Theme-specific PDF functions do not change the saved preview theme.
+
+Exports are written directly to the configured folder without opening a print
+or save dialog. For a note named `Alchemist.md`, BrewVault creates:
 
 ```text
 BrewVault-Exports/Alchemist.pdf
 ```
 
-If that path exists, subsequent exports use:
+If that file already exists, the next exports are named:
 
 ```text
 BrewVault-Exports/Alchemist_1.pdf
 BrewVault-Exports/Alchemist_2.pdf
 ```
 
-HTML exports follow the same policy: `Alchemist.brew.html`, then
-`Alchemist_1.brew.html`, and so on. No printer or save dialog opens for PDF
-exports.
+HTML exports use the same policy with names such as `Alchemist.brew.html` and
+`Alchemist_1.brew.html`.
 
-## Commands
+## Custom Markdown syntax
 
-| Command | Result |
-| --- | --- |
-| **Open Homebrewery Preview** | Opens or reveals the live preview for the active Markdown note. |
-| **Export current file as HTML** | Writes a self-contained `.brew.html` document to the configured export folder. |
-| **Export current file as Homebrewery PDF** | Exports using the theme selected in BrewVault settings. |
-| **Export current file as Homebrewery PDF in PHB style** | Creates a one-off PHB parchment export. |
-| **Export current file as Homebrewery PDF in SRD style** | Creates a one-off SRD / Unearthed Arcana export. |
-| **Export current file as Homebrewery PDF in Blank style** | Creates a one-off plain export. |
+BrewVault supports normal Markdown headings, emphasis, links, blockquotes,
+lists, and tables. It also recognizes Homebrewery-style syntax.
 
-Theme-specific commands do not change the saved preview theme.
+### Blocks
 
-## Homebrewery syntax
-
-Block containers use an opening class line and a closing `}}` line:
+Open a block with `{{className` and close it with `}}`. Content inside a block
+continues to use normal Markdown.
 
 ```markdown
 {{note
-This is a callout box with **normal Markdown** inside it.
+##### Rules Note
+This text is displayed as a Homebrewery note.
 }}
 ```
 
-Multiple classes may be separated with commas or spaces:
+Common semantic block classes include `note`, `descriptive`, `monster`, and
+`classTable`.
+
+### Multiple classes and wide elements
+
+Separate classes with commas or spaces. Add `wide` when a component should span
+both columns.
 
 ```markdown
-{{monster,wide
+{{monster,wide,frame
 ## Elder Drake
-Monster content goes here.
+*Huge dragon, neutral*
+
+Monster statistics go here.
 }}
 ```
 
-Inline spans use a class followed by content:
+### Inline tags
+
+Use a class followed by its content inside a single pair of braces:
 
 ```markdown
 The attack deals {{damage 2d6 piercing}} damage.
 ```
 
-Explicit page and column boundaries must appear on their own lines:
+### Page and column breaks
+
+Place break directives on their own lines:
 
 ```markdown
 First page content.
@@ -134,86 +132,50 @@ Second page, first column.
 Second page, second column.
 ```
 
-Headings, emphasis, links, blockquotes, lists, and Markdown tables are also
-supported.
+An explicit `\page` appears in the Markdown editor as a numbered horizontal
+separator such as **Page 2**. Select the separator to reveal the source
+directive.
 
-## Pagination
+### Obsidian links
 
-Pages default to `816 × 1056px`, corresponding to US Letter at 96 CSS dpi.
-BrewVault measures the rendered document with the selected theme and creates
-additional virtual pages at safe top-level block boundaries. Tables, lists, and
-callouts are moved intact when possible. Explicit `\page` and `\column`
-directives take precedence.
+Obsidian wikilinks render as readable text without their brackets:
 
-If one indivisible block is larger than a complete page, the preview flags it
-for manual correction rather than silently discarding content.
-
-## Settings
-
-| Setting | Default | Purpose |
-| --- | --- | --- |
-| Theme | Player's Handbook | Preview and normal export appearance. |
-| Export folder | `BrewVault-Exports` | Vault-relative output directory, created automatically. |
-| Page width | `816px` | Rendered sheet width. |
-| Page height | `1056px` | Rendered sheet height. |
-| Re-render debounce | `250ms` | Delay after editing before preview refresh. |
-
-The former exact default `BrewVault Exports` migrates automatically to
-`BrewVault-Exports`; custom paths remain unchanged.
-
-## Current limitations
-
-- Desktop Obsidian only.
-- Wide and split Homebrewery tables still need additional compatibility work.
-- No editor-to-preview scroll synchronization.
-- No Homebrewery mustache-variable or footnote substitution.
-- DMG, Journal, and complete Unearthed Arcana parity remain staged registry
-  entries until their upstream styles and assets are adapted and tested.
-- Exact upstream pixel parity is not yet guaranteed for every semantic block.
-- The experimental Homebrewery Edit Mode is not included in `0.1.2`.
-
-## Build and test
-
-```bash
-npm install
-npm run typecheck
-npm test
-npm run build
+```markdown
+See [[Classes/Alchemist|Alchemist]].
 ```
 
-The production build generates `main.js` and `styles.css`. `main.js` is a build
-artifact and is intentionally excluded from Git.
+The rendered document displays `See Alchemist.` Unresolved `![[embeds]]` are
+omitted from Homebrewery preview and exports instead of exposing vault paths.
 
-## Development branches
+## Plugin settings
 
-- `main` is the stable public major-release hub.
-- `develop` contains stable development builds and only approved features.
-- `feature/<name>` branches isolate individual features and start from
-  `develop`; approval is required before merging back.
-- Agent-named branches such as `claude` and `openclaw` are personal or
-  experimental branches based on `develop`.
+Open **Settings → BrewVault** to configure the plugin.
 
-## Roadmap
+| Setting | Default | Effect |
+| --- | --- | --- |
+| Theme | Player's Handbook (parchment) | Controls the live preview and normal HTML/PDF export appearance. |
+| Export folder | `BrewVault-Exports` | Sets the vault-relative output folder. BrewVault creates it automatically. |
+| Page width | `816px` | Controls rendered page width; the default represents 8.5 inches at 96 CSS dpi. |
+| Page height | `1056px` | Controls rendered page height; the default represents 11 inches at 96 CSS dpi. |
+| Re-render debounce | `250ms` | Sets how long BrewVault waits after typing before refreshing the preview. |
 
-Mobile PDF export is the next major milestone point. It remains investigation
-only until mobile Obsidian rendering/file APIs and Android/iOS acceptance
-requirements are defined. BrewVault remains desktop-only in the meantime, and
-the verified Electron PDF path will not be weakened for a speculative fallback.
+Custom export paths remain unchanged. Installations using the former exact
+default `BrewVault Exports` are automatically migrated to `BrewVault-Exports`.
 
-## Acknowledgements
+## Accreditation and licensing
 
-BrewVault is inspired by the open-source
+BrewVault is inspired by and adapts theme resources from the open-source
 [Homebrewery](https://github.com/naturalcrit/homebrewery) project by Scott
-Tolksdorf and the NaturalCrit contributors. Homebrewery is MIT-licensed.
-BrewVault vendors and adapts upstream Blank/5ePHB theme styles, fonts, and
-decorative assets; complete notices are shipped with those resources.
-BrewVault is an independent project and is not affiliated with or endorsed by
-NaturalCrit, Obsidian, or Wizards of the Coast.
+Tolksdorf and the NaturalCrit contributors. Homebrewery is distributed under
+the MIT License. Vendored theme, font, and decorative-asset notices are kept
+with their respective resources.
 
-The initial build scaffold is adapted from the official, 0BSD-licensed Obsidian
-sample plugin. Runtime and development dependency licenses remain governed by
-their respective packages in `package-lock.json`.
+The project scaffold is adapted from the official, 0BSD-licensed
+[Obsidian sample plugin](https://github.com/obsidianmd/obsidian-sample-plugin).
+Third-party packages and assets remain subject to their own licenses.
 
-## License
+BrewVault is an independent community project and is not affiliated with or
+endorsed by NaturalCrit, Obsidian, or Wizards of the Coast. Dungeons & Dragons
+and related marks are property of Wizards of the Coast.
 
-BrewVault is released under the [MIT License](./LICENSE).
+BrewVault itself is released under the [MIT License](./LICENSE).
