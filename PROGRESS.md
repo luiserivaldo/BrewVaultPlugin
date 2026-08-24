@@ -315,3 +315,15 @@ verification limitation, not yet evidence that M6 passes a clean `npm install`.
 Verification performed: `npm test`, TypeScript typechecking, and the production
 build pass locally. Practical Obsidian/Electron export behavior remains pending
 the next live-vault test.
+
+## 2026-08-25 — 0.1.2 stability hotfix
+
+- Reverted the experimental Homebrewery Edit Mode after live testing showed
+  missing Markdown text plus severe editor lag and stutter.
+- Confirmed the runtime/editor code now matches the stable `0.1.1` release
+  baseline.
+- Retained collision-safe PDF and HTML exports using `_1`, `_2`, and ascending
+  numbered copies rather than overwriting existing files.
+- Advanced package, manifest, and compatibility metadata to `0.1.2`.
+
+Static verification passes. Practical Obsidian verification remains required.

@@ -54,10 +54,11 @@ module-by-module.
 
 Milestone 6 is focused on Homebrewery export parity and automatic pagination. Later milestones add the remaining upstream themes, vault assets, and release hardening.
 
-## 0.1.1 release behavior
+## 0.1.2 hotfix behavior
 
 - First-install settings are normalized and persisted; PHB is always the default theme when no valid theme has been saved.
 - HTML and PDF exports are written to `BrewVault-Exports` at the vault root by default. The folder is created automatically and can be changed in BrewVault settings. Existing settings that still use the exact former default `BrewVault Exports` migrate automatically; custom paths do not.
 - PDF export uses the currently selected theme. Additional curated commands export using PHB, SRD, or Blank without changing the saved default theme.
 - PDF generation uses Obsidian desktop's bundled Chromium directly without opening an operating-system print/save dialog. Existing exports are preserved: collisions create `<note name>_1.pdf`, then `_2.pdf`, and so on. HTML exports follow the same numbering policy.
+- The experimental Homebrewery Edit Mode was removed after live testing found severe Markdown-editor rendering and performance regressions. Markdown editing uses Obsidian's stable native presentation.
 - Wide/split Homebrewery tables and a pre-export Homebrewery HTML editor are deferred to a later milestone.

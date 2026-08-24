@@ -264,18 +264,17 @@ pre-export authoring surface without changing source notes implicitly.
 
 ## Handoff log
 
-### 2026-08-24 — 0.1.2 edit/export hotfix checkpoint
+### 2026-08-25 — 0.1.2 stability hotfix
 
-**What changed:** DOM-measured automatic page boundaries now retain exact
-top-level Markdown source lines and appear in Homebrewery Edit Mode as dotted
-**Generated page N starts** separators. Explicit source `\page` directives keep
-their stronger solid treatment. PDF and HTML exports now allocate ascending
-numbered copies instead of overwriting earlier output.
-**What was verified:** focused source-position/collision regression tests,
-TypeScript, the complete automated test suite, production build, and diff checks.
-**What remains:** native Obsidian verification of the generated separator's
-placement and the numbered PDF result. M9 remains `IN PROGRESS`; the version
-stays `0.1.1` until the `0.1.2` native acceptance gate is complete.
+**What changed:** restored the stable `0.1.1` editor/runtime implementation after
+live testing found missing Markdown text and severe stutter in experimental Edit
+Mode. Retained the collision-safe PDF/HTML exporter, which allocates ascending
+numbered copies instead of overwriting earlier output. Advanced editing returns
+to `NOT STARTED` and requires a new design before implementation.
+**What was verified:** the post-revert source tree differs from the `0.1.1`
+release implementation only by the numbered-export allocator and its focused
+tests. TypeScript, automated tests, production build, and diff checks pass.
+**Release:** metadata advanced to `0.1.2`; practical vault verification remains.
 
 ### 2026-08-24 — M6 export parity and automatic pagination
 
