@@ -32,7 +32,7 @@ export function inlineSpanRule(state: StateInline, silent: boolean): boolean {
 
 	const classPart = inner.slice(0, spaceIdx).trim();
 	const content = inner.slice(spaceIdx + 1).trim();
-	if (!classPart || !content || !/^[a-zA-Z][a-zA-Z0-9_,\-]*$/.test(classPart)) {
+	if (!classPart || !content || !/^[a-zA-Z][a-zA-Z0-9_,-]*$/.test(classPart)) {
 		return false;
 	}
 

@@ -14,8 +14,6 @@ export class BrewVaultSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		containerEl.createEl("h2", { text: "BrewVault settings" });
-
 		new Setting(containerEl)
 			.setName("Theme")
 			.setDesc("Visual style applied to the rendered pages.")

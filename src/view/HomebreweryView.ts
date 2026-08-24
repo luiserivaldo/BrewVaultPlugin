@@ -3,6 +3,7 @@ import { renderBrewMarkdown } from "../renderer";
 import { paginateBrewPages } from "../renderer/paginateDom";
 import type BrewVaultPlugin from "../main";
 import { ALL_THEME_CLASS_NAMES, getThemeClassNames } from "../themes/registry";
+import { appendRenderedHtml } from "../renderer/renderedHtml";
 
 export const HOMEBREWERY_VIEW_TYPE = "brewvault-preview";
 
@@ -81,7 +82,7 @@ export class HomebreweryView extends ItemView {
 		}
 		const delay = immediate ? 0 : this.plugin.settings.debounceMs;
 		this.debounceHandle = window.setTimeout(() => {
-			this.renderNow();
+			void this.renderNow();
 		}, delay);
 	}
 
@@ -103,14 +104,16 @@ export class HomebreweryView extends ItemView {
 		const pages = await paginateBrewPages(renderedPages, { theme, pageWidthPx, pageHeightPx });
 
 		this.pagesContainer.empty();
-		this.pagesContainer.style.setProperty("--brew-page-width", `${pageWidthPx}px`);
-		this.pagesContainer.style.setProperty("--brew-page-height", `${pageHeightPx}px`);
+		this.pagesContainer.setCssProps({
+			"--brew-page-width": `${pageWidthPx}px`,
+			"--brew-page-height": `${pageHeightPx}px`,
+		});
 		this.pagesContainer.removeClass(...ALL_THEME_CLASS_NAMES);
 		this.pagesContainer.addClass(...getThemeClassNames(theme));
 
 		for (const page of pages) {
 			const pageEl = this.pagesContainer.createDiv({ cls: "page brewPage" });
-			pageEl.innerHTML = page.html;
+			appendRenderedHtml(pageEl, page.html);
 			pageEl.createDiv({ cls: "pageNumber brewPageNumber", text: String(page.index) });
 		}
 

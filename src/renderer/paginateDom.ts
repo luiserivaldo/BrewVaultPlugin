@@ -1,6 +1,7 @@
 import type { BrewPage } from "./types";
 import type { BrewTheme } from "../settings/types";
 import { getThemeClassNames } from "../themes/registry";
+import { appendRenderedHtml } from "./renderedHtml";
 
 export interface PaginationOptions {
 	theme: BrewTheme;
@@ -25,7 +26,7 @@ export async function paginateBrewPages(
 ): Promise<BrewPage[]> {
 	if (typeof document === "undefined" || !document.body) return pages;
 
-	if (document.fonts?.ready) {
+	if (document.fonts) {
 		try {
 			await document.fonts.ready;
 		} catch {
@@ -33,24 +34,25 @@ export async function paginateBrewPages(
 		}
 	}
 
-	const host = document.createElement("div");
-	host.className = [
-		"brewvault-pages",
-		...getThemeClassNames(options.theme),
-		"brewvault-measure-pages",
-	].join(" ");
-	host.style.setProperty("--brew-page-width", `${options.pageWidthPx}px`);
-	host.style.setProperty("--brew-page-height", `${options.pageHeightPx}px`);
-	host.style.cssText +=
-		";position:fixed;left:-100000px;top:0;visibility:hidden;pointer-events:none;z-index:-2147483648";
+	const host = createDiv({
+		cls: [
+			"brewvault-pages",
+			...getThemeClassNames(options.theme),
+			"brewvault-measure-pages",
+		],
+	});
+	host.setCssProps({
+		"--brew-page-width": `${options.pageWidthPx}px`,
+		"--brew-page-height": `${options.pageHeightPx}px`,
+	});
 	document.body.appendChild(host);
 
 	const output: BrewPage[] = [];
 
 	try {
 		for (const explicitPage of pages) {
-			const source = document.createElement("div");
-			source.innerHTML = explicitPage.html;
+			const source = createDiv();
+			appendRenderedHtml(source, explicitPage.html);
 			const nodes = Array.from(source.childNodes).filter(
 				(node) => node.nodeType !== Node.TEXT_NODE || (node.textContent ?? "").trim().length > 0
 			);
@@ -88,11 +90,8 @@ export async function paginateBrewPages(
 }
 
 function createMeasurementPage(host: HTMLElement): HTMLElement {
-	const page = document.createElement("div");
-	page.className = "page brewPage brewPageMeasurement";
-	const columnWrapper = document.createElement("div");
-	columnWrapper.className = "columnWrapper";
-	page.appendChild(columnWrapper);
+	const page = createDiv({ cls: "page brewPage brewPageMeasurement" });
+	page.createDiv({ cls: "columnWrapper" });
 	host.appendChild(page);
 	return page;
 }

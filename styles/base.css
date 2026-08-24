@@ -166,5 +166,14 @@
 }
 
 /* Hidden DOM used by automatic pagination measurement. */
-.brewvault-measure-pages { gap: 0; }
-.brewPageMeasurement { box-shadow: none !important; }
+.brewvault-measure-pages {
+	position: fixed;
+	top: 0;
+	left: -100000px;
+	z-index: -2147483648;
+	gap: 0;
+	visibility: hidden;
+	pointer-events: none;
+}
+
+.brewvault-measure-pages .brewPageMeasurement { box-shadow: none; }

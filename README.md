@@ -27,7 +27,7 @@ export it directly as a PDF or self-contained HTML file.
 
 ## Installation
 
-BrewVault is desktop-only and requires Obsidian `0.15.0` or newer.
+BrewVault is desktop-only and requires Obsidian `1.7.2` or newer.
 
 1. Download or obtain `manifest.json`, `main.js`, and `styles.css` from the
    BrewVault release package.

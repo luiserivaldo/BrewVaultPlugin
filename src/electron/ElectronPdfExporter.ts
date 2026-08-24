@@ -68,10 +68,7 @@ export class ElectronPdfExporter {
 
 		try {
 			printWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
-			const documentUrl = `data:text/html;charset=utf-8;base64,${Buffer.from(
-				html,
-				"utf8"
-			).toString("base64")}`;
+			const documentUrl = encodeHtmlAsDataUrl(html);
 
 			await withTimeout(
 				printWindow.loadURL(documentUrl),
@@ -107,6 +104,17 @@ export class ElectronPdfExporter {
 		}
 		this.activeWindows.clear();
 	}
+}
+
+/** Encode Unicode HTML without exposing Node's Buffer API to plugin code. */
+export function encodeHtmlAsDataUrl(html: string): string {
+	const bytes = new TextEncoder().encode(html);
+	let binary = "";
+	const chunkSize = 0x8000;
+	for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+		binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
+	}
+	return `data:text/html;charset=utf-8;base64,${btoa(binary)}`;
 }
 
 const PRINT_READY_SCRIPT = `
