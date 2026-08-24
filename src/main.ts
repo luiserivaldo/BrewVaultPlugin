@@ -13,24 +13,18 @@ import { buildStandaloneHtml } from "./export/buildStandaloneHtml";
 import { allocateExportPath } from "./export/allocateExportPath";
 import { BUNDLED_THEME_CSS } from "./generated/themeCss";
 import { ElectronPdfExporter } from "./electron/ElectronPdfExporter";
-import { createHomebreweryEditModeExtension } from "./editor/homebreweryEditMode";
-import {
-	collectAutomaticPageBreaks,
-	type AutomaticPageBreak,
-} from "./editor/automaticPageBreaks";
-import type { BrewPage } from "./renderer/types";
+import { homebreweryEditModeExtension } from "./editor/homebreweryEditMode";
 import type { Extension } from "@codemirror/state";
 
 export default class BrewVaultPlugin extends Plugin {
 	settings: BrewVaultSettings = DEFAULT_SETTINGS;
 	private readonly pdfExporter = new ElectronPdfExporter();
 	private readonly editorExtensions: Extension[] = [];
-	private readonly automaticPageBreaks = new Map<string, AutomaticPageBreak[]>();
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
 		if (this.settings.homebreweryEditMode) {
-			this.editorExtensions.push(this.createEditModeExtension());
+			this.editorExtensions.push(homebreweryEditModeExtension);
 		}
 		this.registerEditorExtension(this.editorExtensions);
 
@@ -236,34 +230,9 @@ export default class BrewVaultPlugin extends Plugin {
 	refreshHomebreweryEditMode(): void {
 		this.editorExtensions.splice(0, this.editorExtensions.length);
 		if (this.settings.homebreweryEditMode) {
-			this.editorExtensions.push(this.createEditModeExtension());
+			this.editorExtensions.push(homebreweryEditModeExtension);
 		}
 		this.app.workspace.updateOptions();
-	}
-
-	/** Projects DOM-measured virtual pages into the matching Markdown editor. */
-	updateAutomaticPageBreaks(filePath: string, pages: readonly BrewPage[]): void {
-		const next = collectAutomaticPageBreaks(pages);
-		const previous = this.automaticPageBreaks.get(filePath) ?? [];
-		if (
-			previous.length === next.length &&
-			previous.every(
-				(boundary, index) =>
-					boundary.line === next[index].line &&
-					boundary.pageNumber === next[index].pageNumber
-			)
-		) {
-			return;
-		}
-
-		this.automaticPageBreaks.set(filePath, next);
-		if (this.settings.homebreweryEditMode) this.refreshHomebreweryEditMode();
-	}
-
-	private createEditModeExtension(): Extension {
-		return createHomebreweryEditModeExtension(
-			(filePath) => this.automaticPageBreaks.get(filePath) ?? []
-		);
 	}
 
 	/** Re-render every open Homebrewery preview leaf (e.g. after a settings change). */

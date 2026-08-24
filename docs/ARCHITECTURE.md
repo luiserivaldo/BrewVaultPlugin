@@ -25,22 +25,6 @@ isolated Electron print adapter → validated PDF Buffer
 Obsidian Vault create at first unused numbered path
 ```
 
-Homebrewery Edit Mode is a parallel editor-only presentation path:
-
-```text
-CodeMirror document → pure Homebrewery syntax-range scanner
-        │
-        ▼
-unfocused block labels + explicit page/column separator decorations
-        │
-        ▼
-selection intersects decoration → raw source is revealed in place
-```
-
-The editor extension never rewrites Markdown. Exact automatic page markers are
-not estimated: the renderer must first carry source positions into measured DOM
-blocks and return the resulting boundary map to CodeMirror.
-
 ## Planned source layout
 
 ```text
@@ -51,7 +35,6 @@ src/
   pipeline/           AST, IR, serializer, pagination, render interfaces
   electron/           hidden renderer and printToPDF boundary
   export/             fingerprints, PDF checks, atomic destination writes
-  editor/             CodeMirror syntax ranges, labels, and page separators
   ui/                 preview, progress, settings, diagnostics
 ```
 

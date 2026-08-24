@@ -3,8 +3,7 @@
 An Obsidian desktop plugin that renders your Markdown notes as
 Homebrewery-style, paginated D&D 5e documents — right inside Obsidian.
 
-> **Status:** Milestone 6 (export parity and automatic pagination) and Milestone 9
-> (Homebrewery Edit Mode) are in progress.
+> **Status:** Milestone 6 (export parity and automatic pagination) is in progress.
 > See [`MILESTONES.md`](./MILESTONES.md) for the current acceptance gates and [`PROGRESS.md`](./PROGRESS.md)
 > for exactly what's done and verified, and [`USAGE.md`](./USAGE.md) for a
 > full command reference with expected input/output.
@@ -24,10 +23,6 @@ Homebrewery-style, paginated D&D 5e documents — right inside Obsidian.
 - Theme variants: `phb` (Player's Handbook parchment), `srd` (SRD / Unearthed Arcana), and `blank`, plus configurable page size and re-render debounce.
 - Export the active note as self-contained HTML or generate a Homebrewery PDF directly from Obsidian without a printer dialog.
 - Page-aware rendering automatically creates additional virtual pages when content exceeds the fixed two-column sheet, without editing the source Markdown. Explicit `\page` and `\column` markers remain supported.
-- The v0.1.2 development build adds **Homebrewery Edit Mode**: matched
-  `{{block ... }}` delimiters become readable labels, and explicit `\page` /
-  `\column` directives become visual separators. Selecting any element reveals
-  its exact Markdown source for editing.
 
 See [`USAGE.md`](./USAGE.md) for the full command list and syntax
 reference, and [`examples/sample-brew.md`](./examples/sample-brew.md) for
@@ -57,10 +52,7 @@ module-by-module.
 
 ## Roadmap
 
-Milestone 6 is focused on export parity and automatic pagination. Milestone 9
-adds Homebrewery-aware Markdown editing for the v0.1.2 development line. The
-searchable Insert Homebrewery Block library is deliberately postponed to M10
-for template compatibility work.
+Milestone 6 is focused on Homebrewery export parity and automatic pagination. Later milestones add the remaining upstream themes, vault assets, and release hardening.
 
 ## 0.1.1 release behavior
 

@@ -27,9 +27,7 @@ Chromium/Electron layout or printing.
 | 6 | M6 — Export parity and automatic pagination | `IN PROGRESS` | Match Homebrewery Letter/PHB output and prevent silent overflow |
 | 7 | M7 — Theme parity expansion | `NOT STARTED` | Add the remaining upstream Homebrewery themes |
 | 8 | M8 — Obsidian assets and release hardening | `IN PROGRESS` | Vault assets, diagnostics, packaging, and release verification |
-| 9 | M9 — Homebrewery Edit Mode | `IN PROGRESS` | Homebrewery-aware source presentation and page boundaries in CodeMirror |
-| 10 | M10 — Insert Homebrewery Block library | `NOT STARTED` | Searchable, verified block/template insertion workflow |
-| 11 | M11 — Advanced Homebrewery layout | `NOT STARTED` | Wide/split layout parity and an editable pre-export HTML stage |
+| 9 | M9 — Advanced Homebrewery editing and layout | `NOT STARTED` | Wide/split tables and an editable pre-export Homebrewery HTML stage |
 
 ---
 
@@ -243,69 +241,10 @@ artifacts, dependency/license checks, and Community Plugin submission.
 
 ---
 
-## M9 — Homebrewery Edit Mode
+## M9 — Advanced Homebrewery editing and layout
 
-**Goal:** make Homebrewery structure readable and editable directly in
-Obsidian's Markdown editor without changing source notes.
-
-**Status:** `IN PROGRESS`
-
-**Target version:** `0.1.2` after native acceptance.
-
-### Deliverables
-
-- [x] Register a CodeMirror 6 extension through Obsidian's public plugin API.
-- [x] Detect matched nested `{{block ... }}` delimiters while preserving
-      unfinished authoring and fenced code examples.
-- [x] Replace unfocused delimiters with readable block labels and reveal exact
-      source when the selection intersects them.
-- [x] Present explicit `\page` as numbered **Page N starts** separators and
-      explicit `\column` as column dividers.
-- [x] Add a persisted, default-on **Homebrewery edit mode** setting.
-- [x] Add pure regression tests and `examples/edit-mode-regression.md`.
-- [ ] Verify label clicking/source reveal, typing, undo/redo, nested blocks,
-      separators, setting toggles, and fenced examples in real Obsidian desktop.
-- [x] Carry renderer source positions through DOM pagination and project exact
-      automatic page boundaries into CodeMirror. No text-length, line-count, or
-      character-count estimate is used.
-
-### Acceptance criteria
-
-- Source Markdown is byte-for-byte unchanged by editor presentation.
-- A cursor/selection inside a label or separator exposes editable raw syntax.
-- Unmatched delimiters and fenced examples remain visible.
-- Explicit page and column separators remain stable during typing and undo/redo.
-- Disabling the setting removes all BrewVault editor decorations immediately.
-- DOM-generated boundaries use a visibly different treatment from explicit
-  source `\page` separators and disappear when pagination no longer generates them.
-
----
-
-## M10 — Insert Homebrewery Block library
-
-**Goal:** insert verified Homebrewery-compatible structures without crowding the
-command palette.
-
-**Status:** `NOT STARTED`
-
-**Planned work:**
-
-- Add one searchable **Insert Homebrewery Block…** modal grouped by Tables,
-  Rules, Spells, Classes, Monsters, Page Layout, and Notes.
-- Cover Wide Table, Split Table, Class Tables, Cover Pages, Spell List, Spell
-  Description, Feat, DM's Note, Monster Stat Block, and later additions.
-- Treat current upstream Homebrewery snippets/generators as canonical. Audit
-  and compare the user's `TheBigVaultOfDnD/Homebrew Templates` collection as a
-  secondary reference before adopting any template.
-- Validate every entry through source parsing, Edit Mode, preview, PDF, and all
-  supported themes. Start with simple fixed templates before parameterized
-  class tables, full classes, stat blocks, and cover layouts.
-
----
-
-## M11 — Advanced Homebrewery layout
-
-**Goal:** close remaining wide/split and editable-export parity gaps.
+**Goal:** close the gap between plain Obsidian Markdown and Homebrewery's richer
+pre-export authoring surface without changing source notes implicitly.
 
 **Status:** `NOT STARTED`
 
@@ -313,8 +252,11 @@ command palette.
 
 - Support Homebrewery-style wide/split table semantics, including blocks that
   deliberately span both columns and interact predictably with pagination.
-- Add a **Homebrewery HTML Edit** workflow for temporary export-copy edits while
-  leaving the original `.md` untouched.
+- Add a **Homebrewery HTML Edit** workflow that opens the rendered export copy
+  for temporary HTML/Homebrewery-specific edits before export while leaving the
+  original `.md` untouched.
+- Preserve **Export current file as Homebrewery PDF** as the deterministic
+  default `.md` path; edited-export behavior must be explicitly invoked.
 - Define how explicit `\page`, automatic pagination, `{{wide}}`, and split tables
   resolve conflicts, with explicit source/page-edit directives taking precedence.
 
@@ -365,15 +307,3 @@ production build pass. Source scans confirm no runtime `window.print()` path
 remains.
 **What remains:** live Obsidian verification that no dialog appears and that a
 valid Letter PDF is created and overwritten at the reported vault-relative path.
-
-### 2026-08-24 — M9 Homebrewery Edit Mode checkpoint
-
-**Status change:** `NOT STARTED` → `IN PROGRESS`
-**What changed:** added CodeMirror block labels, exact explicit page/column
-separators, source reveal on selection, a default-on setting, and focused pure
-tests. Each functional slice has its own local development commit.
-**What was verified:** typecheck, automated tests, production build, and diff
-checks pass.
-**What remains:** native Obsidian editing acceptance and renderer source-position
-metadata for exact automatic page-boundary projection. Version remains `0.1.1`
-until the M9 acceptance gate is complete; its target release is `0.1.2`.

@@ -52,7 +52,6 @@ export async function paginateBrewPages(
 
 			let measurementPage = createMeasurementPage(host);
 			let hasContent = false;
-			let nextBreakKind = explicitPage.breakKind;
 
 			for (const node of nodes) {
 				const clone = node.cloneNode(true);
@@ -60,19 +59,18 @@ export async function paginateBrewPages(
 
 				if (pageOverflows(measurementPage) && hasContent) {
 					measurementPage.removeChild(clone);
-					pushMeasuredPage(output, measurementPage, nextBreakKind, explicitPage.sourceLine);
+					pushMeasuredPage(output, measurementPage);
 					measurementPage.remove();
 
 					measurementPage = createMeasurementPage(host);
 					measurementPage.appendChild(clone);
-					nextBreakKind = "automatic";
 				}
 
 				hasContent = true;
 			}
 
 			// Keep explicit blank pages as real pages.
-			pushMeasuredPage(output, measurementPage, nextBreakKind, explicitPage.sourceLine);
+			pushMeasuredPage(output, measurementPage);
 			measurementPage.remove();
 		}
 	} finally {
@@ -93,23 +91,6 @@ function pageOverflows(page: HTMLElement): boolean {
 	return page.scrollWidth > page.clientWidth + 1 || page.scrollHeight > page.clientHeight + 1;
 }
 
-function pushMeasuredPage(
-	output: BrewPage[],
-	page: HTMLElement,
-	breakKind: BrewPage["breakKind"],
-	fallbackSourceLine: number | null
-): void {
-	const sourceElement = page.matches("[data-brew-source-line]")
-		? page
-		: page.querySelector<HTMLElement>("[data-brew-source-line]");
-	const parsedSourceLine = sourceElement
-		? Number.parseInt(sourceElement.dataset.brewSourceLine ?? "", 10)
-		: Number.NaN;
-
-	output.push({
-		html: page.innerHTML.trim(),
-		index: output.length + 1,
-		sourceLine: Number.isFinite(parsedSourceLine) ? parsedSourceLine : fallbackSourceLine,
-		breakKind,
-	});
+function pushMeasuredPage(output: BrewPage[], page: HTMLElement): void {
+	output.push({ html: page.innerHTML.trim(), index: output.length + 1 });
 }
