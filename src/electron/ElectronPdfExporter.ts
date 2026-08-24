@@ -1,5 +1,14 @@
 const PDF_EXPORT_TIMEOUT_MS = 30_000;
 
+export const ELECTRON_PDF_PRINT_OPTIONS = Object.freeze({
+	displayHeaderFooter: false,
+	landscape: false,
+	margins: { top: 0, bottom: 0, left: 0, right: 0 },
+	pageSize: "Letter",
+	preferCSSPageSize: true,
+	printBackground: true,
+});
+
 interface ElectronRemote {
 	BrowserWindow: new (options: Record<string, unknown>) => ElectronBrowserWindow;
 }
@@ -79,14 +88,7 @@ export class ElectronPdfExporter {
 			ensureUsable(printWindow);
 
 			const pdfBytes = await withTimeout(
-				printWindow.webContents.printToPDF({
-				displayHeaderFooter: false,
-				landscape: false,
-				margins: { top: 0, bottom: 0, left: 0, right: 0 },
-				pageSize: "Letter",
-				preferCSSPageSize: true,
-				printBackground: true,
-			}),
+				printWindow.webContents.printToPDF(ELECTRON_PDF_PRINT_OPTIONS),
 				PDF_EXPORT_TIMEOUT_MS,
 				"generating the PDF"
 			);

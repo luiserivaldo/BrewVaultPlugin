@@ -1,0 +1,63 @@
+/* Upstream-derived Homebrewery V3 5ePHB presentation. Physical measurements,
+   typography, break behavior, and furniture intentionally remain theme CSS. */
+.brewvault-theme-phb .page {
+	--HB_Color_Accent: #e0e5c1;
+	--HB_Color_HeaderUnderline: #c0ad6a;
+	--HB_Color_HeaderText: #58180d;
+	--HB_Color_MonsterStatBackground: #f2e5b5;
+	--HB_Color_Footnotes: #c9ad6a;
+	font-family: "BookInsanityRemake", serif;
+	font-size: .34cm;
+	color: #1a1005;
+	background-color: #eee5ce;
+	background-image: url("../../vendor/homebrewery/assets/parchmentBackground.jpg");
+	column-gap: .9cm;
+	column-width: 8cm;
+}
+
+.brewvault-theme-phb .page p { line-height: 1.25em; }
+.brewvault-theme-phb .page p + * { margin-top: .325cm; }
+.brewvault-theme-phb .page p + p { margin-top: 0; text-indent: 1em; }
+.brewvault-theme-phb .page :where(ul, ol) { padding-left: 1.4em; margin-bottom: .8em; line-height: 1.25em; }
+.brewvault-theme-phb .page :where(ul, ol) + p { text-indent: 1em; }
+.brewvault-theme-phb .page :where(h1, h2, h3, h4) { font-family: "MrEavesRemake"; font-weight: 700; color: var(--HB_Color_HeaderText); }
+.brewvault-theme-phb .page h1 { margin-bottom: .18cm; column-span: all; font-size: .89cm; line-height: 1; }
+.brewvault-theme-phb .page h1 + * { margin-top: 0; }
+.brewvault-theme-phb .page h1 + p::first-letter { float: left; padding: 0 0 2px 40px; margin: -.3cm 0 -20px -40px; font-family: "SolberaImitationRemake"; font-size: 3.5cm; line-height: 1; color: transparent; background: linear-gradient(-45deg,#322814,#998250,#322814); background-clip: text; }
+.brewvault-theme-phb .page h1 + p::first-line { font-variant: small-caps; }
+.brewvault-theme-phb .page h2 { font-size: .75cm; line-height: .988; }
+.brewvault-theme-phb .page h3 { font-size: .575cm; line-height: .995; border-bottom: 2px solid var(--HB_Color_HeaderUnderline); }
+.brewvault-theme-phb .page h3 + * { margin-top: .17cm; }
+.brewvault-theme-phb .page * + h3 { margin-top: .155cm; }
+.brewvault-theme-phb .page h4 { font-size: .458cm; line-height: .971; }
+.brewvault-theme-phb .page h4 + * { margin-top: .09cm; }
+.brewvault-theme-phb .page * + h4 { margin-top: .235cm; }
+.brewvault-theme-phb .page h5 { font-family: "ScalySansSmallCapsRemake"; font-size: .423cm; line-height: .951; }
+.brewvault-theme-phb .page h5 + * { margin-top: .2cm; }
+
+.brewvault-theme-phb .page table { font-family: "ScalySansRemake"; font-size: .318cm; line-height: 16px; }
+.brewvault-theme-phb .page table + * { margin-top: .325cm; }
+.brewvault-theme-phb .page table :where(th, td) { border: 0; padding: 0 1.5px; }
+.brewvault-theme-phb .page table thead { font-weight: 800; }
+.brewvault-theme-phb .page table tbody tr:nth-child(odd) { background-color: var(--HB_Color_Accent); }
+
+.brewvault-theme-phb .page :where(.note, .descriptive, .monster) { font-family: "ScalySansRemake"; font-size: .318cm; }
+.brewvault-theme-phb .page .note { padding: .13cm .16cm; margin-top: 9px; background-color: var(--HB_Color_Accent); border: 1px solid; border-image: url("../../vendor/homebrewery/assets/noteBorder.png") 12 stretch; border-image-width: 11px; border-image-outset: 9px 0; box-shadow: 1px 4px 14px #888; }
+.brewvault-theme-phb .page .descriptive { padding: .1em; margin-top: 4px; background: #faf7ea; border: 7px solid; border-image: url("../../vendor/homebrewery/assets/descriptiveBorder.png") 12 stretch; border-image-outset: 4px; box-shadow: 0 0 6px #faf7ea; }
+.brewvault-theme-phb .page :where(.note, .descriptive) + * { margin-top: .45cm; }
+.brewvault-theme-phb .page :where(.note, .descriptive) :last-child { margin-bottom: 0; }
+.brewvault-theme-phb .page .monster { position: relative; padding: 0; margin-bottom: .325cm; }
+.brewvault-theme-phb .page .monster.frame { width: calc(100% + .32cm); padding: 4px 2px; margin-inline: -.16cm; background: var(--HB_Color_MonsterStatBackground) url("../../vendor/homebrewery/assets/parchmentBackgroundGrayscale.jpg"); border: 7px solid; border-image: url("../../vendor/homebrewery/assets/monsterBorderFancy.png") 14 round; border-image-outset: 0 2px; box-shadow: 1px 4px 14px #888; background-blend-mode: overlay; }
+.brewvault-theme-phb .page .monster h2 { margin: 0; font-size: .62cm; line-height: 1; }
+.brewvault-theme-phb .page .monster h3 { font-family: "ScalySansSmallCapsRemake"; font-size: .45cm; border-bottom: 1.5px solid var(--HB_Color_HeaderText); }
+.brewvault-theme-phb .page .monster hr { visibility: visible; height: 6px; margin: .12cm 0; background: url("../../vendor/homebrewery/assets/redTriangle.png") 0 0 / 100% 100%; border: 0; }
+.brewvault-theme-phb .page .monster.wide { columns: 2 7.68cm; column-fill: balance; }
+
+.brewvault-theme-phb .page .classTable.frame { width: calc(100% + .2cm); margin: .7cm -.1cm .9cm; border-collapse: separate; background: #fff; border: solid; border-image: url("../../vendor/homebrewery/assets/frameBorder.png") 200 stretch; border-image-width: 47px; border-image-outset: .4cm .3cm; }
+.brewvault-theme-phb .page .classTable th[colspan]:not([rowspan]) { white-space: nowrap; }
+.brewvault-theme-phb .page .wide { margin-bottom: .325cm; }
+.brewvault-theme-phb .page::after { position: absolute; left: 0; bottom: 0; z-index: 100; width: 100%; height: 50px; content: ""; background: url("../../vendor/homebrewery/assets/PHB_footerAccent.png") 0 0 / cover; }
+.brewvault-theme-phb .page:nth-child(even)::after { transform: scaleX(-1); }
+.brewvault-theme-phb .pageNumber { right: 2px; bottom: 22px; z-index: 150; color: var(--HB_Color_Footnotes); }
+.brewvault-theme-phb .page:nth-child(even) .pageNumber { right: auto; left: 2px; }
+.brewvault-theme-phb .page .footnote { position: absolute; right: 80px; bottom: 32px; z-index: 150; width: 200px; font-size: .8em; color: var(--HB_Color_Footnotes); text-align: right; text-transform: uppercase; }

@@ -1,0 +1,28 @@
+/* Adapted from Homebrewery V3 Blank: the renderer/layout contract inherited
+   by all BrewVault themes. Compatibility aliases remain in the DOM only. */
+.brewvault-theme-blank .page {
+	font-family: "Pagella", serif;
+	font-size: 12px;
+	line-height: 1.2;
+	color: #000;
+	background-color: #fff;
+	text-rendering: optimizeLegibility;
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+
+.brewvault-theme-blank .page :where(h1, h2, h3, h4, h5, h6, p, ul, ol, dl, blockquote, table) { margin: 0; }
+.brewvault-theme-blank .page :where(h1, h2, h3, h4, h5, h6) { font-weight: 700; line-height: 1.2; }
+.brewvault-theme-blank .page h1 { font-size: 2em; }
+.brewvault-theme-blank .page h2 { font-size: 1.5em; }
+.brewvault-theme-blank .page h3 { font-size: 1.17em; }
+.brewvault-theme-blank .page h4 { font-size: 1em; }
+.brewvault-theme-blank .page h5 { font-size: .83em; }
+.brewvault-theme-blank .page p { display: block; overflow-wrap: break-word; }
+.brewvault-theme-blank .page :where(ul, ol) { padding-left: 1.4em; list-style-position: outside; }
+.brewvault-theme-blank .page table { width: 100%; }
+.brewvault-theme-blank .page table thead { display: table-row-group; font-weight: 700; }
+.brewvault-theme-blank .page .wide { margin-bottom: 1em; }
+.brewvault-theme-blank .page .wide + * { margin-top: 0; }
+.brewvault-theme-blank .pageNumber { position: absolute; right: 30px; bottom: 30px; width: 50px; font-size: .9em; text-align: center; }
+.brewvault-theme-blank .page:nth-child(even) .pageNumber { right: auto; left: 30px; }

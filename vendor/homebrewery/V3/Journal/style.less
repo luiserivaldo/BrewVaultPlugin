@@ -1,0 +1,463 @@
+@import (less) './themes/fonts/Journal/fonts.less';
+@import (less) './themes/assets/assets.less';
+
+:root {
+	//Colors
+	--HB_Color_Background            : unset; // Light parchment
+	--HB_Color_Text                  : #412121; // Dark Maroon Brown
+	--HB_Color_Text2                 : #261C13CC; //Dark Brown
+	--HB_Color_HeaderText            : #58180D; // Dark Maroon
+	--HB_Color_CaptionText           : #766649; // Brown
+	--HB_Color_WatercolorStain       : #BBAD82; // Light brown
+}
+
+.useSansSerif() {
+	font-family : 'PermanentMarker';
+	font-size   : 0.3cm;
+	line-height : 1.2em;
+	color       : var(--HB_Color_Text2);
+	p,dl,ul,ol { line-height : 1.2em; }
+	ul, ol { padding-left : 1em; }
+	em { font-style  : italic; }
+	strong {
+		font-size   : 1.1em;
+		font-weight : 800;
+	}
+	h5 + * { margin-top : 0.1cm; }
+}
+.useColumns(@multiplier : 1, @fillMode: balance) { column-gap           : 0.5cm; }
+
+.page {
+	padding             : 2.1cm 1.9cm 1.7cm 3.8cm;
+	background-image    : url('/assets/Journal/Background1.webp');
+	background-repeat   : no-repeat;
+	background-size     : 200% 100%;
+	filter              : drop-shadow(1px 4px 14px black);
+	&:nth-of-type(2n + 1) { background-position : left; }
+	&:nth-of-type(2n) {
+		padding             : 2.1cm 3.9cm 1.7cm 1.8cm;
+		background-position : right;
+	}
+	&:nth-of-type(2) {
+		background-image    : url('/assets/Journal/Background2.webp'); //Only first page should show ribbon
+	}
+
+	& .columnWrapper {
+		//transform: rotate(-0.5deg);  // Breaks absolute positioning of images/footers. Wait for Chrome fix
+	}
+}
+
+//*****************************
+// *            BASE
+	// *****************************/
+.page {
+	font-family : 'ReenieBeanie';
+	font-size   : 0.53cm;
+	line-height : 0.8em;
+	color       : var(--HB_Color_Text);
+	p + * { margin-top : 0.325cm; }
+	p + p { margin-top : 0; }
+	ul { margin-bottom       : 0.8em; }
+	ol { margin-bottom       : 0.8em; }
+	em {
+		font-style      : unset;
+		text-decoration : underline;
+	}
+	del { text-decoration-style : double; }
+
+	//Indents after p or lists
+	p + p, ul + p, ol + p { text-indent : 1em; }
+	//*****************************
+	// *           HEADERS
+	// *****************************/
+	h1,h2,h3,h4,h5 {
+		font-family   : 'FrederickaTheGreat';
+		font-weight   : unset;
+		color         : var(--HB_Color_HeaderText);
+	}
+	h1 {
+		margin-bottom       : 0.18cm; //Margin-bottom only because this is WIDE
+		font-size           : 0.89cm;
+		font-variant        : small-caps;
+		line-height         : 1em;
+		& + p::first-letter {
+			float                   : left;
+			padding-top             : 0.3em;
+			padding-bottom          : 2px;
+			padding-left            : 40px; //Allow background color to extend into margins
+			margin-top              : -0.3cm;
+			margin-right            : 0.1em;
+			margin-bottom           : -20px;
+			margin-left             : -40px;
+			font-family             : 'FrederickaTheGreat';
+			font-size               : 1.9em;
+			line-height             : 1em;
+		}
+		& + p::first-line { font-variant : small-caps; }
+	}
+	h2 {
+		font-size     : 0.62cm;
+		line-height   : 0.988em; //Font is misaligned. Shift up slightly
+	}
+	h3 {
+		margin-left   : -0.9em;
+		font-size     : 0.575cm;
+		line-height   : 0.995em; //Font is misaligned. Shift up slightly
+	}
+	h4 {
+		padding-bottom : 5px;
+		font-size      : 0.55cm;
+		line-height    : 0.971em; //Font is misaligned. Shift up slightly
+		color          : var(--HB_Color_Text);
+		transform      : rotate(0deg);
+		&:nth-of-type(2n) { transform : rotate(1deg); }
+		&:nth-of-type(3n) { transform : rotate(-1.5deg); }
+	}
+	h5 {
+		font-family   : 'PermanentMarker';
+		font-size     : 0.4cm;
+		font-weight   : bold;
+		line-height   : 0.951em; //Font is misaligned. Shift up slightly
+		color         : var(--HB_Color_Text2);
+		& + * { margin-top : 0.2cm; }
+	}
+	//*****************************
+	// *          TABLE
+	// *****************************/
+	table {
+		.useSansSerif();
+		& + * { margin-top : 0.325cm; }
+		thead {
+			th {
+				padding        : 0.14em 0;
+				vertical-align : bottom;
+			}
+		}
+		tbody {
+			tr {
+				td { padding : 0.14em 0; }
+				&:nth-child(odd) { background-image : linear-gradient(to left, #41212100, #41212122, #41212100); }
+			}
+		}
+	}
+	//*****************************
+	// *            NOTE
+	// *****************************/
+	.note {
+		.useSansSerif();
+		padding             : 0.2cm;
+		background-image    : url('/assets/Journal/HashMarks.png'),
+			linear-gradient(to bottom right, #FF000000, #A36A4E14, #41212100);
+		background-repeat   : no-repeat;
+		background-position : center;
+		background-size     : 120% 120%;
+		border-style        : solid;
+		border-width        : 1px;
+		border-image-source : url('/assets/Journal/Border1.png');
+		border-image-slice  : 18 18 18 18;
+		border-image-width  : 6px 6px 6px 6px;
+		border-image-outset : 5px 5px 5px 5px;
+		border-image-repeat : stretch stretch;
+		:where(&) {
+			margin-top        : 9px; //Prevent top border getting cut off on colbreak
+		}
+		& + * { margin-top : 0.45cm; }
+		h5 { font-size : 0.375cm; }
+		p { padding-bottom : 0px; }
+		:last-child { margin-bottom : 0; }
+	}
+	//************************************
+	// *       DESCRIPTIVE TEXT BOX
+	// ************************************/
+	* + .descriptive { margin-top : 0.6cm; }
+	.descriptive {
+		.useSansSerif();
+		padding             : 0.2cm;
+		background-image    : url('/assets/Journal/HashMarks.png'),
+			linear-gradient(to bottom right, #FF000000, #41212114, #41212100);
+		background-repeat   : no-repeat;
+		background-position : center;
+		background-size     : 120% 120%;
+		border-style        : solid;
+		border-width        : 1px;
+		border-image-source : url('/assets/Journal/Border2.png');
+		border-image-slice  : 48 48 48 48;
+		border-image-width  : 20px;
+		border-image-outset : 16px 20px 16px 20px;
+		border-image-repeat : stretch stretch;
+		:where(&) {
+			margin-top        : 4px; //Prevent top border getting cut off on colbreak
+		}
+		& + * { margin-top : 0.45cm; }
+		h5 { font-size : 0.375cm; }
+		p { padding-bottom : 0px; }
+		:last-child { margin-bottom : 0; }
+	}
+	//*****************************
+	// *    Images Snippets
+	// *****************************/
+
+	/* Arist Credit */
+	.artist {
+		position    : absolute;
+		width       : auto;
+		font-family : 'WalterTurncoat';
+		font-size   : 0.27cm;
+		color       : var(--HB_Color_CaptionText);
+		text-align  : center;
+		p, p + p {
+			margin      : unset;
+			line-height : 1em;
+			text-indent : unset;
+		}
+		h5 {
+			font-family : 'WalterTurncoat';
+			font-size   : 1.3em;
+		}
+		a {
+			color           : inherit;
+			text-decoration : unset;
+			&:hover { text-decoration : underline; }
+		}
+	}
+
+	//*****************************
+	// *    MONSTER STAT BLOCK
+	// *****************************/
+	.monster {
+		.useSansSerif();
+		&.frame {
+			padding               : 0.2cm;
+			background-image      : url('/assets/Journal/HashMarks.png'),
+				linear-gradient(to bottom right, #FF000000, #A36A4E14, #41212100);
+			background-size       : 100%;
+			border-style          : solid;
+			border-width          : 7px 6px;
+			border-image-source   : url('/assets/Journal/Border3.png');
+			border-image-slice    : 63 74 63 74;
+			border-image-width    : 15px 20px 15px 20px;
+			border-image-outset   : 12px 12px 12px 12px;
+			border-image-repeat   : stretch round;
+			background-blend-mode : screen multiply;
+		}
+		position          : relative;
+		padding           : 0px;
+		margin-bottom     : 0.325cm;
+
+		color             : var(--HB_Color_Text);
+
+		//Headers
+		h2 {
+			margin        : 0;
+			font-size     : 0.62cm;
+			line-height   : 1em;
+			& + p {
+				margin-bottom : 0; //Monster size and type subtext
+			}
+		}
+		h3 {
+			padding-bottom : 0.05cm;
+			margin-left    : 0;
+			font-variant   : small-caps;
+		}
+		hr {
+			visibility       : visible;
+			height           : 6px;
+			margin           : 0.12cm 0cm;
+			background-image : url('/assets/Journal/HorizontalRule.png');
+			background-size  : 100% 100%;
+		}
+		hr:last-of-type + * {
+			margin-top : 0.325cm; // Space after last HR
+		}
+
+		// Monster Ability table
+		hr + table:first-of-type {
+			margin              : 0;
+			color               : inherit;
+			background-image    : none;
+			border-style        : none;
+			border-image        : none;
+			column-span         : none;
+			tr { background-image  : none; }
+			td,th { padding : 0px; }
+		}
+
+		:last-child { margin-bottom : 0; }
+
+		strong, em {
+			font-style      : normal;
+			text-decoration : none;
+		}
+	}
+
+	//Full Width
+	.monster.wide {
+		.useColumns(0.96, @fillMode: balance);
+	}
+
+	//*****************************
+	// *           FOOTER
+	// *****************************/
+	&:nth-child(odd) {
+		.pageNumber { left : 3cm; }
+		.footnote {
+			left       : 4.5cm;
+			text-align : left;
+		}
+	}
+	.pageNumber {
+		right       : 3cm;
+		bottom      : 1.25cm;
+		font-family : 'FrederickaTheGreat';
+		color       : var(--HB_Color_HeaderText);
+	}
+	.footnote {
+		position   : absolute;
+		right      : 4.5cm;
+		bottom     : 1.25cm;
+		z-index    : 150;
+		width      : 200px;
+		font-size  : 0.8em;
+		color      : var(--HB_Color_HeaderText);
+		text-align : right;
+	}
+	//************************************
+	// *           CODE BLOCKS
+	// ************************************/
+	code {
+		padding          : 0px 4px;
+		font-size        : 0.3cm;
+		vertical-align   : middle;
+		color            : var(--HB_Color_Text);
+		background-color : #FAF7EA;
+		border-radius    : 4px;
+	}
+
+	pre code {
+		padding             : 0.15cm;
+		margin-bottom       : 2px;
+		border-style        : solid;
+		border-width        : 1px;
+		border-radius       : 12px;
+		border-image        : @codeBorderImage 26 stretch;
+		border-image-width  : 10px;
+		border-image-outset : 2px;
+		.page :where(&) {
+			margin-top        : 2px; //Prevent top border getting cut off on colbreak
+		}
+		& + * { margin-top : 0.325cm; }
+	}
+	//*****************************
+	// *          EXTRAS
+	// *****************************/
+	hr {
+		visibility : hidden;
+		margin     : 0px;
+		border     : none;
+	}
+	//Text indent right after table
+	table + p { text-indent : 1em; }
+	a, a:visited, a:hover {
+		color      : var(--HB_Color_Text);
+		transition : all 1s ease;
+	}
+	a:hover { color : red; }
+}
+//*****************************
+// *         SPELL LIST
+// *****************************/
+
+.page .spellList {
+	.useSansSerif();
+	font-family  : 'PermanentMarker';
+	column-count : 2;
+	ul + h5 { margin-top : 15px; }
+	ul {
+		padding-left                : 1em;
+		margin-bottom               : 0.5em;
+		text-indent                 : -1em;
+		list-style-type             : none;
+		break-inside                : auto;
+		-webkit-column-break-inside : auto;
+		page-break-inside           : auto;
+	}
+	&.wide { column-count : 4; }
+}
+
+//*****************************
+// *       CLASS TABLE
+// *****************************/
+.page .classTable {
+	th[colspan]:not([rowspan]) { white-space : nowrap; }
+	h5 + table { margin-top : 0.2cm; }
+}
+//*****************************
+// *      TABLE OF CONTENTS
+// *****************************/
+.page .toc {
+	-webkit-column-break-inside : avoid;
+	page-break-inside           : avoid;
+	break-inside                : avoid;
+	h1 {
+		margin-bottom : 0.3cm;
+		text-align    : center;
+	}
+	a {
+		display         : inline;
+		color           : inherit;
+		text-decoration : none;
+		&:hover { text-decoration : underline; }
+	}
+	h4 {
+		margin-top  : 0.2cm;
+		line-height : 0.4cm;
+		& + ul li { line-height : 1.2em; }
+	}
+	ul {
+		padding-left    : 0;
+		list-style-type : none;
+		li + li h3 {
+			margin-top  : 0.26cm;
+			line-height : 1em;
+		}
+		h3 span:first-child::after { border : none; }
+		span {
+			display : table-cell;
+			&:first-child {
+				position   : relative;
+				overflow   : hidden;
+				&::after {
+					position      : absolute;
+					bottom        : 0.08cm;
+					width         : 100%;
+					margin-left   : 0.06cm;        /* Spacing before dot leaders */
+					content       : '';
+					border-bottom : 0.05cm dotted #000000;
+				}
+			}
+			&:last-child {
+				width          : 1%;
+				padding-left   : 0.06cm; /* Spacing after dot leaders */
+				font-family    : 'ReenieBeanie';
+				font-size      : 0.34cm;
+				font-weight    : normal;
+				vertical-align : bottom; /* Keep page number bottom-aligned */
+				color          : black;
+				text-align     : right;
+				/* white-space  : nowrap; /* Uncomment if needed */
+			}
+		}
+		ul { /* List indent */
+			margin-left : 1em;
+		}
+	}
+	&.wide {
+		.useColumns(0.96, @fillMode: balance);
+	}
+}
+
+//*****************************
+// *         WIDE
+// *****************************/
+.page .wide { margin-bottom       : 0.45cm; }

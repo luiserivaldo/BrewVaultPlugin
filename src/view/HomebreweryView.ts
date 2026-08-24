@@ -2,6 +2,7 @@ import { ItemView, TFile, WorkspaceLeaf } from "obsidian";
 import { renderBrewMarkdown } from "../renderer";
 import { paginateBrewPages } from "../renderer/paginateDom";
 import type BrewVaultPlugin from "../main";
+import { ALL_THEME_CLASS_NAMES, getThemeClassNames } from "../themes/registry";
 
 export const HOMEBREWERY_VIEW_TYPE = "brewvault-preview";
 
@@ -104,17 +105,13 @@ export class HomebreweryView extends ItemView {
 		this.pagesContainer.empty();
 		this.pagesContainer.style.setProperty("--brew-page-width", `${pageWidthPx}px`);
 		this.pagesContainer.style.setProperty("--brew-page-height", `${pageHeightPx}px`);
-		this.pagesContainer.removeClass(
-			"brewvault-theme-phb",
-			"brewvault-theme-blank",
-			"brewvault-theme-srd"
-		);
-		this.pagesContainer.addClass(`brewvault-theme-${theme}`);
+		this.pagesContainer.removeClass(...ALL_THEME_CLASS_NAMES);
+		this.pagesContainer.addClass(...getThemeClassNames(theme));
 
 		for (const page of pages) {
-			const pageEl = this.pagesContainer.createDiv({ cls: "brewPage" });
+			const pageEl = this.pagesContainer.createDiv({ cls: "page brewPage" });
 			pageEl.innerHTML = page.html;
-			pageEl.createDiv({ cls: "brewPageNumber", text: String(page.index) });
+			pageEl.createDiv({ cls: "pageNumber brewPageNumber", text: String(page.index) });
 		}
 
 		this.flagOverflowingPages();
