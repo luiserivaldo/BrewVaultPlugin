@@ -15,6 +15,18 @@ export type { BrewPage } from "./types";
  */
 export function renderBrewMarkdown(source: string): BrewPage[] {
 	const engine = createBrewMarkdownEngine();
-	const html = engine.render(source);
+	const environment = {};
+	const tokens = engine.parse(source, environment);
+
+	// Pagination moves whole top-level rendered blocks. Retain the source line
+	// on those blocks so a measured virtual break can be projected back into
+	// CodeMirror without modifying the Markdown or guessing from line counts.
+	for (const token of tokens) {
+		if (token.level === 0 && token.map && token.type !== "brew_page_break") {
+			token.attrSet("data-brew-source-line", String(token.map[0]));
+		}
+	}
+
+	const html = engine.renderer.render(tokens, engine.options, environment);
 	return splitIntoPages(html);
 }

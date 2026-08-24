@@ -100,6 +100,7 @@ export class HomebreweryView extends ItemView {
 		const renderedPages = renderBrewMarkdown(source);
 		const { theme, pageWidthPx, pageHeightPx } = this.plugin.settings;
 		const pages = await paginateBrewPages(renderedPages, { theme, pageWidthPx, pageHeightPx });
+		this.plugin.updateAutomaticPageBreaks(this.trackedFile.path, pages);
 
 		this.pagesContainer.empty();
 		this.pagesContainer.style.setProperty("--brew-page-width", `${pageWidthPx}px`);

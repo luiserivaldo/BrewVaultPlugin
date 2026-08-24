@@ -1,5 +1,7 @@
 import { Decoration, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
 import type { DecorationSet } from "@codemirror/view";
+import { editorInfoField } from "obsidian";
+import type { AutomaticPageBreak } from "./automaticPageBreaks";
 import {
 	findHomebrewerySyntax,
 	selectionTouchesConstruct,
@@ -61,13 +63,38 @@ class LayoutBreakWidget extends WidgetType {
 	}
 }
 
+class AutomaticPageBreakWidget extends WidgetType {
+	constructor(private readonly pageNumber: number) {
+		super();
+	}
+
+	eq(other: AutomaticPageBreakWidget): boolean {
+		return other.pageNumber === this.pageNumber;
+	}
+
+	toDOM(): HTMLElement {
+		const element = document.createElement("div");
+		element.className = "brewvault-edit-automatic-page-break";
+		element.textContent = `Generated page ${this.pageNumber} starts`;
+		element.setAttribute("role", "separator");
+		element.setAttribute(
+			"aria-label",
+			`Automatically generated page ${this.pageNumber} starts`
+		);
+		return element;
+	}
+}
+
 class HomebreweryEditModeView {
 	decorations: DecorationSet;
 	private constructs: HomebrewerySyntaxConstruct[];
 
-	constructor(view: EditorView) {
+	constructor(
+		view: EditorView,
+		private readonly getAutomaticBreaks: (filePath: string) => readonly AutomaticPageBreak[]
+	) {
 		this.constructs = findHomebrewerySyntax(view.state.doc.toString());
-		this.decorations = buildDecorations(view, this.constructs);
+		this.decorations = buildDecorations(view, this.constructs, this.getBreaks(view));
 	}
 
 	update(update: ViewUpdate): void {
@@ -81,22 +108,34 @@ class HomebreweryEditModeView {
 			update.viewportChanged ||
 			update.focusChanged
 		) {
-			this.decorations = buildDecorations(update.view, this.constructs);
+			this.decorations = buildDecorations(
+				update.view,
+				this.constructs,
+				this.getBreaks(update.view)
+			);
 		}
+	}
+
+	private getBreaks(view: EditorView): readonly AutomaticPageBreak[] {
+		const file = view.state.field(editorInfoField, false)?.file;
+		return file ? this.getAutomaticBreaks(file.path) : [];
 	}
 }
 
-/** CodeMirror extension that presents block delimiters as readable labels. */
-export const homebreweryEditModeExtension = ViewPlugin.fromClass(
-	HomebreweryEditModeView,
-	{
-		decorations: (plugin) => plugin.decorations,
-	}
-);
+/** Creates the editor presentation backed by the latest measured preview boundaries. */
+export function createHomebreweryEditModeExtension(
+	getAutomaticBreaks: (filePath: string) => readonly AutomaticPageBreak[]
+) {
+	return ViewPlugin.define(
+		(view) => new HomebreweryEditModeView(view, getAutomaticBreaks),
+		{ decorations: (plugin) => plugin.decorations }
+	);
+}
 
 function buildDecorations(
 	view: EditorView,
-	constructs: readonly HomebrewerySyntaxConstruct[]
+	constructs: readonly HomebrewerySyntaxConstruct[],
+	automaticBreaks: readonly AutomaticPageBreak[]
 ): DecorationSet {
 	const selections = view.state.selection.ranges;
 	const ranges: ReturnType<Decoration["range"]>[] = [];
@@ -135,6 +174,21 @@ function buildDecorations(
 				}).range(construct.from, construct.to)
 			);
 		}
+	}
+
+	for (const boundary of automaticBreaks) {
+		if (boundary.line < 0 || boundary.line >= view.state.doc.lines) continue;
+		const line = view.state.doc.line(boundary.line + 1);
+		if (!view.visibleRanges.some((visible) => line.to >= visible.from && line.from <= visible.to)) {
+			continue;
+		}
+		ranges.push(
+			Decoration.widget({
+				widget: new AutomaticPageBreakWidget(boundary.pageNumber),
+				block: true,
+				side: -1,
+			}).range(line.from)
+		);
 	}
 
 	return Decoration.set(ranges, true);

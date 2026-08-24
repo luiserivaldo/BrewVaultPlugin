@@ -16,5 +16,16 @@ export function splitIntoPages(renderedHtml: string): BrewPage[] {
 	// zero, so the preview pane never looks "broken".
 	if (fragments.length === 0) fragments.push("");
 
-	return fragments.map((html, i) => ({ html, index: i + 1 }));
+	return fragments.map((html, i) => ({
+		html,
+		index: i + 1,
+		sourceLine: findFirstSourceLine(html),
+		breakKind: i === 0 ? "document-start" : "explicit",
+	}));
+}
+
+/** Reads renderer-owned source metadata without requiring a browser DOM. */
+export function findFirstSourceLine(renderedHtml: string): number | null {
+	const match = /\bdata-brew-source-line=["'](\d+)["']/.exec(renderedHtml);
+	return match ? Number.parseInt(match[1], 10) : null;
 }
