@@ -13,16 +13,20 @@ or "Homebrewery", or use the ribbon icon (scroll icon in the left sidebar).
 |---|---|---|
 | **Open Homebrewery Preview** | Run with a Markdown note open. | Opens or reveals the live Homebrewery preview and follows the active Markdown note. |
 | **Export current file as HTML** | Cursor/focus in a `.md` file. | Writes `<note-name>.brew.html` next to the source note. The document is self-contained and uses the same automatically paginated page snapshot as preview/PDF. |
-| **Export current file as Homebrewery PDF** | Cursor/focus in a `.md` file. | Opens the Chromium/Electron print dialog for the automatically paginated Homebrewery document. |
+| **Export current file as Homebrewery PDF** | Cursor/focus in a `.md` file. | Writes or overwrites `<note-name>.pdf` in the configured export folder using the automatically paginated Homebrewery document. No printer/save dialog opens. |
 
-## Turning an export into a PDF
+## PDF output
 
-Two ways to get a PDF, from most to least convenient:
+The recommended command, **Export current file as Homebrewery PDF**, generates the PDF with Obsidian desktop's bundled Chromium and writes it directly to the configured export folder. The default output for a note named `Alter Fate.md` is:
 
-1. **Export current file as Homebrewery PDF** (recommended) — opens the
-   system print dialog directly from Obsidian; choose "Save as PDF" as
-   the destination/printer.
-2. **Export current file as HTML**, then:
+`BrewVault-Exports/Alter Fate.pdf`
+
+If that file already exists, BrewVault overwrites it. The operating-system print dialog and "Print to File" fields are not involved.
+
+The HTML command remains a portable fallback or hand-off artifact:
+
+1. Run **Export current file as HTML**.
+2. Then:
    1. Open the resulting `<note-name>.brew.html` file in Chrome, Firefox,
       etc. (double-click it in your file manager, or drag it into a
       browser tab).
@@ -144,9 +148,9 @@ everything in this guide in one place.
 
 ## Export folder
 
-BrewVault creates `BrewVault Exports` in the vault root the first time a file-based export needs it. Change this under **Settings → BrewVault → Export folder**. Paths are vault-relative and nested folders are created automatically.
+BrewVault creates `BrewVault-Exports` in the vault root the first time an export needs it. Change this under **Settings → BrewVault → Export folder**. Paths are vault-relative and nested folders are created automatically. A saved setting equal to the former default `BrewVault Exports` migrates automatically; custom paths remain unchanged.
 
-`Export current file as HTML` writes `<note-name>.brew.html` into that folder. PDF commands open Chromium/Electron's Save as PDF flow; the system dialog controls the final PDF destination.
+`Export current file as HTML` writes `<note-name>.brew.html` into that folder. Every PDF command writes or overwrites `<note-name>.pdf` in the same folder without opening a printer or save dialog.
 
 ## PDF theme commands
 

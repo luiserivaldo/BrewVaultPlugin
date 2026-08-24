@@ -19,10 +19,10 @@ Markdown AST → document IR → Homebrewery serialization
 HTML + bundled theme + inlined local assets
         │
         ▼
-isolated Electron print adapter → PDF Buffer
+isolated Electron print adapter → validated PDF Buffer
         │
         ▼
-verified atomic Save As
+Obsidian Vault create/overwrite
 ```
 
 ## Planned source layout
@@ -54,8 +54,9 @@ import `electron`.
 7. Load the controlled snapshot in an isolated hidden Electron renderer.
 8. Wait deterministically for fonts and images, measure/paginate if enabled,
    and obtain the PDF buffer from `webContents.printToPDF()`.
-9. Validate the PDF and recheck the source/style fingerprint.
-10. Install it atomically at the user-selected destination.
+9. Validate the PDF bytes and recheck the source/style fingerprint.
+10. Create or overwrite the configured vault-relative destination through the
+    public Vault API.
 11. Destroy all renderer resources in a `finally` path.
 
 ## Security and privacy

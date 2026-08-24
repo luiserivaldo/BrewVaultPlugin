@@ -129,7 +129,7 @@ destabilizing Obsidian's normal editor/preview.
 | 2 | Homebrewery syntax layer | `markdown-it` custom rules for block containers `{{ }}`, inline spans `{{ }}`, `\page`, `\column`. Multi-page documents render as distinct page elements. Settings for theme variant. |
 | 3 | Authoring aids & themes | Snippet-insertion command for common blocks (starting with a monster stat block), a third theme (`journal`), and settings support for it. |
 | 4 | Export | Command to export the active note's rendered pages as a single, self-contained standalone HTML file (theme CSS inlined) written into the vault — the hand-off point for printing to PDF from a browser, since Obsidian's plugin API has no native "print to PDF" hook. |
-| 5 | Bug fixes from real-world testing | Build-time CSS embedding (fixes broken export styling), fixed-height pages with an overflow warning (fixes the "one endless page" issue), `break-inside: avoid` on tables (fixes tables splitting across columns), and an in-app "print to PDF" command via a hidden iframe (no browser round-trip required). |
+| 5 | Bug fixes from real-world testing | Build-time CSS embedding (fixes broken export styling), fixed-height pages with an overflow warning (fixes the "one endless page" issue), `break-inside: avoid` on tables (fixes tables splitting across columns), and the original hidden-iframe print-flow proof. The iframe path is superseded by M6 direct PDF export. |
 | 6 (future) | Editor↔preview scroll sync, `{{footnote}}`/mustache variables, true automatic re-pagination (dynamically slicing overflow content into synthetic extra pages). |
 
 This build covers milestones 0–5.
@@ -259,16 +259,18 @@ itself is well-formed. **Fix**: added `break-inside: avoid-column` to
 table rules in `base.css` so a table is pushed whole into the next column
 rather than split.
 
-### 9.4 No way to produce a PDF without leaving Obsidian
+### 9.4 Direct PDF export inside Obsidian
 
-**Fix**: new command "Print current file as Homebrewery PDF" builds the
-same standalone HTML used by the export command (with CSS embedded per
-9.1) into a hidden, off-screen `<iframe>`, then calls the iframe's own
-`window.print()` once it finishes loading. This invokes the normal
-OS/Electron print dialog — including a "Save as PDF" printer — without
-requiring the user to save a file and open it in an external browser
-first. Obsidian's own core "Export to PDF" command isn't reusable here
-because it prints whatever the currently-focused pane is (the Markdown
-editor/reading view), not an arbitrary custom `ItemView`'s DOM; driving
-`print()` on our own iframe sidesteps that limitation entirely.
+The initial M5 command loaded the standalone HTML into an iframe and called
+`window.print()`. Live Linux testing proved that this only delegated to GTK's
+printer dialog and could neither control nor reliably create the output PDF.
 
+The current exporter isolates Electron access in
+`src/electron/ElectronPdfExporter.ts`. It creates a hidden, sandboxed,
+context-isolated, Node-disabled `BrowserWindow`; loads the bundled standalone
+HTML under a restrictive content-security policy; denies new windows; waits for
+fonts and images; calls `webContents.printToPDF()` with explicit Letter page and
+background options; validates the returned PDF bytes; and destroys the hidden
+window in a `finally` path. `src/main.ts` then writes or overwrites the bytes
+through Obsidian's public Vault API at
+`<configured export folder>/<note name>.pdf`.

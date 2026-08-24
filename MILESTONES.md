@@ -23,7 +23,7 @@ Chromium/Electron layout or printing.
 | 2 | M2 — Pages and Homebrewery syntax | `DONE` | `\\page`, `\\column`, blocks, spans, tables, and fixed pages |
 | 3 | M3 — Preview UX | `DONE` | Live preview follows the active note |
 | 4 | M4 — Standalone HTML export | `DONE` | Self-contained HTML export using the preview renderer |
-| 5 | M5 — In-app PDF print path | `DONE` | PDF command opens Chromium/Electron print flow |
+| 5 | M5 — In-app PDF print path | `DONE` | Historical print-dialog proof, superseded by M6 direct PDF export |
 | 6 | M6 — Export parity and automatic pagination | `IN PROGRESS` | Match Homebrewery Letter/PHB output and prevent silent overflow |
 | 7 | M7 — Theme parity expansion | `NOT STARTED` | Add the remaining upstream Homebrewery themes |
 | 8 | M8 — Obsidian assets and release hardening | `IN PROGRESS` | Vault assets, diagnostics, packaging, and release verification |
@@ -106,6 +106,10 @@ opened browser tab.
 **Delivered:** a hidden iframe loads the standalone document and calls
 `window.print()`.
 
+**Superseded behavior:** live testing showed this was a print command rather
+than a reliable PDF exporter. M6 replaces it with a hidden Electron renderer,
+`webContents.printToPDF()`, and a direct vault write.
+
 **M6 naming change:** command is now **Export current file as Homebrewery PDF**.
 All user-facing output actions now use **Export** terminology.
 
@@ -155,6 +159,12 @@ The first side-by-side exports exposed four release-blocking mismatches:
 - [x] Add DOM-measured automatic pagination. It creates virtual rendered pages
       at top-level block boundaries when fixed two-column layout would overflow;
       source Markdown remains untouched and explicit `\\page` still wins.
+- [x] Replace the iframe/`window.print()` path with programmatic Electron
+      `printToPDF()` output written directly to the configured vault folder.
+- [x] Default new installs to `BrewVault-Exports` and migrate only the exact
+      former default `BrewVault Exports`; preserve custom export paths.
+- [x] Make all configured-theme and PHB/SRD/Blank PDF commands overwrite
+      `<note name>.pdf` in the export folder without opening a dialog.
 - [ ] Verify automatic pagination in a real Obsidian Chromium runtime with a
       document long enough to require at least three generated pages.
 - [ ] Re-export **Alter Fate** and **Swinekin** and compare against the supplied
@@ -169,7 +179,7 @@ The first side-by-side exports exposed four release-blocking mismatches:
 The first real-vault M6 test added the following release requirements:
 
 - [x] First install must always resolve an absent/invalid persisted theme to PHB and persist normalized defaults; preview must never receive an undefined theme class.
-- [x] File-based exports default to a vault-root `BrewVault Exports` folder, created automatically, with a configurable vault-relative output folder in plugin settings.
+- [x] File-based exports default to a vault-root `BrewVault-Exports` folder, created automatically, with a configurable vault-relative output folder in plugin settings.
 - [x] Keep the normal PDF command tied to the configured theme and add only three curated one-off PDF commands: PHB, SRD, and Blank.
 - [ ] SRD visual parity still differs from upstream Homebrewery in parchment texture, font metrics, margins/padding, and heading separator treatment. This is tracked for theme-parity work rather than blocking the current pagination/export plumbing.
 - [ ] Homebrewery `{{wide}}` / split-table behavior does not yet map cleanly onto automatic page separation. Advanced table semantics and an editable pre-export Homebrewery HTML stage are deferred to M9. Explicit source `\page` remains the deterministic workaround for such layouts in 0.1.0.
@@ -186,15 +196,16 @@ The first real-vault M6 test added the following release requirements:
 - Explicit `\\page` and `\\column` markers retain deterministic precedence.
 - A single indivisible block larger than one page is visibly flagged rather
   than silently discarded or split into invalid markup.
+- PDF export opens no printer/save dialog, writes to the configured folder, and
+  overwrites an existing same-name PDF.
 
 ### Current implementation checkpoint
 
-Code for command cleanup, Letter print CSS, PHB/SRD theme correction, and
-DOM-measured virtual pagination is implemented on the M6 working branch. Static
-build verification in the uploaded archive is currently limited because the
-archive's `node_modules` tree is incomplete (local `tsc` cannot resolve the
-checked-in dependencies); real Obsidian verification is still required before
-marking this milestone `DONE`.
+Code for command cleanup, Letter print CSS, PHB/SRD theme correction,
+DOM-measured virtual pagination, and direct Electron PDF generation is
+implemented on `develop`. TypeScript, automated regression tests, and the
+production build pass locally. Real Obsidian verification is still required
+before marking this milestone `DONE`.
 
 ---
 
@@ -219,8 +230,9 @@ release.
 **Status:** `IN PROGRESS`
 
 **Delivered toward 0.1.0:** normalized first-install settings, configurable
-vault-relative `BrewVault Exports` output folder, stable curated theme-specific
-PDF command IDs, and release version reset to `0.1.0`.
+vault-relative `BrewVault-Exports` output folder, stable curated theme-specific
+PDF command IDs, direct PDF writes through an isolated Electron adapter, and
+release version reset to `0.1.0`.
 
 **Remaining work:** Obsidian embeds/wikilinks/local images, missing-asset warnings,
 custom CSS, cancellation/overwrite safety, cross-platform test matrix, release
@@ -269,3 +281,15 @@ and record PDF page size plus visual comparison before marking M6 done.
 
 **What changed:** repaired default-theme initialization; added configurable `BrewVault Exports`; added curated PHB/SRD/Blank one-off PDF commands; reset release version to `0.1.0`.
 **Deferred:** exact SRD visual parity and advanced wide/split table handling. A Homebrewery HTML Edit stage is now explicitly planned in M9.
+
+### 2026-08-24 — Direct PDF export correction
+
+**What changed:** changed the default folder to `BrewVault-Exports`, added exact
+legacy-default migration, and replaced the iframe/`window.print()` command with
+a hidden sandboxed Electron renderer using `webContents.printToPDF()`. All PDF
+commands now write or overwrite `<note name>.pdf` in the configured folder.
+**What was verified:** settings/PDF-byte regression tests, TypeScript, and the
+production build pass. Source scans confirm no runtime `window.print()` path
+remains.
+**What remains:** live Obsidian verification that no dialog appears and that a
+valid Letter PDF is created and overwritten at the reported vault-relative path.

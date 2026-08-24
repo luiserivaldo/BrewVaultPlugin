@@ -1,14 +1,21 @@
 import { Notice, normalizePath, Plugin, TFile, TFolder, WorkspaceLeaf } from "obsidian";
-import { BrewVaultSettings, BrewTheme, DEFAULT_SETTINGS } from "./settings/types";
+import {
+	BrewVaultSettings,
+	BrewTheme,
+	DEFAULT_SETTINGS,
+	normalizeStoredSettings,
+} from "./settings/types";
 import { BrewVaultSettingTab } from "./settings/SettingTab";
 import { HomebreweryView, HOMEBREWERY_VIEW_TYPE } from "./view/HomebreweryView";
 import { renderBrewMarkdown } from "./renderer";
 import { paginateBrewPages } from "./renderer/paginateDom";
 import { buildStandaloneHtml } from "./export/buildStandaloneHtml";
 import { BUNDLED_THEME_CSS } from "./generated/themeCss";
+import { ElectronPdfExporter } from "./electron/ElectronPdfExporter";
 
 export default class BrewVaultPlugin extends Plugin {
 	settings: BrewVaultSettings = DEFAULT_SETTINGS;
+	private readonly pdfExporter = new ElectronPdfExporter();
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
@@ -126,22 +133,12 @@ export default class BrewVaultPlugin extends Plugin {
 		}
 	}
 
-	/**
-	 * Builds the same standalone HTML as exportFileAsHtml(), but instead of
-	 * writing it to disk, loads it into a hidden off-screen <iframe> and
-	 * calls that iframe's own window.print() once it finishes loading. This
-	 * opens the normal OS/Electron print dialog (with "Save as PDF" as a
-	 * printer option) without requiring a save-then-reopen-in-browser
-	 * round trip. See ARCHITECTURE.md §9.4.
-	 *
-	 * NOTE: this relies on Electron's Chromium-standard iframe print
-	 * behavior and has not been exercised against a real Obsidian install
-	 * in this environment — see PROGRESS.md's verification notes. If it
-	 * doesn't work on your system, "Export current file as HTML" is the reliable fallback.
-	 */
+	/** Generate a PDF with Obsidian's bundled Chromium and write it directly. */
 	async exportFileAsPdf(file: TFile, themeOverride?: BrewTheme): Promise<void> {
 		try {
 			const theme = themeOverride ?? this.settings.theme;
+			const exportFolder = await this.ensureExportFolder();
+			const outPath = normalizePath(`${exportFolder}/${file.basename}.pdf`);
 			const source = await this.app.vault.cachedRead(file);
 			const renderedPages = renderBrewMarkdown(source);
 			const pages = await paginateBrewPages(renderedPages, {
@@ -159,36 +156,17 @@ export default class BrewVaultPlugin extends Plugin {
 				this.settings.pageHeightPx
 			);
 
-			// The Chromium print dialog still owns the final PDF filename. Ensure the
-			// configured export folder exists first so all file-based BrewVault
-			// exports have a predictable vault destination and users have a ready
-			// target when saving from the system dialog.
-			await this.ensureExportFolder();
+			const pdf = await this.pdfExporter.renderHtmlToPdf(html);
+			const existing = this.app.vault.getAbstractFileByPath(outPath);
+			if (existing instanceof TFile) {
+				await this.app.vault.modifyBinary(existing, pdf);
+			} else if (existing) {
+				throw new Error(`BrewVault PDF output path is not a file: ${outPath}`);
+			} else {
+				await this.app.vault.createBinary(outPath, pdf);
+			}
 
-			const iframe = document.createElement("iframe");
-			iframe.style.cssText = "position:fixed; right:0; bottom:0; width:0; height:0; border:0;";
-			document.body.appendChild(iframe);
-
-			const cleanup = () => {
-				window.setTimeout(() => iframe.remove(), 1000);
-			};
-
-			iframe.addEventListener("load", () => {
-				const win = iframe.contentWindow;
-				if (!win) {
-					new Notice("BrewVault: couldn't access the print preview window.");
-					cleanup();
-					return;
-				}
-				win.addEventListener("afterprint", cleanup);
-				win.focus();
-				win.print();
-				// Fallback cleanup in case the browser never fires "afterprint"
-				// (some print-to-PDF flows don't).
-				window.setTimeout(cleanup, 30000);
-			});
-
-			iframe.srcdoc = html;
+			new Notice(`Exported to ${outPath}`);
 		} catch (err) {
 			console.error("BrewVault PDF export failed", err);
 			new Notice("BrewVault PDF export failed — see console for details.");
@@ -196,39 +174,19 @@ export default class BrewVaultPlugin extends Plugin {
 	}
 
 	onunload(): void {
-		// Views are cleaned up by Obsidian's workspace; nothing else to tear down.
+		this.pdfExporter.dispose();
 	}
 
 	async loadSettings(): Promise<void> {
 		const stored = (await this.loadData()) as Record<string, unknown> | null;
-		const rawTheme = stored?.theme;
-		const theme: BrewTheme = this.isBrewTheme(rawTheme)
-			? rawTheme
-			: rawTheme === "journal"
-				? "srd"
-				: DEFAULT_SETTINGS.theme;
-
-		const exportFolder =
-			typeof stored?.exportFolder === "string" && stored.exportFolder.trim().length > 0
-				? stored.exportFolder.trim()
-				: DEFAULT_SETTINGS.exportFolder;
-
-		this.settings = {
-			...DEFAULT_SETTINGS,
-			...(stored ?? {}),
-			theme,
-			exportFolder,
-		} as BrewVaultSettings;
+		const normalized = normalizeStoredSettings(stored);
+		this.settings = normalized.settings;
 
 		// Persist normalized defaults on first install (and repair invalid legacy
 		// data) so preview rendering never receives an undefined/unknown theme.
-		if (!stored || rawTheme !== theme || stored.exportFolder !== exportFolder) {
+		if (normalized.shouldPersist) {
 			await this.saveData(this.settings);
 		}
-	}
-
-	private isBrewTheme(value: unknown): value is BrewTheme {
-		return value === "phb" || value === "srd" || value === "blank";
 	}
 
 	private async ensureExportFolder(): Promise<string> {

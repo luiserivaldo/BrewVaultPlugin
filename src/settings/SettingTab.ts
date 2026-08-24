@@ -1,6 +1,6 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import type BrewVaultPlugin from "../main";
-import type { BrewTheme } from "./types";
+import { DEFAULT_SETTINGS, type BrewTheme } from "./types";
 
 export class BrewVaultSettingTab extends PluginSettingTab {
 	plugin: BrewVaultPlugin;
@@ -37,10 +37,11 @@ export class BrewVaultSettingTab extends PluginSettingTab {
 			.setDesc("Vault-relative folder for BrewVault exports. It is created automatically when needed.")
 			.addText((text) =>
 				text
-					.setPlaceholder("BrewVault Exports")
+					.setPlaceholder(DEFAULT_SETTINGS.exportFolder)
 					.setValue(this.plugin.settings.exportFolder)
 					.onChange(async (value) => {
-						this.plugin.settings.exportFolder = value.trim() || "BrewVault Exports";
+						this.plugin.settings.exportFolder =
+							value.trim() || DEFAULT_SETTINGS.exportFolder;
 						await this.plugin.saveSettings();
 					})
 			);

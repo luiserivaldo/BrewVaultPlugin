@@ -21,7 +21,7 @@ Homebrewery-style, paginated D&D 5e documents — right inside Obsidian.
   - `\page` — starts a new page.
   - `\column` — forces a column break within a page.
 - Theme variants: `phb` (Player's Handbook parchment), `srd` (SRD / Unearthed Arcana), and `blank`, plus configurable page size and re-render debounce.
-- Export the active note as self-contained HTML or open the Homebrewery PDF print flow directly from Obsidian.
+- Export the active note as self-contained HTML or generate a Homebrewery PDF directly from Obsidian without a printer dialog.
 - Page-aware rendering automatically creates additional virtual pages when content exceeds the fixed two-column sheet, without editing the source Markdown. Explicit `\page` and `\column` markers remain supported.
 
 See [`USAGE.md`](./USAGE.md) for the full command list and syntax
@@ -57,7 +57,7 @@ Milestone 6 is focused on Homebrewery export parity and automatic pagination. La
 ## 0.1.0 release behavior
 
 - First-install settings are normalized and persisted; PHB is always the default theme when no valid theme has been saved.
-- File-based exports are written to `BrewVault Exports` at the vault root by default. The folder is created automatically and can be changed in BrewVault settings.
+- HTML and PDF exports are written to `BrewVault-Exports` at the vault root by default. The folder is created automatically and can be changed in BrewVault settings. Existing settings that still use the exact former default `BrewVault Exports` migrate automatically; custom paths do not.
 - PDF export uses the currently selected theme. Additional curated commands export using PHB, SRD, or Blank without changing the saved default theme.
-- PDF generation still uses Chromium/Electron's print dialog, so the operating-system Save as PDF dialog owns the final PDF filename/location.
+- PDF generation uses Obsidian desktop's bundled Chromium directly and overwrites `BrewVault-Exports/<note name>.pdf` without opening an operating-system print/save dialog.
 - Wide/split Homebrewery tables and a pre-export Homebrewery HTML editor are deferred to a later milestone.

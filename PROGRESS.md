@@ -290,8 +290,28 @@ verification limitation, not yet evidence that M6 passes a clean `npm install`.
 ## 2026-08-24 — 0.1.0 release-candidate fixes
 
 - Fixed first-install theme initialization by validating persisted theme data, falling back to PHB, and persisting normalized defaults immediately.
-- Added `BrewVault Exports` as the default vault-root file export folder plus a configurable vault-relative export-folder setting.
+- Added `BrewVault Exports` as the original default vault-root file export folder plus a configurable vault-relative export-folder setting.
 - Added curated PHB/SRD/Blank PDF export commands while keeping the normal PDF command tied to the configured theme.
 - Recorded SRD visual parity differences (texture, font metrics, spacing, separator details) as follow-up rather than blocking this checkpoint.
 - Recorded wide/split Homebrewery table semantics and a pre-export Homebrewery HTML editor as future milestone work.
 - Reset the public plugin version to `0.1.0` for the first release line.
+
+## 2026-08-24 — Direct PDF export correction
+
+- Changed the current default export folder to `BrewVault-Exports`; saved
+  settings equal to the exact former default `BrewVault Exports` migrate, while
+  custom paths remain unchanged.
+- Replaced the hidden iframe and `window.print()` path with a narrow Electron
+  adapter. It creates an isolated hidden renderer, loads only the bundled
+  standalone document, waits for fonts/images, calls `webContents.printToPDF()`
+  with Letter/background options, validates the returned PDF header, and always
+  destroys the window.
+- Every PDF command now writes or overwrites `<note name>.pdf` in the same
+  configured export folder used by HTML export. No operating-system printer or
+  save dialog is part of the flow.
+- Added automated regression coverage for settings migration/custom-path
+  preservation and PDF-byte validation.
+
+Verification performed: `npm test`, TypeScript typechecking, and the production
+build pass locally. Practical Obsidian/Electron export behavior remains pending
+the next live-vault test.
