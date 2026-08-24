@@ -13,6 +13,7 @@ import { buildStandaloneHtml } from "./export/buildStandaloneHtml";
 import { allocateExportPath } from "./export/allocateExportPath";
 import { BUNDLED_THEME_CSS } from "./generated/themeCss";
 import { ElectronPdfExporter } from "./electron/ElectronPdfExporter";
+import { homebreweryTagPreviewExtension } from "./editor/homebreweryTagPreview";
 
 export default class BrewVaultPlugin extends Plugin {
 	settings: BrewVaultSettings = DEFAULT_SETTINGS;
@@ -20,6 +21,7 @@ export default class BrewVaultPlugin extends Plugin {
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
+		this.registerEditorExtension(homebreweryTagPreviewExtension);
 
 		this.registerView(HOMEBREWERY_VIEW_TYPE, (leaf) => new HomebreweryView(leaf, this));
 
