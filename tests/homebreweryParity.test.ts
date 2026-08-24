@@ -6,6 +6,7 @@ import { buildStandaloneHtml } from "../src/export/buildStandaloneHtml";
 import { renderBrewMarkdown } from "../src/renderer";
 
 const fixture = readFileSync("tests/fixtures/homebrewery-parity.md", "utf8");
+const phbThemeCss = readFileSync("styles/homebrewery/5e-phb.css", "utf8");
 
 void test("parity fixture emits Homebrewery semantic component classes", () => {
 	const html = renderBrewMarkdown(fixture).map((page) => page.html).join("\n");
@@ -38,4 +39,11 @@ void test("Electron printing preserves Homebrewery CSS page geometry", () => {
 		preferCSSPageSize: true,
 		printBackground: true,
 	});
+});
+
+void test("PHB headings retain Homebrewery's inherited bold Mr Eaves weight", () => {
+	assert.match(
+		phbThemeCss,
+		/:where\(h1, h2, h3, h4\)[^{]*\{[^}]*font-family: "MrEavesRemake";[^}]*font-weight: 700;/
+	);
 });
