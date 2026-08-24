@@ -23,7 +23,7 @@ export function buildStandaloneHtml(
 		.map(
 			(page) => `
 	<div class="page brewPage">
-		${page.html}
+		${ensureColumnWrapper(page.html)}
 		<div class="pageNumber brewPageNumber">${page.index}</div>
 	</div>`
 		)
@@ -40,6 +40,7 @@ export function buildStandaloneHtml(
 	--brew-page-width: ${pageWidthPx}px;
 	--brew-page-height: ${pageHeightPx}px;
 }
+
 body {
 	margin: 0;
 	background: #444;
@@ -73,6 +74,14 @@ ${pagesHtml}
 </body>
 </html>
 `;
+}
+
+/** Export callers normally provide paginated pages, but this keeps the public
+ * serializer's DOM contract deterministic for tests and alternate callers. */
+function ensureColumnWrapper(html: string): string {
+	return /^\s*<div class="columnWrapper">/.test(html)
+		? html
+		: `<div class="columnWrapper">${html}</div>`;
 }
 
 function escapeHtml(s: string): string {

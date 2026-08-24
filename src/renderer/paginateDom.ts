@@ -56,19 +56,21 @@ export async function paginateBrewPages(
 			);
 
 			let measurementPage = createMeasurementPage(host);
+			let columnWrapper = getColumnWrapper(measurementPage);
 			let hasContent = false;
 
 			for (const node of nodes) {
 				const clone = node.cloneNode(true);
-				measurementPage.appendChild(clone);
+				columnWrapper.appendChild(clone);
 
 				if (pageOverflows(measurementPage) && hasContent) {
-					measurementPage.removeChild(clone);
+					columnWrapper.removeChild(clone);
 					pushMeasuredPage(output, measurementPage);
 					measurementPage.remove();
 
 					measurementPage = createMeasurementPage(host);
-					measurementPage.appendChild(clone);
+					columnWrapper = getColumnWrapper(measurementPage);
+					columnWrapper.appendChild(clone);
 				}
 
 				hasContent = true;
@@ -88,8 +90,17 @@ export async function paginateBrewPages(
 function createMeasurementPage(host: HTMLElement): HTMLElement {
 	const page = document.createElement("div");
 	page.className = "page brewPage brewPageMeasurement";
+	const columnWrapper = document.createElement("div");
+	columnWrapper.className = "columnWrapper";
+	page.appendChild(columnWrapper);
 	host.appendChild(page);
 	return page;
+}
+
+function getColumnWrapper(page: HTMLElement): HTMLElement {
+	const wrapper = page.querySelector<HTMLElement>(":scope > .columnWrapper");
+	if (!wrapper) throw new Error("BrewVault measurement page is missing its column wrapper.");
+	return wrapper;
 }
 
 function pageOverflows(page: HTMLElement): boolean {
