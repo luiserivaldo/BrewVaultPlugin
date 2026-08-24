@@ -48,12 +48,17 @@ body {
 	font-family: sans-serif;
 }
 ${themeCss}
+@page { size: Letter portrait; margin: 0; }
 @media print {
-	body { background: none; padding: 0; gap: 0; }
+	html, body { width: 8.5in; margin: 0; padding: 0; }
+	body { background: none; padding: 0; gap: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 	.brewPage {
 		box-shadow: none;
-		page-break-after: always;
 		margin: 0;
+		break-after: page;
+		page-break-after: always;
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
 	}
 }
 </style>

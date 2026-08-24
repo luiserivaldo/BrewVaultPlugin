@@ -1,83 +1,80 @@
-/* Player's-Handbook-inspired theme: parchment background, warm ink color,
-   serif display headings, drop cap on the first paragraph of a page.
-   This is an original approximation of the "5e look", not a copy of any
-   third-party stylesheet. */
+/* Homebrewery 5e PHB compatibility theme.
+   Values intentionally track the upstream V3 5ePHB theme where practical;
+   font fallbacks remain local so BrewVault can render fully offline. */
 
 .brewvault-theme-phb .brewPage {
-	background-color: #eee5ce;
-	background-image: radial-gradient(
-			ellipse at top left,
-			rgba(255, 250, 230, 0.6),
-			transparent 60%
-		),
-		radial-gradient(ellipse at bottom right, rgba(120, 90, 40, 0.12), transparent 55%);
-	border: 8px solid #58180d;
-	outline: 1px solid #a9925c;
-	outline-offset: -14px;
+	background: #eee5ce;
 	color: #1a1005;
-	font-family: "Iowan Old Style", Palatino, "Palatino Linotype", Georgia, serif;
-	line-height: 1.35;
+	font-family: "Book Antiqua", "Iowan Old Style", Palatino, Georgia, serif;
+	font-size: 0.34cm;
+	line-height: 1.25em;
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
 }
+
+.brewvault-theme-phb .brewPage p { line-height: 1.25em; }
+.brewvault-theme-phb .brewPage p + p { margin-top: 0; text-indent: 1em; }
+.brewvault-theme-phb .brewPage ul,
+.brewvault-theme-phb .brewPage ol { padding-left: 1.4em; line-height: 1.25em; }
 
 .brewvault-theme-phb .brewPage h1,
 .brewvault-theme-phb .brewPage h2,
-.brewvault-theme-phb .brewPage h3 {
-	font-family: "Baskerville Old Face", "Iowan Old Style", Georgia, serif;
+.brewvault-theme-phb .brewPage h3,
+.brewvault-theme-phb .brewPage h4 {
+	font-family: "Trebuchet MS", "Gill Sans", sans-serif;
 	color: #58180d;
-	border-bottom: 2px solid #58180d80;
-	padding-bottom: 2px;
-	letter-spacing: 0.02em;
+	font-weight: 700;
 }
 
 .brewvault-theme-phb .brewPage h1 {
-	font-size: 2.1em;
-	text-transform: uppercase;
+	font-size: 0.89cm;
+	line-height: 1em;
+	column-span: all;
+	margin: 0 0 0.18cm;
 }
 
-.brewvault-theme-phb .brewPage h2 {
-	font-size: 1.5em;
+.brewvault-theme-phb .brewPage h2 { font-size: 0.75cm; line-height: 0.99em; }
+.brewvault-theme-phb .brewPage h3 {
+	font-size: 0.575cm;
+	line-height: 1em;
+	border-bottom: 2px solid #c0ad6a;
 }
+.brewvault-theme-phb .brewPage h4 { font-size: 0.458cm; }
 
-.brewvault-theme-phb .brewPage > p:first-of-type::first-letter {
+.brewvault-theme-phb .brewPage > h1 + p::first-letter {
 	float: left;
-	font-family: "Baskerville Old Face", Georgia, serif;
-	font-size: 3.4em;
+	font-size: 3.1em;
 	line-height: 0.8;
-	padding: 4px 6px 0 0;
+	padding: 0.08em 0.08em 0 0;
 	color: #58180d;
 }
 
-.brewvault-theme-phb .brewPage a {
-	color: #58180d;
+.brewvault-theme-phb .brewPage table {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 0.318cm;
+	line-height: 16px;
+	border-collapse: collapse;
+	break-inside: avoid-column;
 }
-
-.brewvault-theme-phb .brewPage blockquote {
-	border-left: 3px solid #58180d80;
-	margin-left: 0;
-	padding-left: 1em;
-	font-style: italic;
+.brewvault-theme-phb .brewPage table th,
+.brewvault-theme-phb .brewPage table td {
+	border: 0;
+	padding: 0 1.5px;
 }
+.brewvault-theme-phb .brewPage table thead { font-weight: 800; }
+.brewvault-theme-phb .brewPage table tbody tr:nth-child(odd) { background: #e0e5c1; }
 
-/* {{note}} */
 .brewvault-theme-phb .brew-note {
-	background: rgba(255, 255, 255, 0.35);
-	border: 1px solid #a9925c;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 0.318cm;
+	background: #e0e5c1;
+	border: 1px solid #8f9972;
+	border-radius: 0;
 }
-
-/* {{descriptive}} — flavor-text style block */
 .brewvault-theme-phb .brew-descriptive {
 	font-style: italic;
-	background: rgba(255, 255, 255, 0.2);
-	border-left: 3px solid #58180d;
+	background: #faf7ea;
+	border: 1px solid #c0ad6a;
+	border-radius: 0;
 }
-
-/* {{classTable}} / {{monster}} — bordered stat/table container */
-.brewvault-theme-phb .brew-classTable,
-.brewvault-theme-phb .brew-monster {
-	background: rgba(255, 255, 255, 0.45);
-	border: 2px solid #58180d;
-}
-
-.brewvault-theme-phb .brewPageNumber {
-	color: #58180d;
-}
+.brewvault-theme-phb .brewPageNumber { color: #58180d; }

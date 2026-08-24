@@ -3,8 +3,8 @@
 An Obsidian desktop plugin that renders your Markdown notes as
 Homebrewery-style, paginated D&D 5e documents — right inside Obsidian.
 
-> **Status:** covers Milestones 0–5 of the plan in
-> [`ARCHITECTURE.md`](./ARCHITECTURE.md). See [`PROGRESS.md`](./PROGRESS.md)
+> **Status:** Milestone 6 (export parity and automatic pagination) is in progress.
+> See [`MILESTONES.md`](./MILESTONES.md) for the current acceptance gates and [`PROGRESS.md`](./PROGRESS.md)
 > for exactly what's done and verified, and [`USAGE.md`](./USAGE.md) for a
 > full command reference with expected input/output.
 
@@ -20,16 +20,9 @@ Homebrewery-style, paginated D&D 5e documents — right inside Obsidian.
   - `{{className content}}` — inline styled spans.
   - `\page` — starts a new page.
   - `\column` — forces a column break within a page.
-- Three theme variants: `phb` (parchment/ink), `journal` (ink-on-cream,
-  informal), and `blank` (plain page), plus configurable page
-  width/height and re-render debounce, in Settings.
-- Snippet-insertion commands for common blocks (monster stat block, note,
-  descriptive/read-aloud text).
-- Export the active note to a standalone, self-contained HTML file, or
-  print it directly to PDF from Obsidian without leaving the app.
-- Fixed-size pages (matching Homebrewery's own behavior) with a visible
-  warning when a page's content overflows, so you know when to add a
-  `\page`/`\column` split.
+- Theme variants: `phb` (Player's Handbook parchment), `srd` (SRD / Unearthed Arcana), and `blank`, plus configurable page size and re-render debounce.
+- Export the active note as self-contained HTML or open the Homebrewery PDF print flow directly from Obsidian.
+- Page-aware rendering automatically creates additional virtual pages when content exceeds the fixed two-column sheet, without editing the source Markdown. Explicit `\page` and `\column` markers remain supported.
 
 See [`USAGE.md`](./USAGE.md) for the full command list and syntax
 reference, and [`examples/sample-brew.md`](./examples/sample-brew.md) for
@@ -59,5 +52,4 @@ module-by-module.
 
 ## Roadmap
 
-Milestone 6+ (not built yet): editor↔preview scroll sync, `{{footnote}}`
-variables, true automatic re-pagination (vs. the current overflow warning).
+Milestone 6 is focused on Homebrewery export parity and automatic pagination. Later milestones add the remaining upstream themes, vault assets, and release hardening.

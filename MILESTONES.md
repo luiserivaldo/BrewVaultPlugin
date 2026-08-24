@@ -1,286 +1,230 @@
-# BrewVault PDF milestone tracker
+# BrewVault Plugin milestone tracker
 
-This file is the authoritative implementation and handoff record. A milestone
-is `DONE` only when the next developer can reproduce its acceptance evidence
-from this repository.
+This is the authoritative implementation and handoff record for the Obsidian
+plugin. A milestone is `DONE` only when its acceptance criteria have been
+verified in a real Obsidian desktop install when the feature depends on
+Chromium/Electron layout or printing.
 
 ## Status legend
 
 | Status | Meaning |
 | --- | --- |
 | `NOT STARTED` | No implementation work has begun. |
-| `IN PROGRESS` | Work exists, but acceptance is incomplete. |
-| `BLOCKED` | An external dependency prevents meaningful progress; the blocker is recorded. |
-| `DONE` | Deliverables and acceptance evidence are independently verified. |
+| `IN PROGRESS` | Code exists, but acceptance is incomplete. |
+| `BLOCKED` | An external dependency prevents meaningful progress. |
+| `DONE` | Deliverables and acceptance evidence are reproducible. |
 
 ## Overview
 
 | Order | Milestone | Status | Outcome |
 | --- | --- | --- | --- |
-| 0 | D0 — Repository and developer foundation | `DONE` | Documented, licensed, buildable plugin scaffold |
-| 1 | M0 — Electron PDF feasibility | `NOT STARTED` | Active note exports through Obsidian's Chromium |
-| 2 | M1 — Homebrewery rendering core | `NOT STARTED` | Pinned renderer produces styled deterministic HTML |
-| 3 | M2 — Obsidian assets and custom CSS | `NOT STARTED` | Obsidian-native links/images and local style overrides |
-| 4 | M3 — Preview and safe export UX | `NOT STARTED` | Preview, progress, validation, and atomic Save As |
-| 5 | M4 — Packaging and community release | `NOT STARTED` | Reproducible public desktop-plugin release |
-
-Each milestone is deliberately shippable or rejectable on its own. Do not port
-the full BrewVault pipeline before M0 proves that the plugin can reliably obtain
-a PDF buffer from Obsidian's Electron runtime.
-
-## Branch and release policy
-
-- `develop` is the persistent integration branch for all unreleased code and
-  documentation.
-- Optional short-lived feature branches start from and merge back into
-  `develop`.
-- Push every completed development or tracking milestone to `develop`.
-- `main` contains version releases only. Merge into `main` after the applicable
-  release acceptance gate passes, then tag the exact manifest version without a
-  leading `v`.
-- Never merge incomplete work into `main` merely to synchronize branches.
+| 0 | M0 — Plugin foundation | `DONE` | Buildable desktop-only Obsidian plugin scaffold |
+| 1 | M1 — Markdown rendering | `DONE` | Markdown renders into a Homebrewery-oriented preview |
+| 2 | M2 — Pages and Homebrewery syntax | `DONE` | `\\page`, `\\column`, blocks, spans, tables, and fixed pages |
+| 3 | M3 — Preview UX | `DONE` | Live preview follows the active note |
+| 4 | M4 — Standalone HTML export | `DONE` | Self-contained HTML export using the preview renderer |
+| 5 | M5 — In-app PDF print path | `DONE` | PDF command opens Chromium/Electron print flow |
+| 6 | M6 — Export parity and automatic pagination | `IN PROGRESS` | Match Homebrewery Letter/PHB output and prevent silent overflow |
+| 7 | M7 — Theme parity expansion | `NOT STARTED` | Add the remaining upstream Homebrewery themes |
+| 8 | M8 — Obsidian assets and release hardening | `NOT STARTED` | Vault assets, diagnostics, packaging, and release verification |
 
 ---
 
-## D0 — Repository and developer foundation
+## M0 — Plugin foundation
 
-**Goal:** leave a new contributor with an accurate plan, explicit licensing,
-and a minimal plugin that builds without containing fake product behavior.
-
-**Deliverables**
-
-- [x] Product README with scope, non-goals, architecture, development setup,
-      verification, release policy, and current status.
-- [x] Agent instructions and an independently checkable milestone tracker.
-- [x] MIT project license and third-party attribution for the Obsidian sample
-      scaffold, Homebrewery, and future dependencies.
-- [x] Desktop-only Obsidian manifest and minimal TypeScript entry point.
-- [x] npm lockfile, strict TypeScript, esbuild, ESLint, version tooling, and CI.
-- [x] Repository hygiene for generated output, local vault state, credentials,
-      and exports.
-
-**Acceptance criteria**
-
-- `npm ci`, typecheck, lint, and production build pass from the checked-in
-  lockfile.
-- `manifest.json` and `versions.json` agree on plugin/minimum app versions.
-- The production bundle is generated locally but remains untracked.
-- Documentation does not claim PDF export already works.
-- The foundation commit is pushed, or the exact missing-remote/authentication
-  blocker is recorded.
+**Goal:** establish a maintainable desktop-only Obsidian plugin project.
 
 **Status:** `DONE`
 
-**Completion evidence:** Verified 2026-08-24 on `develop` with Node 26.7.0 and
-npm 11.19.0. `npm ci` installed the lockfile, audited 328 packages with zero
-known vulnerabilities, and `npm run check` passed strict typecheck,
-Obsidian-specific ESLint, a repeated typecheck, and the production esbuild
-bundle. The generated 650-byte `main.js` is ignored. Manifest/package version
-`0.1.0`, minimum Obsidian version `1.13.7`, and `isDesktopOnly: true` agree.
-`git diff --check` passed. The foundation is committed locally on `develop` as
-`1607fc0`; publication is not claimed because both available GitHub
-authentication paths failed as recorded below.
+**Evidence:** repository scaffold, TypeScript/esbuild build, manifest/version
+files, licensing/third-party notices, architecture docs, and development
+instructions are committed. See `PROGRESS.md` for historical verification.
 
 ---
 
-## M0 — Electron PDF feasibility
+## M1 — Markdown rendering
 
-**Goal:** prove the architectural bet before porting renderer code.
+**Goal:** render active-note Markdown through a deterministic plugin-owned
+pipeline.
 
-**Deliverables**
+**Status:** `DONE`
 
-- [ ] A stable command for exporting the active Markdown `TFile`.
-- [ ] An isolated Electron adapter that renders controlled local HTML and calls
-      `webContents.printToPDF()` without Playwright or a separate browser.
-- [ ] Letter paper, zero margins, printed backgrounds, and deterministic
-      font/image readiness.
-- [ ] A native Save As flow that writes the returned PDF buffer without
-      modifying the source note.
-- [ ] Cleanup and timeout handling for all window and listener paths.
+**Delivered:** `markdown-it` renderer, headings/paragraphs/lists/tables, and a
+preview view using the same HTML fragments later consumed by export.
 
-**Acceptance criteria**
+---
 
-- A one-page fixture exports as a non-empty `%PDF-` document with selectable
-  text on Windows and Linux; macOS evidence is required before public release.
-- The plugin works from a normal Obsidian installation and after application
-  restart on both the minimum supported and current stable app versions.
-- No Playwright package, Chromium download, local HTTP server, or sidecar exists.
-- Renderer navigation and remote requests are denied.
-- The hidden renderer never remains open after success, failure, timeout, or
-  plugin unload.
-- If reliable PDF creation requires an unacceptable private API, stop and
-  record the decision instead of porting the full pipeline.
+## M2 — Pages and Homebrewery syntax
+
+**Goal:** support the Homebrewery authoring primitives needed by existing brew
+notes.
+
+**Status:** `DONE`
+
+**Delivered:** block containers, inline spans, explicit `\\page`, explicit
+`\\column`, fixed-size two-column pages, wide blocks, and page numbering.
+
+---
+
+## M3 — Preview UX
+
+**Goal:** make the renderer usable while authoring in Obsidian.
+
+**Status:** `DONE`
+
+**Delivered:** ribbon/command entry for **Open Homebrewery Preview**, active-file
+tracking, debounced refresh, and theme/page-size settings.
+
+**Superseded behavior:** the separate **Preview current file as Homebrewery
+document** command was redundant with **Open Homebrewery Preview** and is
+removed in M6.
+
+---
+
+## M4 — Standalone HTML export
+
+**Goal:** export the same render snapshot as a self-contained browser document.
+
+**Status:** `DONE`
+
+**Delivered:** compiled theme CSS is embedded at build time and exported HTML
+requires no runtime stylesheet read.
+
+**M6 naming change:** command is now **Export current file as HTML**. The older
+"standalone Homebrewery HTML" wording is retired.
+
+---
+
+## M5 — In-app PDF print path
+
+**Goal:** reach Chromium/Electron's print dialog without requiring a manually
+opened browser tab.
+
+**Status:** `DONE`
+
+**Delivered:** a hidden iframe loads the standalone document and calls
+`window.print()`.
+
+**M6 naming change:** command is now **Export current file as Homebrewery PDF**.
+All user-facing output actions now use **Export** terminology.
+
+---
+
+## M6 — Export parity and automatic pagination
+
+**Goal:** make exported pages behave like the live Homebrewery V3 output rather
+than merely resembling a two-column document.
+
+**Status:** `IN PROGRESS`
+
+### Feedback driving this milestone
+
+The first side-by-side exports exposed four release-blocking mismatches:
+
+1. **Command surface is inconsistent and too broad.** Keep only the preview and
+   export workflow. Remove all **Insert ...** commands, remove the redundant
+   preview command, rename HTML export to **Export current file as HTML**, and
+   rename PDF printing to **Export current file as Homebrewery PDF**.
+2. **Print geometry is not deterministic.** The supplied BrewVault Swinekin PDF
+   is A4 while the matching Homebrewery output is US Letter. Homebrewery defaults
+   to US Letter, so BrewVault must explicitly print Letter and preserve page
+   backgrounds.
+3. **PHB output is not using PHB-like layout rules.** The supplied BrewVault
+   samples show a plain/bordered treatment and different table metrics; the
+   matching Homebrewery 5ePHB samples use parchment, compact PHB typography, and
+   striped borderless tables. Those metric differences also make BrewVault move
+   content into column two earlier than Homebrewery.
+4. **Overflow must become page-aware.** A long logical page may flow into hidden
+   third/fourth CSS columns and be clipped. BrewVault should insert virtual page
+   breaks in the rendered copy at safe block boundaries without editing the
+   source `.md` file.
+
+### Deliverables
+
+- [x] Normalize commands to **Open Homebrewery Preview**, **Export current file
+      as HTML**, and **Export current file as Homebrewery PDF**.
+- [x] Remove the redundant preview command and all **Insert ...** commands.
+- [x] Force exported print CSS to US Letter and preserve backgrounds with print
+      color adjustment.
+- [x] Replace the PHB table/typography/layout approximation with values aligned
+      to Homebrewery V3 5ePHB conventions: 0.34cm body type, 0.9cm column gap,
+      1.4cm/1.7cm page padding, borderless striped tables, and PHB parchment
+      colors.
+- [x] Rename the former `journal` option to **SRD / Unearthed Arcana** (`srd`).
+- [x] Add DOM-measured automatic pagination. It creates virtual rendered pages
+      at top-level block boundaries when fixed two-column layout would overflow;
+      source Markdown remains untouched and explicit `\\page` still wins.
+- [ ] Verify automatic pagination in a real Obsidian Chromium runtime with a
+      document long enough to require at least three generated pages.
+- [ ] Re-export **Alter Fate** and **Swinekin** and compare against the supplied
+      Homebrewery PDFs for Letter page size, first-column flow, table geometry,
+      parchment/background printing, and page breaks.
+- [x] Add `examples/auto-pagination-regression.md`, including tables and a callout
+      that must move intact at a page boundary.
+- [ ] Verify that fixture produces 3+ pages in a real Obsidian Chromium runtime.
+
+### Acceptance criteria
+
+- PDF output reports `612 x 792 pt` (US Letter) with no A4 fallback.
+- Selecting **Player's Handbook (Parchment)** produces a parchment PHB-style
+  page in the PDF, not the SRD/plain treatment.
+- The Alter Fate table starts in the same column as the Homebrewery reference
+  unless its preceding content genuinely consumes the available height.
+- A note that exceeds two columns produces additional physical pages with no
+  omitted text and no edits to the source `.md` file.
+- Explicit `\\page` and `\\column` markers retain deterministic precedence.
+- A single indivisible block larger than one page is visibly flagged rather
+  than silently discarded or split into invalid markup.
+
+### Current implementation checkpoint
+
+Code for command cleanup, Letter print CSS, PHB/SRD theme correction, and
+DOM-measured virtual pagination is implemented on the M6 working branch. Static
+build verification in the uploaded archive is currently limited because the
+archive's `node_modules` tree is incomplete (local `tsc` cannot resolve the
+checked-in dependencies); real Obsidian verification is still required before
+marking this milestone `DONE`.
+
+---
+
+## M7 — Theme parity expansion
+
+**Goal:** expose the same named theme family as the Homebrewery live site.
 
 **Status:** `NOT STARTED`
 
+**Planned themes:** 5e DMG, 5e PHB, Blank, Journal, and UnearthedArcana. M6 only
+stabilizes PHB plus the SRD/Unearthed-Arcana-oriented non-PHB path. Theme assets,
+fonts, and exact upstream visual parity are handled here rather than delaying M6
+pagination/export fixes.
+
 ---
 
-## M1 — Homebrewery rendering core
+## M8 — Obsidian assets and release hardening
 
-**Goal:** port only the proven, host-independent conversion boundary.
-
-**Deliverables**
-
-- [ ] Markdown AST → document IR → Homebrewery serializer with focused fixtures.
-- [ ] A pinned, license-recorded Homebrewery `render()` integration isolated
-      behind one adapter.
-- [ ] Build-time compilation and bundling of the default Homebrewery CSS, fonts,
-      and backgrounds required at runtime.
-- [ ] Electron-backed DOM measurement and deterministic explicit/automatic page
-      breaks without Playwright.
-
-**Acceptance criteria**
-
-- Headings, paragraphs, lists, tables, raw Homebrewery blocks, images, and
-  explicit page breaks match approved fixtures.
-- A representative multi-page document has no clipped or silently omitted
-  blocks.
-- No runtime dependency reaches outside the installed plugin directory or
-  selected vault resources.
-- Homebrewery revision and MIT attribution are recorded in release evidence.
+**Goal:** support real vault resources and prepare a reproducible public plugin
+release.
 
 **Status:** `NOT STARTED`
 
----
-
-## M2 — Obsidian assets and custom CSS
-
-**Goal:** agree with Obsidian's own vault semantics and expose approachable
-style customization.
-
-**Deliverables**
-
-- [ ] Resolve active note, wikilinks, embeds, aliases, and local assets through
-      `Workspace`, `Vault`, and `MetadataCache`.
-- [ ] Preserve per-occurrence image alt text and display options in the IR.
-- [ ] Settings tab for selecting the default Homebrewery style or a vault-local
-      custom CSS file.
-- [ ] Resolve and inline CSS-local images/fonts without permitting remote loads.
-- [ ] Visible warnings for missing, ambiguous, unsupported, or remote assets.
-
-**Acceptance criteria**
-
-- Resolution matches what Obsidian selects for duplicate names and relative
-  links.
-- Standard Markdown images and Obsidian embeds render from the active note.
-- Custom CSS changes font, color, background, and layout without editing source
-  Markdown.
-- Missing or rejected resources cannot silently disappear.
-
-**Status:** `NOT STARTED`
+**Planned work:** Obsidian embeds/wikilinks/local images, missing-asset warnings,
+custom CSS, cancellation/overwrite safety, cross-platform test matrix, release
+artifacts, dependency/license checks, and Community Plugin submission.
 
 ---
-
-## M3 — Preview and safe export UX
-
-**Goal:** make one-note export understandable and safe for nontechnical users.
-
-**Deliverables**
-
-- [ ] Preview view for the active note with Refresh and Export PDF actions.
-- [ ] Progress, cancellation, concise local diagnostics, and actionable errors.
-- [ ] Content fingerprinting so stale previews cannot be exported as current.
-- [ ] Atomic destination install with separate overwrite confirmation.
-- [ ] Keyboard command, ribbon action, and file-menu action for eligible notes.
-
-**Acceptance criteria**
-
-- Switching or editing notes invalidates stale export state.
-- Cancel and overwrite flows never truncate an existing file.
-- Preview and final PDF use the same HTML/CSS and resource snapshot.
-- Spaces and non-ASCII vault/destination paths pass on each desktop OS.
-
-**Status:** `NOT STARTED`
-
----
-
-## M4 — Packaging and community release
-
-**Goal:** ship a reproducible, reviewable Community Plugin release.
-
-**Deliverables**
-
-- [ ] CI gates for typecheck, lint, unit/integration tests, deterministic build,
-      manifest/version agreement, artifact presence, and dependency licenses.
-- [ ] Release workflow producing `main.js`, `manifest.json`, and `styles.css`.
-- [ ] Installation, privacy, custom CSS, troubleshooting, and attribution docs.
-- [ ] Community-directory submission with `isDesktopOnly: true`.
-
-**Acceptance criteria**
-
-- Clean Obsidian installations on Windows, Linux, and macOS install the release
-  artifacts and export approved fixtures fully offline.
-- No developer dependency or unbundled runtime module is required.
-- Community review has accepted the Electron boundary, or the exact external
-  review blocker is recorded and the milestone remains incomplete.
-- Public release evidence and checksums are linked from this tracker.
-
-**Status:** `NOT STARTED`
-
----
-
-## Open risks and decisions
-
-- [ ] **Electron boundary:** Node/Electron use is permitted for desktop-only
-      plugins, but hidden `BrowserWindow` creation and `printToPDF()` must be
-      proven across Obsidian's Electron versions and community review.
-- [ ] **Pinned Homebrewery adapter:** BrewVault used an undocumented
-      `shared/markdown.js` export. Confirm the smallest bundleable integration
-      and pin it before porting.
-- [ ] **Runtime assets:** standard Community Plugin installation centers on
-      `main.js`, `manifest.json`, and `styles.css`; Homebrewery fonts and
-      backgrounds must be bundled or safely inlined.
-- [ ] **Untrusted document content:** raw HTML, CSS, SVG, and Homebrewery variable
-      expressions require an explicit local-content trust and sanitization
-      decision before release.
-- [ ] **Upstream lint warning:** `eslint-plugin-obsidianmd@0.4.1` currently
-      installs a nested deprecated ESLint 9 for some of its plugins. BrewVault
-      PDF directly runs ESLint 10.9.0, all checks pass, and `npm audit` reports
-      zero vulnerabilities. Recheck when the Obsidian lint plugin updates.
-- [ ] **GitHub authentication:** `origin` is configured for
-      `https://github.com/luiserivaldo/BrewVaultPlugin.git`, but this process has
-      no HTTPS credential helper or GitHub CLI, and its credential-free SSH
-      fallback has no authorized private key. Restore authentication before the
-      next mandated milestone push.
 
 ## Handoff log
 
-Append an entry whenever work stops or a milestone changes status.
+### 2026-08-24 — M6 export parity and automatic pagination
 
-```text
-### YYYY-MM-DD — milestone
-Status change:
-What changed:
-What was verified:
-Commit/push result:
-Next pickup:
-New risks or blockers:
-```
-
-### 2026-08-24 — D0 repository foundation
-
-Status change: `D0: NOT STARTED → IN PROGRESS → DONE`
-
-What changed: documentation, licensing, attribution, plugin metadata, and the
-minimal build environment were established from the official Obsidian
-sample scaffold on the new `develop` branch. `main` remains release-only. No PDF
-feature is claimed.
-
-What was verified: Node 26.7.0/npm 11.19.0 `npm ci` installed 327 packages and
-audited 328 with zero vulnerabilities. `npm run check` passed typecheck, lint,
-and production build. The manifest/version consistency check, ignore rules,
-generated-bundle check, and `git diff --check` passed.
-
-Commit/push result: foundation commit `1607fc0` exists locally on `develop`.
-`git push -u origin develop` failed with `fatal: could not read Username for
-'https://github.com': No such device or address`. No credential helper or
-GitHub CLI is installed. An SSH authentication check using GitHub's verified
-host key also failed with `Permission denied (publickey)`. Nothing was pushed.
-`main` remains at initial commit `9102d4d`.
-
-Next pickup: restore GitHub authentication and push `develop`, then begin M0 on
-`develop`.
-
-New risks or blockers: the Obsidian ESLint plugin's nested ESLint 9 deprecation
-warning is non-blocking; GitHub authentication blocks the required push. Both
-are recorded above.
+**Status change:** `NOT STARTED` → `IN PROGRESS`
+**What changed:** command cleanup; export-only command naming; SRD rename; US
+Letter print CSS; PHB table/typography corrections; automatic rendered-page
+splitting at safe top-level block boundaries.
+**What was verified:** supplied PDFs confirm the existing page-size/theme/layout
+mismatches. Source-level implementation is complete enough for the next live
+Obsidian test.
+**What remains:** live Chromium layout/print verification against Alter Fate and
+Swinekin, plus a multi-page overflow regression fixture.
+**Next pickup:** install the branch into Obsidian, run the two supplied samples,
+and record PDF page size plus visual comparison before marking M6 done.

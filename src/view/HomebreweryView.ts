@@ -1,5 +1,6 @@
 import { ItemView, TFile, WorkspaceLeaf } from "obsidian";
 import { renderBrewMarkdown } from "../renderer";
+import { paginateBrewPages } from "../renderer/paginateDom";
 import type BrewVaultPlugin from "../main";
 
 export const HOMEBREWERY_VIEW_TYPE = "brewvault-preview";
@@ -96,8 +97,9 @@ export class HomebreweryView extends ItemView {
 		}
 
 		const source = await this.app.vault.cachedRead(this.trackedFile);
-		const pages = renderBrewMarkdown(source);
+		const renderedPages = renderBrewMarkdown(source);
 		const { theme, pageWidthPx, pageHeightPx } = this.plugin.settings;
+		const pages = await paginateBrewPages(renderedPages, { theme, pageWidthPx, pageHeightPx });
 
 		this.pagesContainer.empty();
 		this.pagesContainer.style.setProperty("--brew-page-width", `${pageWidthPx}px`);
@@ -105,7 +107,7 @@ export class HomebreweryView extends ItemView {
 		this.pagesContainer.removeClass(
 			"brewvault-theme-phb",
 			"brewvault-theme-blank",
-			"brewvault-theme-journal"
+			"brewvault-theme-srd"
 		);
 		this.pagesContainer.addClass(`brewvault-theme-${theme}`);
 
@@ -119,11 +121,10 @@ export class HomebreweryView extends ItemView {
 	}
 
 	/**
-	 * After a render, checks each .brewPage for clipped content (its
-	 * rendered content is taller than the fixed page height allows) and
-	 * flags it visually. Pages are fixed-height by design (see
-	 * ARCHITECTURE.md §9.2, matching Homebrewery's own manual-pagination
-	 * model) — this only adds feedback so overflow isn't silent.
+	 * Automatic pagination handles normal top-level block overflow before the
+	 * preview is mounted. This final check is the fallback for an indivisible
+	 * block (for example, one very tall table) that is itself larger than a
+	 * physical page and therefore cannot be moved to a later page intact.
 	 * Deferred a frame so layout has settled before measuring.
 	 */
 	private flagOverflowingPages(): void {
@@ -133,11 +134,13 @@ export class HomebreweryView extends ItemView {
 				pageEl.removeClass("brewPageOverflow");
 				pageEl.querySelector(".brewPageOverflowBadge")?.remove();
 
-				const isOverflowing = pageEl.scrollHeight > pageEl.clientHeight + 1;
+				const isOverflowing =
+					pageEl.scrollHeight > pageEl.clientHeight + 1 ||
+					pageEl.scrollWidth > pageEl.clientWidth + 1;
 				if (isOverflowing) {
 					pageEl.addClass("brewPageOverflow");
 					const badge = pageEl.createDiv({ cls: "brewPageOverflowBadge" });
-					badge.setText("Content overflows — add \\page or \\column");
+					badge.setText("Block is too large for one page");
 				}
 			});
 		});

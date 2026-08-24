@@ -22,7 +22,7 @@ export class BrewVaultSettingTab extends PluginSettingTab {
 			.addDropdown((drop) =>
 				drop
 					.addOption("phb", "Player's Handbook (parchment)")
-					.addOption("journal", "Journal (ink on cream)")
+					.addOption("srd", "SRD / Unearthed Arcana")
 					.addOption("blank", "Blank (plain paginated page)")
 					.setValue(this.plugin.settings.theme)
 					.onChange(async (value) => {

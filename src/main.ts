@@ -3,13 +3,9 @@ import { BrewVaultSettings, DEFAULT_SETTINGS } from "./settings/types";
 import { BrewVaultSettingTab } from "./settings/SettingTab";
 import { HomebreweryView, HOMEBREWERY_VIEW_TYPE } from "./view/HomebreweryView";
 import { renderBrewMarkdown } from "./renderer";
+import { paginateBrewPages } from "./renderer/paginateDom";
 import { buildStandaloneHtml } from "./export/buildStandaloneHtml";
 import { BUNDLED_THEME_CSS } from "./generated/themeCss";
-import {
-	DESCRIPTIVE_SNIPPET,
-	MONSTER_STAT_BLOCK_SNIPPET,
-	NOTE_SNIPPET,
-} from "./snippets/templates";
 
 export default class BrewVaultPlugin extends Plugin {
 	settings: BrewVaultSettings = DEFAULT_SETTINGS;
@@ -31,52 +27,12 @@ export default class BrewVaultPlugin extends Plugin {
 			},
 		});
 
-		this.addCommand({
-			id: "preview-current-file",
-			name: "Preview current file as Homebrewery document",
-			checkCallback: (checking) => {
-				const file = this.app.workspace.getActiveFile();
-				const canRun = !!file && file.extension === "md";
-				if (canRun && !checking) {
-					this.activateView().then((view) => {
-						if (file instanceof TFile) view.setFile(file);
-					});
-				}
-				return canRun;
-			},
-		});
-
 		this.addSettingTab(new BrewVaultSettingTab(this.app, this));
-
-		// --- Milestone 3: authoring-aid snippet commands ---
-		this.addCommand({
-			id: "insert-monster-stat-block",
-			name: "Insert monster stat block snippet",
-			editorCallback: (editor) => {
-				editor.replaceSelection(MONSTER_STAT_BLOCK_SNIPPET);
-			},
-		});
-
-		this.addCommand({
-			id: "insert-note-block",
-			name: "Insert note block snippet",
-			editorCallback: (editor) => {
-				editor.replaceSelection(NOTE_SNIPPET);
-			},
-		});
-
-		this.addCommand({
-			id: "insert-descriptive-block",
-			name: "Insert descriptive (read-aloud) block snippet",
-			editorCallback: (editor) => {
-				editor.replaceSelection(DESCRIPTIVE_SNIPPET);
-			},
-		});
 
 		// --- Milestone 4: export ---
 		this.addCommand({
 			id: "export-current-file-as-html",
-			name: "Export current file as standalone Homebrewery HTML",
+			name: "Export current file as HTML",
 			checkCallback: (checking) => {
 				const file = this.app.workspace.getActiveFile();
 				const canRun = !!file && file.extension === "md";
@@ -89,13 +45,13 @@ export default class BrewVaultPlugin extends Plugin {
 
 		// --- Milestone 5: print to PDF without leaving Obsidian ---
 		this.addCommand({
-			id: "print-current-file-as-pdf",
-			name: "Print current file as Homebrewery PDF",
+			id: "export-current-file-as-pdf",
+			name: "Export current file as Homebrewery PDF",
 			checkCallback: (checking) => {
 				const file = this.app.workspace.getActiveFile();
 				const canRun = !!file && file.extension === "md";
 				if (canRun && !checking) {
-					this.printFileAsPdf(file as TFile);
+					this.exportFileAsPdf(file as TFile);
 				}
 				return canRun;
 			},
@@ -110,7 +66,12 @@ export default class BrewVaultPlugin extends Plugin {
 	async exportFileAsHtml(file: TFile): Promise<void> {
 		try {
 			const source = await this.app.vault.cachedRead(file);
-			const pages = renderBrewMarkdown(source);
+			const renderedPages = renderBrewMarkdown(source);
+			const pages = await paginateBrewPages(renderedPages, {
+				theme: this.settings.theme,
+				pageWidthPx: this.settings.pageWidthPx,
+				pageHeightPx: this.settings.pageHeightPx,
+			});
 
 			const html = buildStandaloneHtml(
 				pages,
@@ -149,13 +110,17 @@ export default class BrewVaultPlugin extends Plugin {
 	 * NOTE: this relies on Electron's Chromium-standard iframe print
 	 * behavior and has not been exercised against a real Obsidian install
 	 * in this environment — see PROGRESS.md's verification notes. If it
-	 * doesn't work on your system, "Export current file as standalone
-	 * Homebrewery HTML" is the reliable fallback.
+	 * doesn't work on your system, "Export current file as HTML" is the reliable fallback.
 	 */
-	async printFileAsPdf(file: TFile): Promise<void> {
+	async exportFileAsPdf(file: TFile): Promise<void> {
 		try {
 			const source = await this.app.vault.cachedRead(file);
-			const pages = renderBrewMarkdown(source);
+			const renderedPages = renderBrewMarkdown(source);
+			const pages = await paginateBrewPages(renderedPages, {
+				theme: this.settings.theme,
+				pageWidthPx: this.settings.pageWidthPx,
+				pageHeightPx: this.settings.pageHeightPx,
+			});
 
 			const html = buildStandaloneHtml(
 				pages,
@@ -191,8 +156,8 @@ export default class BrewVaultPlugin extends Plugin {
 
 			iframe.srcdoc = html;
 		} catch (err) {
-			console.error("BrewVault print-to-PDF failed", err);
-			new Notice("BrewVault print-to-PDF failed — see console for details.");
+			console.error("BrewVault PDF export failed", err);
+			new Notice("BrewVault PDF export failed — see console for details.");
 		}
 	}
 
@@ -201,7 +166,19 @@ export default class BrewVaultPlugin extends Plugin {
 	}
 
 	async loadSettings(): Promise<void> {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		const stored = (await this.loadData()) as
+			| (Partial<BrewVaultSettings> & { theme?: BrewVaultSettings["theme"] | "journal" })
+			| null;
+		const normalized = { ...(stored ?? {}) };
+
+		// M6 renamed the old local "journal" approximation to the SRD/UA theme.
+		// Migrate existing plugin data so upgraded vaults do not end up with a
+		// theme class that no longer exists.
+		if (normalized.theme === "journal") {
+			normalized.theme = "srd";
+		}
+
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, normalized) as BrewVaultSettings;
 	}
 
 	async saveSettings(): Promise<void> {

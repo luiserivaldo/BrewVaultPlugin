@@ -1,11 +1,11 @@
-export type BrewTheme = "phb" | "blank" | "journal";
+export type BrewTheme = "phb" | "srd" | "blank";
 
 export interface BrewVaultSettings {
 	/** Which theme stylesheet variant to apply to the preview pages. */
 	theme: BrewTheme;
-	/** Page width in pixels (default approximates 8.5in @ 96dpi). */
+	/** Page width in pixels (US Letter at 96 CSS dpi). */
 	pageWidthPx: number;
-	/** Page height in pixels (default approximates 11in @ 96dpi). */
+	/** Page height in pixels (US Letter at 96 CSS dpi). */
 	pageHeightPx: number;
 	/** Debounce, in milliseconds, between a file change and a re-render. */
 	debounceMs: number;

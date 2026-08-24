@@ -261,3 +261,28 @@ Note: `src/generated/themeCss.ts` is a build artifact (gitignored) — if
 you clone this repo fresh and jump straight to editing `main.ts` before
 ever running a build, your editor's TypeScript server will show an
 import error for it until you run `npm run build` or `npm run dev` once.
+
+## Milestone 6 — Export parity and automatic pagination
+Status: 🚧 In progress
+
+Triggered by side-by-side BrewVault vs. Homebrewery PDF samples.
+
+- [x] Command surface reduced to preview + export only; duplicate preview and all
+      `Insert ...` commands removed.
+- [x] HTML command renamed to `Export current file as HTML`.
+- [x] PDF command renamed to `Export current file as Homebrewery PDF`.
+- [x] Print CSS now declares US Letter and exact background/color printing.
+- [x] `journal` setting renamed to `srd` / `SRD / Unearthed Arcana`.
+- [x] PHB layout/table metrics moved toward Homebrewery V3 values (cm-based
+      type scale, 0.9cm column gap, borderless striped tables, parchment).
+- [x] Added DOM-measured virtual pagination at top-level block boundaries; the
+      source Markdown is never edited and explicit `\\page` still splits first.
+- [ ] Live Obsidian verification against the supplied Alter Fate and Swinekin
+      references.
+- [x] Added `examples/auto-pagination-regression.md` with tables/callout blocks.
+- [ ] Live evidence that the fixture produces 3+ generated pages with no clipping.
+
+Verification note: the uploaded project archive contains an incomplete
+`node_modules` tree, so local `npm run build` reaches the generated-CSS step but
+cannot resolve the archived TypeScript/dependency packages. This is an archive
+verification limitation, not yet evidence that M6 passes a clean `npm install`.

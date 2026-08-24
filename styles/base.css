@@ -42,9 +42,11 @@
 	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
 	box-sizing: border-box;
 	overflow: hidden;
-	padding: 56px 64px;
+	padding: 1.4cm 1.7cm;
 	column-count: 2;
-	column-gap: 40px;
+	column-fill: auto;
+	column-gap: 0.9cm;
+	column-width: 8cm;
 	flex-shrink: 0;
 }
 
@@ -72,8 +74,7 @@
 	pointer-events: none;
 }
 
-.brewPage > h1,
-.brewPage > h2 {
+.brewPage > h1 {
 	column-span: all;
 }
 
@@ -120,6 +121,9 @@
 
 .brewvault-pages table th,
 .brewvault-pages table td {
-	border: 1px solid currentColor;
 	padding: 4px 8px;
 }
+
+/* Hidden DOM used by automatic pagination measurement. */
+.brewvault-measure-pages { gap: 0; }
+.brewPageMeasurement { box-shadow: none !important; }
