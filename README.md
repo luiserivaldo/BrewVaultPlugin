@@ -1,130 +1,51 @@
-# BrewVault PDF
+# BrewVault PDF Plugin
 
-BrewVault PDF is a planned desktop-only Obsidian plugin that renders the active
-Markdown note with Homebrewery-compatible D&D styling and exports it as a PDF.
-It is local-first: vault content stays on the user's computer, and PDF export
-must not require a server, a separate Chromium download, or an external command.
+## Current Status
 
-> [!IMPORTANT]
-> The repository currently contains the verified development scaffold and
-> architecture plan only. D0 is complete; PDF export is not implemented yet.
-> The first product milestone is the Electron `printToPDF()` feasibility proof
-> in [MILESTONES.md](MILESTONES.md).
+**Status:** M0 in development - proving Electron PDF feasibility inside Obsidian.
 
-## Planned workflow
+The plugin uses Obsidian's vault APIs for file management and its Electron runtime for layout and PDF generation. This keeps everything local and offline.
 
-1. Open a Markdown note in Obsidian desktop.
-2. Run **Export active note as BrewVault PDF**.
-3. Review the Homebrewery-styled preview.
-4. Optionally select a local custom CSS file from the vault.
-5. Choose a destination and export the verified PDF.
-
-Obsidian already owns vault discovery, active-file state, metadata caching, and
-link resolution. BrewVault PDF will keep the proven Markdown AST → document IR
-→ Homebrewery serialization work from the earlier BrewVault application while
-replacing its standalone filesystem, web server, Tauri, and Playwright layers.
-
-## Scope
-
-The first release targets:
-
-- Obsidian desktop on Windows, Linux, and macOS.
-- One active Markdown file per export.
-- Obsidian wikilinks and embeds resolved through Obsidian's public APIs.
-- Homebrewery-compatible default styling.
-- An optional local CSS file for custom styling.
-- Local images, fonts, backgrounds, tables, and explicit page breaks.
-- Chromium PDF generation through the Electron runtime already used by
-  Obsidian.
-- Offline operation with no telemetry.
-
-Explicit non-goals for the first release are mobile support, batch/booklet
-composition, live Markdown editing inside the preview, AI features, web image
-search, and remote rendering services.
-
-## Architecture boundaries
-
-- Use Obsidian's `Vault`, `Workspace`, and `MetadataCache` APIs for vault files,
-  the active note, embeds, link resolution, and change events.
-- Keep Markdown parsing, document IR, Homebrewery serialization, pagination,
-  and rendering independent from Obsidian UI code.
-- Isolate direct Electron access behind one desktop PDF adapter. The M0 spike
-  must prove that adapter against supported Obsidian versions before the
-  renderer is ported.
-- Bundle runtime dependencies into `main.js`; end users must not install Node,
-  npm, Homebrewery, Playwright, Chromium, or a sidecar.
-- Do not modify the source note during preview or export.
-- Do not load remote scripts, styles, images, or fonts in the print renderer.
-
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the proposed module map and
-security boundary.
-
-## Developer setup
-
-Requirements:
-
-- Node.js 20 or newer.
-- npm 10 or newer.
-- Obsidian desktop for manual plugin verification.
-
-From the repository root:
+## Quick Start
 
 ```bash
 npm ci
+npm run build
 npm run check
 ```
 
-For watch mode:
+## Development
 
-```bash
-npm run dev
-```
+- Working branch: `develop`
+- Release branch: `main`
+- See [MILESTONES.md](./MILESTONES.md) for the current milestone and acceptance gates.
 
-The build produces `main.js` at the repository root. For a development install,
-place or symlink this repository at:
+## Architecture
 
-```text
-<Vault>/.obsidian/plugins/brewvault-pdf/
-```
+See [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) for package boundaries and security constraints.
 
-Then enable **BrewVault PDF** under **Settings → Community plugins**. Generated
-`main.js` and source maps are intentionally ignored by Git and must be rebuilt
-locally.
+## Milestone 0: Electron PDF Feasibility
 
-## Verification
+M0 aims to prove that we can generate PDFs from Obsidian markdown using a controlled hidden renderer window. This establishes the architectural foundation before porting the full Homebrewery rendering pipeline.
 
-Run before every milestone commit:
+### What's Implemented
 
-```bash
-npm run typecheck
-npm run lint
-npm run build
-git diff --check
-```
+- ✅ Plugin scaffold with strict TypeScript, esbuild bundling, ESLint
+- ✅ Source layout structure (src/main.ts, src/commands/, src/obsidian/, etc.)
+- ✅ Electron adapter classes for print renderer windows
+- ✅ Obsidian adapters for Vault and Workspace access
+- ✅ Basic PDF export command implementation
 
-Milestone-specific integration and manual Obsidian checks are recorded in
-[MILESTONES.md](MILESTONES.md). A milestone is not complete merely because its
-implementation exists; its stated acceptance evidence must pass.
+### What's Needed to Verify
 
-## Releases
+The key challenge for M0 is creating BrowserWindow instances from within an Obsidian plugin context. Options include:
 
-There is no functional release yet. When release work begins, Git tags must
-exactly match `manifest.json` versions without a leading `v`. Community-plugin
-artifacts will be `main.js`, `manifest.json`, and `styles.css` when styles are
-present.
+1. Creating windows directly from plugin code (requires Obsidian API permission)
+2. Registering a custom main process handler in src/main.ts  
+3. Using IPC messaging between plugin and window creator
 
-All unreleased work is committed to `develop`. Short-lived feature branches may
-branch from and merge back into `develop`, but `main` is updated only for a
-verified version release. Tracking/documentation milestones that do not create
-a release are committed and pushed on `develop`.
+### Next Steps
 
-## License and attribution
+**Investigation:** Test whether we can create BrowserWindow directly from plugin code, or if we need to register custom handlers in the main process.
 
-BrewVault PDF is free and open-source software under the [MIT License](LICENSE).
-Redistributions must preserve its copyright and license notice.
-
-This project is built with and inspired by other open-source projects,
-especially NaturalCrit's Homebrewery and Obsidian's sample plugin. Their work is
-not relicensed by this project. See
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for licenses, acknowledgements,
-and the attribution policy.
+The Obsidian documentation indicates that plugins running with certain flags may have access to electron APIs. Let's implement a test version that attempts direct window creation and see what happens.
