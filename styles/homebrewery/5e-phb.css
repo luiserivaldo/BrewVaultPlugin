@@ -20,7 +20,7 @@
 .brewvault-theme-phb .page p + p { margin-top: 0; text-indent: 1em; }
 .brewvault-theme-phb .page :where(ul, ol) { padding-left: 1.4em; margin-bottom: .8em; line-height: 1.25em; }
 .brewvault-theme-phb .page :where(ul, ol) + p { text-indent: 1em; }
-.brewvault-theme-phb .page :where(h1, h2, h3, h4) { font-family: "MrEavesRemake"; font-weight: 400; color: var(--HB_Color_HeaderText); }
+.brewvault-theme-phb .page :where(h1, h2, h3, h4) { font-family: "MrEavesRemake"; font-weight: 700; color: var(--HB_Color_HeaderText); }
 .brewvault-theme-phb .page h1 { margin-bottom: .18cm; column-span: all; font-size: .89cm; line-height: 1; }
 .brewvault-theme-phb .page h1 + * { margin-top: 0; }
 .brewvault-theme-phb .page h1 + p::first-letter { float: left; padding: 0 0 2px 40px; margin: -.3cm 0 -20px -40px; font-family: "SolberaImitationRemake"; font-size: 3.5cm; line-height: 1; color: transparent; background: linear-gradient(-45deg,#322814,#998250,#322814); background-clip: text; }
