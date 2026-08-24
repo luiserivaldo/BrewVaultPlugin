@@ -18,7 +18,6 @@ export it directly as a PDF or self-contained HTML file.
 - Automatic pagination without changing the source Markdown file.
 - Direct US Letter PDF export with backgrounds and fonts preserved.
 - Self-contained HTML export that can be opened without BrewVault.
-- Collision-safe output names: existing exports are preserved as `_1`, `_2`,
   and later numbered copies.
 - Configurable vault-relative export folder, defaulting to
   `BrewVault-Exports`.
