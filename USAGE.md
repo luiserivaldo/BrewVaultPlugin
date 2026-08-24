@@ -126,6 +126,7 @@ Settings → BrewVault:
 | Setting | Effect |
 |---|---|
 | **Theme** | `phb` (Player's Handbook parchment), `srd` (SRD / Unearthed Arcana), or `blank`. Changes apply immediately to preview and export. |
+| **Homebrewery edit mode** | Replaces matched block delimiters and explicit `\page` / `\column` directives with readable visual editor elements. Select one to reveal and edit its source. Enabled by default. |
 | **Page width / height (px)** | Size of each rendered "sheet of paper". Defaults (816×1056) approximate US Letter at 96dpi. |
 | **Re-render debounce (ms)** | How long the preview waits after you stop typing before re-rendering. Lower = more responsive, higher = less flicker on fast typers. |
 
@@ -135,9 +136,26 @@ Settings → BrewVault:
 - No dedicated stat-block "legend" (`Key :: Value`) syntax — use bullet
   lists instead, as in the built-in snippet.
 - No editor↔preview scroll sync.
+- Homebrewery Edit Mode shows exact explicit `\page` and `\column` boundaries.
+  Projecting DOM-measured automatic page boundaries back into source requires
+  source-position metadata and is tracked separately; BrewVault does not guess
+  page positions from line or character counts.
 - PHB geometry, colors, table rules, and type scale are aligned to Homebrewery V3 conventions, but BrewVault still uses local fallback fonts and does not yet vendor every upstream theme asset. Exact pixel parity remains an M7 target.
 
 These are tracked in `MILESTONES.md`.
+
+## Homebrewery Edit Mode
+
+When enabled, matched block-container source such as `{{monster,wide` and its
+closing `}}` is presented as **Monster · Wide** and **End Monster · Wide**
+labels. Click or move the cursor into a label to reveal the original syntax.
+Unfinished blocks stay raw so authoring is never hidden, and examples inside
+fenced code blocks are left untouched.
+
+An explicit `\page` becomes a full-width **Page N starts** separator, while
+`\column` becomes a lighter column divider. Selecting a separator reveals the
+directive for editing. These visual elements are CodeMirror decorations only;
+they never modify the note.
 
 ## Try it yourself
 

@@ -315,3 +315,19 @@ verification limitation, not yet evidence that M6 passes a clean `npm install`.
 Verification performed: `npm test`, TypeScript typechecking, and the production
 build pass locally. Practical Obsidian/Electron export behavior remains pending
 the next live-vault test.
+
+## 2026-08-24 — Homebrewery Edit Mode checkpoint
+
+- Added a CodeMirror presentation layer for matched Homebrewery block
+  delimiters. Unfocused source becomes readable labels; selecting it reveals the
+  exact Markdown.
+- Added numbered visual separators for explicit `\page` directives and lighter
+  dividers for `\column`.
+- Added a default-on setting with immediate editor-extension reconfiguration.
+- Added pure regression coverage for nesting, labels, fenced/unfinished syntax,
+  explicit boundaries, selection reveal, and settings normalization.
+- Deferred exact automatic page projection until source positions survive the
+  DOM-measured pagination pipeline; no heuristic boundary estimates were added.
+
+Static verification passes. Native Obsidian editing acceptance is still
+required before M9 completion and the planned `0.1.2` version checkpoint.
