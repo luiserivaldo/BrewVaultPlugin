@@ -1,0 +1,28 @@
+/* Plain paginated page: white background, normal system font, no
+   decoration — useful for proofreading layout without the parchment
+   styling getting in the way. */
+
+.brewvault-theme-blank .brewPage {
+	background-color: #ffffff;
+	border: 1px solid var(--background-modifier-border);
+	color: #111111;
+	font-family: var(--font-text, sans-serif);
+	line-height: 1.4;
+}
+
+.brewvault-theme-blank .brew-note {
+	background: #f5f5f5;
+	border: 1px solid #ccc;
+}
+
+.brewvault-theme-blank .brew-descriptive {
+	font-style: italic;
+	border-left: 3px solid #999;
+	padding-left: 0.75em;
+}
+
+.brewvault-theme-blank .brew-classTable,
+.brewvault-theme-blank .brew-monster {
+	background: #fafafa;
+	border: 1px solid #999;
+}

@@ -1,0 +1,7 @@
+node_modules/
+main.js
+styles.css
+src/generated/
+*.js.map
+.DS_Store
+dist/

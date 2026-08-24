@@ -1,0 +1,10 @@
+{
+  "id": "brewvault",
+  "name": "BrewVault",
+  "version": "0.1.0",
+  "minAppVersion": "0.15.0",
+  "description": "Render Markdown notes into Homebrewery-style, paginated D&D 5e documents right inside Obsidian.",
+  "author": "luiserivaldo",
+  "authorUrl": "https://github.com/luiserivaldo",
+  "isDesktopOnly": true
+}

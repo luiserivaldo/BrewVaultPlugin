@@ -1,0 +1,30 @@
+/* Clean SRD / Unearthed-Arcana-oriented theme. This intentionally avoids the
+   parchment trade-dress treatment while keeping the same page geometry. */
+.brewvault-theme-srd .brewPage {
+	background: #fff;
+	color: #111;
+	font-family: Georgia, "Times New Roman", serif;
+	font-size: 0.34cm;
+	line-height: 1.3;
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+.brewvault-theme-srd .brewPage h1,
+.brewvault-theme-srd .brewPage h2,
+.brewvault-theme-srd .brewPage h3 {
+	color: #7b2118;
+	font-family: Arial, Helvetica, sans-serif;
+}
+.brewvault-theme-srd .brewPage h1 { column-span: all; }
+.brewvault-theme-srd .brewPage h3 { border-bottom: 1px solid #a99055; }
+.brewvault-theme-srd .brewPage table {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 0.31cm;
+	border-collapse: collapse;
+}
+.brewvault-theme-srd .brewPage table th,
+.brewvault-theme-srd .brewPage table td { border: 0; padding: 2px 4px; }
+.brewvault-theme-srd .brewPage table tbody tr:nth-child(odd) { background: #eee; }
+.brewvault-theme-srd .brew-note { background: #eee; border-left: 4px solid #7b2118; }
+.brewvault-theme-srd .brew-descriptive { font-style: italic; border-left: 3px solid #a99055; }
+.brewvault-theme-srd .brewPageNumber { color: #666; }
