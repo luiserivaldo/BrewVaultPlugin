@@ -3,6 +3,7 @@ import { blockContainerRule } from "./rules/blockContainer";
 import { inlineSpanRule } from "./rules/inlineSpan";
 import { pageBreakRule } from "./rules/pageBreak";
 import { columnBreakRule } from "./rules/columnBreak";
+import { wikilinkRule } from "./rules/wikilink";
 
 /**
  * Builds a fresh markdown-it instance configured for Homebrewery-flavored
@@ -29,6 +30,7 @@ export function createBrewMarkdownEngine(): MarkdownIt {
 	});
 
 	md.inline.ruler.before("emphasis", "brew_inline_span", inlineSpanRule);
+	md.inline.ruler.before("image", "brew_wikilink", wikilinkRule);
 
 	// These two token types are pure markers: pageBreak becomes a sentinel
 	// comment that pageSplitter.ts later splits the final HTML string on,

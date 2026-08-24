@@ -8,6 +8,24 @@ Version `0.1.2` restores the stable native Obsidian Markdown editor after an
 experimental Edit Mode caused missing text and severe performance regressions.
 It also preserves existing exports by creating numbered copies.
 
+## Next minor release
+
+The isolated `feature/inline-tag-preview-wikilinks` branch targets `0.1.3`
+after practical approval. It adds only three focused changes:
+
+- Matched multiline Homebrewery tags such as `{{wide` … `}}` appear as compact
+  labels in Obsidian's editor. Selecting a label reveals the exact source.
+- Obsidian `[[wikilink]]` brackets are omitted from Homebrewery preview, HTML,
+  and PDF output. Aliases remain visible as plain text, while unresolved
+  `![[embeds]]` are suppressed.
+- Explicit source `\page` directives appear in the Markdown editor as
+  full-width **Page 2**, **Page 3**, and later numbered separators; selecting
+  one reveals `\page` for editing.
+
+This implementation does not restore generated page-boundary decorations,
+editor settings reconfiguration, or preview-to-editor callbacks from the
+withdrawn experimental Edit Mode.
+
 ## Features
 
 - Live Homebrewery preview that follows the active Markdown note.
@@ -159,6 +177,22 @@ npm run build
 
 The production build generates `main.js` and `styles.css`. `main.js` is a build
 artifact and is intentionally excluded from Git.
+
+## Development branches
+
+- `main` is the stable public major-release hub.
+- `develop` contains stable development builds and only approved features.
+- `feature/<name>` branches isolate individual features and start from
+  `develop`; approval is required before merging back.
+- Agent-named branches such as `claude` and `openclaw` are personal or
+  experimental branches based on `develop`.
+
+## Roadmap
+
+Mobile PDF export is the next major milestone point. It remains investigation
+only until mobile Obsidian rendering/file APIs and Android/iOS acceptance
+requirements are defined. BrewVault remains desktop-only in the meantime, and
+the verified Electron PDF path will not be weakened for a speculative fallback.
 
 ## Acknowledgements
 
