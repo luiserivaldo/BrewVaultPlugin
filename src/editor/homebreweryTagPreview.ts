@@ -19,16 +19,17 @@ class HomebreweryTagWidget extends WidgetType {
 	}
 
 	toDOM(): HTMLElement {
-		const element = document.createElement("span");
-		element.className = this.closing
-			? "brewvault-tag-preview is-closing"
-			: "brewvault-tag-preview";
-		element.textContent = this.closing ? `End ${this.label}` : this.label;
-		element.setAttribute(
-			"aria-label",
-			this.closing ? `End ${this.label} block` : `${this.label} block`
-		);
-		return element;
+		return createSpan({
+			cls: this.closing
+				? "brewvault-tag-preview is-closing"
+				: "brewvault-tag-preview",
+			text: this.closing ? `End ${this.label}` : this.label,
+			attr: {
+				"aria-label": this.closing
+					? `End ${this.label} block`
+					: `${this.label} block`,
+			},
+		});
 	}
 
 	ignoreEvent(): boolean {
@@ -46,12 +47,14 @@ class HomebreweryPageBreakWidget extends WidgetType {
 	}
 
 	toDOM(): HTMLElement {
-		const element = document.createElement("span");
-		element.className = "brewvault-page-break-preview";
-		element.textContent = this.label;
-		element.setAttribute("role", "separator");
-		element.setAttribute("aria-label", `Explicit page break; ${this.label} starts`);
-		return element;
+		return createSpan({
+			cls: "brewvault-page-break-preview",
+			text: this.label,
+			attr: {
+				role: "separator",
+				"aria-label": `Explicit page break; ${this.label} starts`,
+			},
+		});
 	}
 
 	ignoreEvent(): boolean {

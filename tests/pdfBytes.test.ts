@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { copyValidatedPdf } from "../src/electron/ElectronPdfExporter";
+import {
+	copyValidatedPdf,
+	encodeHtmlAsDataUrl,
+} from "../src/electron/ElectronPdfExporter";
 
 void test("valid PDF bytes are copied into an exact ArrayBuffer", () => {
 	const backing = new Uint8Array(16);
@@ -21,4 +24,14 @@ void test("non-PDF output is rejected before vault writes", () => {
 		() => copyValidatedPdf(new TextEncoder().encode("not a pdf")),
 		/invalid PDF document/
 	);
+});
+
+void test("Unicode HTML survives data URL encoding", () => {
+	const html = "<!doctype html><p>Alchemist — café</p>";
+	const url = encodeHtmlAsDataUrl(html);
+	const encoded = url.slice(url.indexOf(",") + 1);
+	const decoded = new TextDecoder().decode(
+		Uint8Array.from(atob(encoded), (character) => character.charCodeAt(0))
+	);
+	assert.equal(decoded, html);
 });

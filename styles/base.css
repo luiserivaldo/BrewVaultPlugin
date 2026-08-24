@@ -96,6 +96,22 @@
 	height: 0;
 }
 
+/* Homebrewery template line directives. */
+.brewDefinitionLine {
+	display: block;
+	overflow-wrap: break-word;
+}
+
+.brewBlank {
+	display: block;
+	height: 1em;
+	margin: 0;
+}
+
+.brewBlank-2 { height: 2em; }
+.brewBlank-3 { height: 3em; }
+.brewBlank-4 { height: 4em; }
+
 /* Generic {{block}} container: themes may further style specific
    brew-<className> classes (e.g. brew-note, brew-classTable). */
 .brewBlock {
@@ -150,5 +166,14 @@
 }
 
 /* Hidden DOM used by automatic pagination measurement. */
-.brewvault-measure-pages { gap: 0; }
-.brewPageMeasurement { box-shadow: none !important; }
+.brewvault-measure-pages {
+	position: fixed;
+	top: 0;
+	left: -100000px;
+	z-index: -2147483648;
+	gap: 0;
+	visibility: hidden;
+	pointer-events: none;
+}
+
+.brewvault-measure-pages .brewPageMeasurement { box-shadow: none; }

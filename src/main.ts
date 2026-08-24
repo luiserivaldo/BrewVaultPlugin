@@ -26,14 +26,14 @@ export default class BrewVaultPlugin extends Plugin {
 		this.registerView(HOMEBREWERY_VIEW_TYPE, (leaf) => new HomebreweryView(leaf, this));
 
 		this.addRibbonIcon("scroll", "Open Homebrewery Preview", () => {
-			this.activateView();
+			void this.activateView();
 		});
 
 		this.addCommand({
 			id: "open-homebrewery-preview",
 			name: "Open Homebrewery Preview",
 			callback: () => {
-				this.activateView();
+				void this.activateView();
 			},
 		});
 
@@ -45,9 +45,9 @@ export default class BrewVaultPlugin extends Plugin {
 			name: "Export current file as HTML",
 			checkCallback: (checking) => {
 				const file = this.app.workspace.getActiveFile();
-				const canRun = !!file && file.extension === "md";
+				const canRun = file instanceof TFile && file.extension === "md";
 				if (canRun && !checking) {
-					this.exportFileAsHtml(file as TFile);
+					void this.exportFileAsHtml(file);
 				}
 				return canRun;
 			},
@@ -85,9 +85,9 @@ export default class BrewVaultPlugin extends Plugin {
 			name,
 			checkCallback: (checking) => {
 				const file = this.app.workspace.getActiveFile();
-				const canRun = !!file && file.extension === "md";
+				const canRun = file instanceof TFile && file.extension === "md";
 				if (canRun && !checking) {
-					void this.exportFileAsPdf(file as TFile, theme);
+					void this.exportFileAsPdf(file, theme);
 				}
 				return canRun;
 			},
@@ -227,7 +227,7 @@ export default class BrewVaultPlugin extends Plugin {
 		for (const leaf of this.app.workspace.getLeavesOfType(HOMEBREWERY_VIEW_TYPE)) {
 			const view = leaf.view;
 			if (view instanceof HomebreweryView) {
-				view.renderNow();
+				void view.renderNow();
 			}
 		}
 	}
@@ -244,7 +244,7 @@ export default class BrewVaultPlugin extends Plugin {
 			await leaf.setViewState({ type: HOMEBREWERY_VIEW_TYPE, active: true });
 		}
 
-		this.app.workspace.revealLeaf(leaf);
+		await this.app.workspace.revealLeaf(leaf);
 		return leaf.view as HomebreweryView;
 	}
 }

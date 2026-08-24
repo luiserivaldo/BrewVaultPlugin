@@ -18,6 +18,7 @@ export it directly as a PDF or self-contained HTML file.
 - Automatic pagination without changing the source Markdown file.
 - Direct US Letter PDF export with backgrounds and fonts preserved.
 - Self-contained HTML export that can be opened without BrewVault.
+- Collision-safe output names: existing exports are preserved as `_1`, `_2`,
   and later numbered copies.
 - Configurable vault-relative export folder, defaulting to
   `BrewVault-Exports`.
@@ -26,7 +27,7 @@ export it directly as a PDF or self-contained HTML file.
 
 ## Installation
 
-BrewVault is desktop-only and requires Obsidian `0.15.0` or newer.
+BrewVault is desktop-only and requires Obsidian `1.7.2` or newer.
 
 1. Download or obtain `manifest.json`, `main.js`, and `styles.css` from the
    BrewVault release package.
@@ -114,6 +115,31 @@ Use a class followed by its content inside a single pair of braces:
 ```markdown
 The attack deals {{damage 2d6 piercing}} damage.
 ```
+
+Inline tag content supports Markdown formatting. For example, an attribution
+can italicize its source title:
+
+```markdown
+{{quote
+The thief crept through the shadows, watching for danger.
+
+{{attribution Unknown, *Darkness Rising*}}
+}}
+```
+
+### Stat fields and vertical spacing
+
+Use `::` between a stat label and its value. Each source line becomes a
+separate rendered row and the delimiter itself is hidden:
+
+```markdown
+**Armor Class** :: 14 (chain mail, shield)
+**Hit Points**  :: 136 (1d4 + 5)
+**Speed**       :: 18 ft.
+```
+
+Place `:` on its own line to add one line of vertical space between template
+sections. Use `::` on its own line for two lines of space.
 
 ### Page and column breaks
 
