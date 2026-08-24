@@ -54,7 +54,7 @@ module-by-module.
 
 Milestone 6 is focused on Homebrewery export parity and automatic pagination. Later milestones add the remaining upstream themes, vault assets, and release hardening.
 
-## 0.1.0 release behavior
+## 0.1.1 release behavior
 
 - First-install settings are normalized and persisted; PHB is always the default theme when no valid theme has been saved.
 - HTML and PDF exports are written to `BrewVault-Exports` at the vault root by default. The folder is created automatically and can be changed in BrewVault settings. Existing settings that still use the exact former default `BrewVault Exports` migrate automatically; custom paths do not.

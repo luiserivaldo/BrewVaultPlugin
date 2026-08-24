@@ -75,6 +75,10 @@ Homebrewery pipeline.
   additionally merge the verified commit to `main` and create the matching
   release tag. If no remote or authentication is available, record the exact
   blocker before handoff; never imply publication.
+- Keep a local development-backlog trace by committing every completed feature
+  or bug fix separately. At each completed milestone, advance the patch version
+  by one step (for example, `0.1.0` to `0.1.1`). Reserve larger minor or major
+  version jumps for substantial changes or feature introductions.
 - Do not commit generated `main.js`, source maps, `node_modules`, local vault
   state, plugin `data.json`, exported PDFs, or credentials.
 - Leave the worktree clean at milestone boundaries. Preserve unrelated user
