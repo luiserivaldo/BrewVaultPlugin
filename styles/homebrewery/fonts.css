@@ -1,0 +1,19 @@
+/* Font names and faces follow Homebrewery V3. Files are bundled as data URLs
+   so preview and standalone exports remain local and self-contained. */
+@font-face { font-family: "Pagella"; src: url("../../vendor/homebrewery/fonts/Blank/texgyrepagella-regular.woff2"); font-style: normal; font-weight: 400; }
+@font-face { font-family: "Pagella"; src: url("../../vendor/homebrewery/fonts/Blank/texgyrepagella-bold.woff2"); font-style: normal; font-weight: 700; }
+@font-face { font-family: "Pagella"; src: url("../../vendor/homebrewery/fonts/Blank/texgyrepagella-italic.woff2"); font-style: italic; font-weight: 400; }
+@font-face { font-family: "Pagella"; src: url("../../vendor/homebrewery/fonts/Blank/texgyrepagella-bolditalic.woff2"); font-style: italic; font-weight: 700; }
+@font-face { font-family: "BookInsanityRemake"; src: url("../../vendor/homebrewery/fonts/5e/Bookinsanity.woff2"); font-style: normal; font-weight: 400; }
+@font-face { font-family: "BookInsanityRemake"; src: url("../../vendor/homebrewery/fonts/5e/Bookinsanity Bold.woff2"); font-style: normal; font-weight: 700; }
+@font-face { font-family: "BookInsanityRemake"; src: url("../../vendor/homebrewery/fonts/5e/Bookinsanity Italic.woff2"); font-style: italic; font-weight: 400; }
+@font-face { font-family: "BookInsanityRemake"; src: url("../../vendor/homebrewery/fonts/5e/Bookinsanity Bold Italic.woff2"); font-style: italic; font-weight: 700; }
+@font-face { font-family: "ScalySansRemake"; src: url("../../vendor/homebrewery/fonts/5e/Scaly Sans.woff2"); font-style: normal; font-weight: 400; }
+@font-face { font-family: "ScalySansRemake"; src: url("../../vendor/homebrewery/fonts/5e/Scaly Sans Bold.woff2"); font-style: normal; font-weight: 700; }
+@font-face { font-family: "ScalySansRemake"; src: url("../../vendor/homebrewery/fonts/5e/Scaly Sans Italic.woff2"); font-style: italic; font-weight: 400; }
+@font-face { font-family: "ScalySansRemake"; src: url("../../vendor/homebrewery/fonts/5e/Scaly Sans Bold Italic.woff2"); font-style: italic; font-weight: 700; }
+@font-face { font-family: "ScalySansSmallCapsRemake"; src: url("../../vendor/homebrewery/fonts/5e/Scaly Sans Caps.woff2"); }
+@font-face { font-family: "MrEavesRemake"; src: url("../../vendor/homebrewery/fonts/5e/Mr Eaves Small Caps.woff2"); }
+@font-face { font-family: "SolberaImitationRemake"; src: url("../../vendor/homebrewery/fonts/5e/Solbera Imitation Tweak.woff2"); font-style: italic; font-weight: 100 1000; }
+@font-face { font-family: "NodestoCapsCondensed"; src: url("../../vendor/homebrewery/fonts/5e/Nodesto Caps Condensed.woff2"); }
+@font-face { font-family: "NodestoCapsWide"; src: url("../../vendor/homebrewery/fonts/5e/Nodesto Caps Wide.woff2"); }

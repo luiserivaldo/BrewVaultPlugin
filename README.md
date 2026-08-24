@@ -4,14 +4,14 @@ BrewVault is a desktop-only Obsidian plugin that renders Markdown notes as
 paginated, Homebrewery-style D&D 5e documents and exports them directly to HTML
 or PDF.
 
-Version `0.1.2` restores the stable native Obsidian Markdown editor after an
-experimental Edit Mode caused missing text and severe performance regressions.
-It also preserves existing exports by creating numbered copies.
+Version `0.1.3` restores inline Homebrewery tag labels and explicit numbered
+page separators in the native Obsidian editor, removes wikilink brackets from
+rendered documents, and begins upstream-derived Homebrewery theme parity.
 
-## Next minor release
+## Current theme-parity development
 
-The isolated `feature/inline-tag-preview-wikilinks` branch targets `0.1.3`
-after practical approval. It adds only three focused changes:
+The isolated `feature/homebrewery-theme-parity` branch targets the approved
+`0.1.3` development release. It includes:
 
 - Matched multiline Homebrewery tags such as `{{wide` … `}}` appear as compact
   labels in Obsidian's editor. Selecting a label reveals the exact source.
@@ -21,6 +21,11 @@ after practical approval. It adds only three focused changes:
 - Explicit source `\page` directives appear in the Markdown editor as
   full-width **Page 2**, **Page 3**, and later numbered separators; selecting
   one reveals `\page` for editing.
+- A theme registry that preserves Blank → 5ePHB → 5eDMG inheritance and keeps
+  Journal and Unearthed Arcana derived from Blank.
+- Upstream-derived Blank and 5ePHB physical measurements, typography,
+  parchment, block styling, tables, stat blocks, and page furniture, bundled
+  for fully offline preview and export.
 
 This implementation does not restore generated page-boundary decorations,
 editor settings reconfiguration, or preview-to-editor callbacks from the
@@ -29,7 +34,7 @@ withdrawn experimental Edit Mode.
 ## Features
 
 - Live Homebrewery preview that follows the active Markdown note.
-- PHB parchment, SRD / Unearthed Arcana, and Blank themes.
+- Upstream-derived PHB parchment, SRD / Unearthed Arcana, and Blank themes.
 - Standard Markdown plus Homebrewery block, inline, page, and column syntax.
 - DOM-measured automatic pagination without modifying source Markdown.
 - Direct US Letter PDF generation using Obsidian desktop's bundled Chromium.
@@ -162,8 +167,9 @@ The former exact default `BrewVault Exports` migrates automatically to
 - Wide and split Homebrewery tables still need additional compatibility work.
 - No editor-to-preview scroll synchronization.
 - No Homebrewery mustache-variable or footnote substitution.
-- Local fallback fonts and assets mean exact upstream pixel parity is not yet
-  guaranteed for every theme.
+- DMG, Journal, and complete Unearthed Arcana parity remain staged registry
+  entries until their upstream styles and assets are adapted and tested.
+- Exact upstream pixel parity is not yet guaranteed for every semantic block.
 - The experimental Homebrewery Edit Mode is not included in `0.1.2`.
 
 ## Build and test
@@ -199,6 +205,8 @@ the verified Electron PDF path will not be weakened for a speculative fallback.
 BrewVault is inspired by the open-source
 [Homebrewery](https://github.com/naturalcrit/homebrewery) project by Scott
 Tolksdorf and the NaturalCrit contributors. Homebrewery is MIT-licensed.
+BrewVault vendors and adapts upstream Blank/5ePHB theme styles, fonts, and
+decorative assets; complete notices are shipped with those resources.
 BrewVault is an independent project and is not affiliated with or endorsed by
 NaturalCrit, Obsidian, or Wizards of the Coast.
 
