@@ -1,5 +1,6 @@
 import type { BrewPage } from "../renderer/types";
 import type { BrewTheme } from "../settings/types";
+import { getThemeClassNames } from "../themes/registry";
 
 /**
  * Wraps already-rendered pages into a complete, self-contained HTML
@@ -17,12 +18,13 @@ export function buildStandaloneHtml(
 	pageWidthPx: number,
 	pageHeightPx: number
 ): string {
+	const themeClassNames = getThemeClassNames(theme).join(" ");
 	const pagesHtml = pages
 		.map(
 			(page) => `
-	<div class="brewPage">
-		${page.html}
-		<div class="brewPageNumber">${page.index}</div>
+	<div class="page brewPage">
+		${ensureColumnWrapper(page.html)}
+		<div class="pageNumber brewPageNumber">${page.index}</div>
 	</div>`
 		)
 		.join("\n");
@@ -38,6 +40,7 @@ export function buildStandaloneHtml(
 	--brew-page-width: ${pageWidthPx}px;
 	--brew-page-height: ${pageHeightPx}px;
 }
+
 body {
 	margin: 0;
 	background: #444;
@@ -64,13 +67,21 @@ ${themeCss}
 }
 </style>
 </head>
-<body class="brewvault-theme-${theme}">
-<div class="brewvault-pages brewvault-theme-${theme}">
+<body class="${themeClassNames}">
+<div class="brewvault-pages ${themeClassNames}">
 ${pagesHtml}
 </div>
 </body>
 </html>
 `;
+}
+
+/** Export callers normally provide paginated pages, but this keeps the public
+ * serializer's DOM contract deterministic for tests and alternate callers. */
+function ensureColumnWrapper(html: string): string {
+	return /^\s*<div class="columnWrapper">/.test(html)
+		? html
+		: `<div class="columnWrapper">${html}</div>`;
 }
 
 function escapeHtml(s: string): string {

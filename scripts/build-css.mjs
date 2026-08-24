@@ -11,6 +11,15 @@ export async function buildCssAndSnapshot(prod = false) {
 		entryPoints: ["styles/index.css"],
 		bundle: true,
 		outfile: "styles.css",
+		loader: {
+			".jpeg": "dataurl",
+			".jpg": "dataurl",
+			".png": "dataurl",
+			".svg": "dataurl",
+			".webp": "dataurl",
+			".woff": "dataurl",
+			".woff2": "dataurl",
+		},
 		minify: prod,
 		logLevel: "silent",
 	});

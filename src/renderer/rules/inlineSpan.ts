@@ -38,11 +38,12 @@ export function inlineSpanRule(state: StateInline, silent: boolean): boolean {
 
 	if (silent) return true;
 
-	const classNames = classPart
+	const semanticClasses = classPart
 		.split(",")
 		.map((c: string) => c.trim())
-		.filter(Boolean)
-		.map((c: string) => `brew-${c}`)
+		.filter(Boolean);
+	const classNames = semanticClasses
+		.flatMap((className: string) => [className, `brew-${className}`])
 		.join(" ");
 
 	const openToken = state.push("brew_span_open", "span", 1);

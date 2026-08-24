@@ -1,0 +1,17 @@
+Homebrewery theme attribution
+=============================
+
+The files in this directory are vendored from or adapted from the Homebrewery
+theme sources supplied from the upstream NaturalCrit/Homebrewery project.
+Homebrewery is Copyright (c) 2016 Scott Tolksdorf and is distributed under the
+MIT License reproduced in LICENSE.
+
+The included TeX Gyre Pagella font files retain the GUST Font License notice
+in fonts/Blank/fonts.less. Copyright 2007-2018 for TeX Gyre extensions by
+B. Jackowski, J. M. Nowacki et al. on behalf of TeX Users Groups; Vietnamese
+characters were added by Han The Thanh. The fonts may be used and distributed
+under the GUST Font License, an instance of the LaTeX Project Public License.
+
+The 5e theme is an unofficial presentation style. Wizards of the Coast owns
+the Dungeons & Dragons names, marks, and associated trade dress. BrewVault is
+not affiliated with or endorsed by NaturalCrit or Wizards of the Coast.
