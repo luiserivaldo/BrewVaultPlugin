@@ -1,3 +1,5 @@
+/* doiuse-disable multicolumn */
+
 /* Everything is scoped under .brewvault-root so it can never leak into the
    rest of Obsidian's UI (editor, other panes, etc.). */
 
