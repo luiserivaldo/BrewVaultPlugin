@@ -1,8 +1,12 @@
 # BrewVault
 
-BrewVault is a desktop Obsidian plugin for turning Markdown notes into
-paginated, Homebrewery-style documents. Preview your work inside Obsidian and
-export it directly as a PDF or self-contained HTML file.
+BrewVault is an Obsidian plugin for turning Markdown notes into paginated,
+Homebrewery-style documents. Preview your work inside Obsidian and export it as
+a self-contained HTML file or, on desktop, directly as a PDF.
+
+The current 0.2.3 production release remains desktop-only. Builds from the
+separate `codex/mobile-overhaul-p2` branch enable controlled mobile preview
+testing while fixed-layout scaling is validated on real phones and tablets.
 
 ## Features
 
@@ -16,7 +20,7 @@ export it directly as a PDF or self-contained HTML file.
   reveal and edit its original source.
 - Numbered editor separators for explicit `\page` directives.
 - Automatic pagination without changing the source Markdown file.
-- Direct US Letter PDF export with backgrounds and fonts preserved.
+- Direct US Letter PDF export on desktop with backgrounds and fonts preserved.
 - Self-contained HTML export that can be opened without BrewVault.
 - Collision-safe output names: existing exports are preserved as `_1`, `_2`,
   and later numbered copies.
@@ -27,7 +31,9 @@ export it directly as a PDF or self-contained HTML file.
 
 ## Installation
 
-BrewVault is desktop-only and requires Obsidian `1.7.2` or newer.
+BrewVault requires Obsidian `1.7.2` or newer. The production release is
+desktop-only; mobile preview testing requires a build from the dedicated Phase
+2 branch. Direct PDF export remains unavailable on mobile during this phase.
 
 1. Download or obtain `manifest.json`, `main.js`, and `styles.css` from the
    BrewVault release package.
