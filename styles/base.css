@@ -5,10 +5,21 @@
 
 .brewvault-root {
 	height: 100%;
-	overflow-y: auto;
+	overflow: auto;
 	background: var(--background-secondary);
 	padding: 24px;
 	box-sizing: border-box;
+	overscroll-behavior: contain;
+	touch-action: pan-x pan-y pinch-zoom;
+	-webkit-overflow-scrolling: touch;
+}
+
+.brewvault-root.brewvault-preview-is-compact.brewvault-preview-is-portrait {
+	padding: 12px;
+}
+
+.brewvault-root.brewvault-preview-is-compact.brewvault-preview-is-landscape {
+	padding: 12px 16px;
 }
 
 .brewvault-empty {
@@ -25,6 +36,25 @@
 	gap: 24px;
 	--brew-page-width: 816px;
 	--brew-page-height: 1056px;
+}
+
+.brewvault-preview-pages {
+	--brew-preview-scale: 1;
+	--brew-preview-inline-offset: 0px;
+	--brew-preview-block-offset: 0px;
+	min-width: 0;
+	touch-action: pan-x pan-y pinch-zoom;
+}
+
+.brewvault-preview-is-compact .brewvault-preview-pages {
+	gap: 12px;
+}
+
+.brewvault-preview-pages > .brewPage {
+	transform: scale(var(--brew-preview-scale));
+	transform-origin: top center;
+	margin-inline: var(--brew-preview-inline-offset);
+	margin-bottom: var(--brew-preview-block-offset);
 }
 
 /* The page "sheet of paper" itself. Themes style its background/border;
