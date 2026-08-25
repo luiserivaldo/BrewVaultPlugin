@@ -1,4 +1,12 @@
-import { Notice, normalizePath, Plugin, TFile, TFolder, WorkspaceLeaf } from "obsidian";
+import {
+	Notice,
+	normalizePath,
+	Platform,
+	Plugin,
+	TFile,
+	TFolder,
+	WorkspaceLeaf,
+} from "obsidian";
 import {
 	BrewVaultSettings,
 	BrewTheme,
@@ -12,15 +20,18 @@ import { paginateBrewPages } from "./renderer/paginateDom";
 import { buildStandaloneHtml } from "./export/buildStandaloneHtml";
 import { allocateExportPath } from "./export/allocateExportPath";
 import { BUNDLED_THEME_CSS } from "./generated/themeCss";
-import { ElectronPdfExporter } from "./electron/ElectronPdfExporter";
 import { homebreweryTagPreviewExtension } from "./editor/homebreweryTagPreview";
+import { detectPlatform } from "./platform/detectPlatform";
+import { createBackendProvider } from "./platform/createBackendProvider";
+import type { ExportBackendProvider } from "./platform/ExportBackendProvider";
 
 export default class BrewVaultPlugin extends Plugin {
 	settings: BrewVaultSettings = DEFAULT_SETTINGS;
-	private readonly pdfExporter = new ElectronPdfExporter();
+	private exportBackendProvider: ExportBackendProvider | null = null;
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
+		this.exportBackendProvider = createBackendProvider(detectPlatform(Platform));
 		this.registerEditorExtension(homebreweryTagPreviewExtension);
 
 		this.registerView(HOMEBREWERY_VIEW_TYPE, (leaf) => new HomebreweryView(leaf, this));
@@ -153,9 +164,18 @@ export default class BrewVaultPlugin extends Plugin {
 				this.settings.pageHeightPx
 			);
 
-			const pdf = await this.pdfExporter.renderHtmlToPdf(html);
+			const backend = await this.getExportBackendProvider().getBackend();
+			const result = await backend.export({ html, basename: file.basename });
+			if (result.kind !== "pdf") {
+				throw new Error(
+					result.kind === "unsupported"
+						? result.reason
+						: "The selected BrewVault backend does not support direct PDF export."
+				);
+			}
+
 			const outPath = this.allocateExportPath(exportFolder, file.basename, ".pdf");
-			await this.app.vault.createBinary(outPath, pdf);
+			await this.app.vault.createBinary(outPath, result.bytes);
 
 			new Notice(`Exported to ${outPath}`);
 		} catch (err) {
@@ -165,7 +185,15 @@ export default class BrewVaultPlugin extends Plugin {
 	}
 
 	onunload(): void {
-		this.pdfExporter.dispose();
+		this.exportBackendProvider?.dispose();
+		this.exportBackendProvider = null;
+	}
+
+	private getExportBackendProvider(): ExportBackendProvider {
+		if (!this.exportBackendProvider) {
+			throw new Error("BrewVault export backends have not been initialized.");
+		}
+		return this.exportBackendProvider;
 	}
 
 	async loadSettings(): Promise<void> {
