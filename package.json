@@ -1,13 +1,14 @@
 {
   "name": "brewvault",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Render Markdown notes into Homebrewery-style D&D 5e documents inside Obsidian.",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs watch",
-    "build": "node scripts/build-css.mjs production && tsc --noEmit --skipLibCheck && node esbuild.config.mjs production",
-    "typecheck": "tsc --noEmit --skipLibCheck",
-    "lint": "eslint .",
+    "prepare-generated": "node scripts/build-css.mjs production",
+    "build": "npm run prepare-generated && tsc --noEmit --skipLibCheck && node esbuild.config.mjs production",
+    "typecheck": "npm run prepare-generated && tsc --noEmit --skipLibCheck",
+    "lint": "npm run prepare-generated && eslint .",
     "test": "node scripts/run-tests.mjs",
     "check": "npm run lint && npm run test && npm run build",
     "version": "node version-bump.mjs && git add manifest.json versions.json"
