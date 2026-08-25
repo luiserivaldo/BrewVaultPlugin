@@ -35,6 +35,7 @@ void test("inline Homebrewery tags render nested emphasis", () => {
 	const html = render("{{quote\nText.\n\n{{attribution Unknown, *Darkness Rising*}}\n}}");
 
 	assert.match(html, /<span class="attribution brew-attribution">Unknown, <em>Darkness Rising<\/em><\/span>/);
+	assert.match(html, /<p class="has-attribution"><span class="attribution brew-attribution">/);
 	assert.doesNotMatch(html, /\{\{attribution|\*Darkness Rising\*/);
 });
 
@@ -43,6 +44,8 @@ void test("PHB quote styling preserves upstream indentation and attribution", ()
 	assert.match(css, /\.quote > p \{ font-style: italic; line-height: \.54cm;/);
 	assert.match(css, /\.quote \.attribution \{ display: block;[^}]*text-align: right;/);
 	assert.match(css, /\.quote \.attribution::before [^{]*\{[^}]*content: "---";/);
+	assert.match(css, /\.quote p\.has-attribution \{ margin-top: 0; \}/);
+	assert.doesNotMatch(css, /:has\(/);
 });
 
 void test("PHB monster styling preserves transparent stats and split challenge metadata", () => {

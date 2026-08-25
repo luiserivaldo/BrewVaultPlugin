@@ -35,6 +35,22 @@ export function createBrewMarkdownEngine(): MarkdownIt {
 
 	md.inline.ruler.before("emphasis", "brew_inline_span", inlineSpanRule);
 	md.inline.ruler.before("image", "brew_wikilink", wikilinkRule);
+	md.core.ruler.after("inline", "brew_attribution_paragraph", (state) => {
+		for (let index = 1; index < state.tokens.length; index += 1) {
+			const inlineToken = state.tokens[index];
+			const paragraphOpen = state.tokens[index - 1];
+			const hasAttribution = inlineToken.children?.some((child) =>
+				child.attrGet("class")?.split(/\s+/).includes("attribution")
+			);
+			if (
+				inlineToken.type === "inline" &&
+				paragraphOpen.type === "paragraph_open" &&
+				hasAttribution
+			) {
+				paragraphOpen.attrJoin("class", "has-attribution");
+			}
+		}
+	});
 
 	// These two token types are pure markers: pageBreak becomes a sentinel
 	// comment that pageSplitter.ts later splits the final HTML string on,

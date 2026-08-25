@@ -45,7 +45,7 @@
 .brewvault-theme-phb .page .quote > p:first-child::first-line { font-size: .38cm; font-style: normal; font-variant: small-caps; }
 .brewvault-theme-phb .page .quote .attribution { display: block; font-style: normal; line-height: .54cm; text-align: right; }
 .brewvault-theme-phb .page .quote .attribution::before { margin-right: .2em; content: "---"; }
-.brewvault-theme-phb .page .quote p:has(> .attribution) { margin-top: 0; }
+.brewvault-theme-phb .page .quote p.has-attribution { margin-top: 0; }
 .brewvault-theme-phb .page .quote + * { margin-top: .54cm; }
 
 .brewvault-theme-phb .page :where(.note, .descriptive, .monster) { font-family: "ScalySansRemake"; font-size: .318cm; }
