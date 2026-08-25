@@ -23,6 +23,7 @@ export default defineConfig(
 				projectService: {
 					allowDefaultProject: [
 						'eslint.config.mts',
+						'stylelint.config.mjs',
 						'manifest.json',
 						'scripts/*.mjs',
 					],
@@ -33,4 +34,20 @@ export default defineConfig(
 		},
 	},
 	...obsidianmd.configs.recommended,
+	{
+		rules: {
+			'obsidianmd/ui/sentence-case': [
+				'warn',
+				{
+					brands: [
+						'BrewVault',
+						'Homebrewery',
+						"Player's Handbook",
+						'Unearthed Arcana',
+					],
+					acronyms: ['HTML', 'PDF', 'SRD'],
+				},
+			],
+		},
+	},
 );

@@ -48,7 +48,7 @@ can also be opened using BrewVault's scroll icon in the ribbon.
 
 | Function | Effect |
 | --- | --- |
-| **Open Homebrewery Preview** | Opens or reveals a live preview of the active Markdown note. |
+| **Open Homebrewery preview** | Opens or reveals a live preview of the active Markdown note. |
 | **Export current file as HTML** | Creates a self-contained `.brew.html` file using the selected theme. |
 | **Export current file as Homebrewery PDF** | Creates a PDF using the theme selected in BrewVault settings. |
 | **Export current file as Homebrewery PDF in PHB style** | Creates a one-off PDF using the Player's Handbook parchment theme. |

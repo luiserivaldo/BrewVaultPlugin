@@ -11,7 +11,7 @@ import { renderBrewMarkdown } from "./renderer";
 import { paginateBrewPages } from "./renderer/paginateDom";
 import { buildStandaloneHtml } from "./export/buildStandaloneHtml";
 import { allocateExportPath } from "./export/allocateExportPath";
-import { BUNDLED_THEME_CSS } from "./generated/themeCss";
+import { BUNDLED_THEME_CSS } from "virtual:brewvault-theme-css";
 import { ElectronPdfExporter } from "./electron/ElectronPdfExporter";
 import { homebreweryTagPreviewExtension } from "./editor/homebreweryTagPreview";
 
@@ -25,13 +25,13 @@ export default class BrewVaultPlugin extends Plugin {
 
 		this.registerView(HOMEBREWERY_VIEW_TYPE, (leaf) => new HomebreweryView(leaf, this));
 
-		this.addRibbonIcon("scroll", "Open Homebrewery Preview", () => {
+		this.addRibbonIcon("scroll", "Open Homebrewery preview", () => {
 			void this.activateView();
 		});
 
 		this.addCommand({
 			id: "open-homebrewery-preview",
-			name: "Open Homebrewery Preview",
+			name: "Open Homebrewery preview",
 			callback: () => {
 				void this.activateView();
 			},
