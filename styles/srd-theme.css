@@ -1,4 +1,4 @@
-/* doiuse-disable multicolumn */
+/* stylelint-disable plugin/no-unsupported-browser-features -- SRD headings must span the fixed page columns. */
 
 /* Clean SRD / Unearthed-Arcana-oriented theme. This intentionally avoids the
    parchment trade-dress treatment while keeping the same page geometry. */
