@@ -1,33 +1,40 @@
 # BrewVault
 
-BrewVault is a desktop Obsidian plugin for turning Markdown notes into
-paginated, Homebrewery-style documents. Preview your work inside Obsidian and
-export it directly as a PDF or self-contained HTML file.
+BrewVault is an Obsidian plugin for turning Markdown notes
+into themed, DnD 5e-style documents. Preview your work inside Obsidian,
+export directly to PDF using pre-configured themes, or export as HTML and use custom CSS styles.
+
 
 ## Features
 
-- Live Homebrewery preview that follows the active Markdown note.
-- Player's Handbook parchment, SRD / Unearthed Arcana, and Blank themes.
-- Upstream-derived Homebrewery fonts, page measurements, headings, tables,
+- Live render preview that follows the active Markdown note as a source.
+- Player's Handbook, and SRD / Unearthed Arcana themes pre-configured.
+- Inspired from Homebrewery fonts, page measurements, headings, tables,
   notes, descriptive boxes, monster blocks, and page furniture.
-- Standard Obsidian Markdown plus Homebrewery blocks, inline tags, page breaks,
+- Standard Obsidian Markdown plus Homebrewery-style blocks, inline tags, page breaks,
   column breaks, and wide elements.
-- Compact Homebrewery tag labels in the Markdown editor. Select a label to
-  reveal and edit its original source.
-- Numbered editor separators for explicit `\page` directives.
+- Compact Homebrewery tag labels in the Markdown editor for seamless workflow transtition. 
 - Automatic pagination without changing the source Markdown file.
-- Direct US Letter PDF export with backgrounds and fonts preserved.
-- Self-contained HTML export that can be opened without BrewVault.
-- Collision-safe output names: existing exports are preserved as `_1`, `_2`,
-  and later numbered copies.
-- Configurable vault-relative export folder, defaulting to
-  `BrewVault-Exports`.
-- Fully local and offline. No external browser, server, or Chromium installation
-  is required.
+- Direct PDF export with backgrounds and fonts preserved.
+- Self-contained HTML export that can be opened without Obsidian / BrewVault.
+- Configurable vault-relative export folder; defaults to the root folder at `BrewVault-Exports`.
+- Fully local and offline. Desktop requires no external browser, server, or
+  Chromium installation; mobile delegates only the final print/export step to an
+  installed browser.
+
+## Mobile support
+
+Mobile preview scales each fixed-size page to the available resolution space without
+changing page count, columns, wrapping, tables, or explicit page boundaries.
+Mobile PDF commands save a self-contained `.brew.html` file first, then open it
+through a browser that has a **Print → Save as PDF** function. The HTML file
+remains available if the handoff is cancelled or fails.
+
+NOTE: Current releases are tested on Android devices only. Experience in iOS platforms may vary.
 
 ## Installation
 
-BrewVault is desktop-only and requires Obsidian `1.7.2` or newer.
+BrewVault 0.3.0 supports desktop and mobile Obsidian `1.7.2` or newer.
 
 1. Download or obtain `manifest.json`, `main.js`, and `styles.css` from the
    BrewVault release package.
@@ -50,15 +57,23 @@ can also be opened using BrewVault's scroll icon in the ribbon.
 | --- | --- |
 | **Open Homebrewery preview** | Opens or reveals a live preview of the active Markdown note. |
 | **Export current file as HTML** | Creates a self-contained `.brew.html` file using the selected theme. |
-| **Export current file as Homebrewery PDF** | Creates a PDF using the theme selected in BrewVault settings. |
-| **Export current file as Homebrewery PDF in PHB style** | Creates a one-off PDF using the Player's Handbook parchment theme. |
-| **Export current file as Homebrewery PDF in SRD style** | Creates a one-off PDF using the SRD / Unearthed Arcana theme. |
-| **Export current file as Homebrewery PDF in Blank style** | Creates a one-off PDF using the plain Blank theme. |
+| **Export current file as Homebrewery PDF** | Creates a direct PDF on desktop or starts the browser-assisted mobile workflow using the selected theme. |
+| **Export current file as Homebrewery PDF in PHB style** | Uses the Player's Handbook parchment theme for direct desktop PDF or mobile browser handoff. |
+| **Export current file as Homebrewery PDF in SRD style** | Uses the SRD / Unearthed Arcana theme for direct desktop PDF or mobile browser handoff. |
+| **Export current file as Homebrewery PDF in Blank style** | Uses the plain Blank theme for direct desktop PDF or mobile browser handoff. |
 
 Theme-specific PDF functions do not change the saved preview theme.
 
-Exports are written directly to the configured folder without opening a print
-or save dialog. For a note named `Alchemist.md`, BrewVault creates:
+On mobile, PDF commands first save a collision-safe
+`.brew.html` artifact in the configured export folder. BrewVault then opens a
+dialog where **Open in Browser** asks Android to open the saved file with its
+default application. In the browser, use **Print → Save as PDF**. The HTML
+artifact remains in the vault if Android cannot open it. Android controls the
+available-app chooser and may include HTML viewers or system handlers alongside
+browsers; BrewVault cannot filter that system list.
+
+Desktop exports are written directly to the configured folder without opening
+a print or save dialog. For a note named `Alchemist.md`, BrewVault creates:
 
 ```text
 BrewVault-Exports/Alchemist.pdf
@@ -169,8 +184,29 @@ Obsidian wikilinks render as readable text without their brackets:
 See [[Classes/Alchemist|Alchemist]].
 ```
 
-The rendered document displays `See Alchemist.` Unresolved `![[embeds]]` are
-omitted from Homebrewery preview and exports instead of exposing vault paths.
+The rendered document displays `See Alchemist.`
+
+Vault-local raster images use the same embed syntax as an Obsidian note:
+
+```markdown
+![[Images/imp.png]]
+![[Images/imp.png|Infernal scout]]
+![[Images/imp.png|320]]
+![[Images/imp.png|320x180]]
+![[Images/imp.png|392]]{width:200px}
+```
+
+BrewVault resolves these through Obsidian, embeds their image data in preview,
+HTML, and PDF output, and leaves the Markdown source unchanged. PNG, JPEG, GIF,
+WebP, AVIF, and BMP files are supported. A numeric alias sets width; `WIDTHxHEIGHT`
+sets both dimensions. Unresolved or unsupported embeds are omitted instead of
+exposing vault paths.
+
+Homebrewery-style size attributes may follow a local or standard Markdown
+image, with or without a separating space. Supported properties are `width`,
+`height`, `min-width`, `min-height`, `max-width`, and `max-height`. When both an
+Obsidian numeric size and a Homebrewery width are present, the Homebrewery
+attribute takes visual precedence.
 
 ## Plugin settings
 

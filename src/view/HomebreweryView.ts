@@ -4,14 +4,19 @@ import { paginateBrewPages } from "../renderer/paginateDom";
 import type BrewVaultPlugin from "../main";
 import { ALL_THEME_CLASS_NAMES, getThemeClassNames } from "../themes/registry";
 import { appendRenderedHtml } from "../renderer/renderedHtml";
+import { calculatePreviewViewportLayout } from "../ui/previewViewport";
+import { resolveVaultImageEmbeds } from "../obsidian/resolveVaultImageEmbeds";
 
 export const HOMEBREWERY_VIEW_TYPE = "brewvault-preview";
 
 export class HomebreweryView extends ItemView {
 	plugin: BrewVaultPlugin;
 	private trackedFile: TFile | null = null;
+	private rootEl!: HTMLElement;
 	private pagesContainer!: HTMLElement;
 	private debounceHandle: number | null = null;
+	private viewportObserver: ResizeObserver | null = null;
+	private imageDependencyPaths = new Set<string>();
 
 	constructor(leaf: WorkspaceLeaf, plugin: BrewVaultPlugin) {
 		super(leaf);
@@ -31,15 +36,21 @@ export class HomebreweryView extends ItemView {
 	}
 
 	async onOpen(): Promise<void> {
-		const root = this.containerEl.children[1] as HTMLElement;
-		root.empty();
-		root.addClass("brewvault-root");
+		this.rootEl = this.containerEl.children[1] as HTMLElement;
+		this.rootEl.empty();
+		this.rootEl.addClass("brewvault-root");
 
-		this.pagesContainer = root.createDiv({ cls: "brewvault-pages" });
+		this.pagesContainer = this.rootEl.createDiv({
+			cls: "brewvault-pages brewvault-preview-pages",
+		});
+		this.startViewportObservation();
 
 		this.registerEvent(
 			this.app.vault.on("modify", (file) => {
-				if (file instanceof TFile && file === this.trackedFile) {
+				if (
+					file instanceof TFile &&
+					(file === this.trackedFile || this.imageDependencyPaths.has(file.path))
+				) {
 					this.scheduleRender();
 				}
 			})
@@ -58,6 +69,8 @@ export class HomebreweryView extends ItemView {
 		if (this.debounceHandle !== null) {
 			window.clearTimeout(this.debounceHandle);
 		}
+		this.viewportObserver?.disconnect();
+		this.viewportObserver = null;
 	}
 
 	/** Point this view at whatever Markdown file is currently active, if any. */
@@ -99,7 +112,16 @@ export class HomebreweryView extends ItemView {
 		}
 
 		const source = await this.app.vault.cachedRead(this.trackedFile);
-		const renderedPages = renderBrewMarkdown(source);
+		const resolvedImages = await resolveVaultImageEmbeds(
+			source,
+			this.trackedFile,
+			this.app.vault,
+			this.app.metadataCache
+		);
+		this.imageDependencyPaths = new Set(resolvedImages.dependencyPaths);
+		const renderedPages = renderBrewMarkdown(source, {
+			imageEmbeds: resolvedImages.imageEmbeds,
+		});
 		const { theme, pageWidthPx, pageHeightPx } = this.plugin.settings;
 		const pages = await paginateBrewPages(renderedPages, { theme, pageWidthPx, pageHeightPx });
 
@@ -108,6 +130,7 @@ export class HomebreweryView extends ItemView {
 			"--brew-page-width": `${pageWidthPx}px`,
 			"--brew-page-height": `${pageHeightPx}px`,
 		});
+		this.updateViewportLayout();
 		this.pagesContainer.removeClass(...ALL_THEME_CLASS_NAMES);
 		this.pagesContainer.addClass(...getThemeClassNames(theme));
 
@@ -118,6 +141,55 @@ export class HomebreweryView extends ItemView {
 		}
 
 		this.flagOverflowingPages();
+	}
+
+	private startViewportObservation(): void {
+		this.updateViewportLayout();
+		this.registerDomEvent(window, "resize", () => this.updateViewportLayout());
+		if (typeof ResizeObserver === "undefined") return;
+
+		this.viewportObserver = new ResizeObserver(() => {
+			this.updateViewportLayout();
+		});
+		this.viewportObserver.observe(this.rootEl);
+	}
+
+	private updateViewportLayout(): void {
+		if (!this.rootEl || !this.pagesContainer) return;
+		const { pageWidthPx } = this.plugin.settings;
+		const isPortrait = this.rootEl.clientWidth <= this.rootEl.clientHeight;
+		const isCompact = this.rootEl.clientWidth < pageWidthPx + 48;
+		this.rootEl.toggleClass("brewvault-preview-is-compact", isCompact);
+		this.rootEl.toggleClass("brewvault-preview-is-portrait", isPortrait);
+		this.rootEl.toggleClass("brewvault-preview-is-landscape", !isPortrait);
+
+		const styles = window.getComputedStyle(this.rootEl);
+		const availableWidth =
+			this.rootEl.clientWidth -
+			parseCssPixels(styles.paddingLeft) -
+			parseCssPixels(styles.paddingRight);
+		const availableHeight =
+			this.rootEl.clientHeight -
+			parseCssPixels(styles.paddingTop) -
+			parseCssPixels(styles.paddingBottom);
+		this.applyViewportLayout(availableWidth, availableHeight);
+	}
+
+	private applyViewportLayout(availableWidth: number, availableHeight: number): void {
+		const { pageWidthPx, pageHeightPx } = this.plugin.settings;
+		const layout = calculatePreviewViewportLayout(
+			availableWidth,
+			availableHeight,
+			pageWidthPx,
+			pageHeightPx
+		);
+
+		this.rootEl.toggleClass("brewvault-preview-is-scaled", layout.scale < 1);
+		this.pagesContainer.setCssProps({
+			"--brew-preview-scale": String(layout.scale),
+			"--brew-preview-inline-offset": `${layout.inlineOffsetPx}px`,
+			"--brew-preview-block-offset": `${layout.blockOffsetPx}px`,
+		});
 	}
 
 	/**
@@ -145,4 +217,9 @@ export class HomebreweryView extends ItemView {
 			});
 		});
 	}
+}
+
+function parseCssPixels(value: string): number {
+	const parsed = Number.parseFloat(value);
+	return Number.isFinite(parsed) ? parsed : 0;
 }

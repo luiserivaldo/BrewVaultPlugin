@@ -35,6 +35,19 @@ export default defineConfig(
 	},
 	...obsidianmd.configs.recommended,
 	{
+		files: ['scripts/**/*.mjs', 'tests/**/*.ts'],
+		languageOptions: {
+			globals: {
+				...globals.node,
+			},
+		},
+		rules: {
+			// Build/test code runs under Node and never enters the plugin runtime
+			// bundle. Runtime source retains the mobile dependency guard below.
+			'obsidianmd/no-nodejs-modules': 'off',
+		},
+	},
+	{
 		rules: {
 			'obsidianmd/ui/sentence-case': [
 				'warn',
