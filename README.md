@@ -1,12 +1,23 @@
 # BrewVault
 
-BrewVault is a desktop Obsidian plugin for turning Markdown notes into
-paginated, Homebrewery-style documents. Preview your work inside Obsidian and
-export it directly as a PDF or self-contained HTML file.
+BrewVault is a desktop and mobile Obsidian plugin for turning Markdown notes
+into paginated, Homebrewery-style documents. Preview your work inside Obsidian,
+export directly to PDF on desktop, or use the browser-assisted PDF workflow on
+mobile.
+
+BrewVault 0.3.0 introduces mobile support as its headline feature while
+preserving the fixed page geometry and desktop export behavior of earlier
+releases.
 
 ## Features
 
-- Live Homebrewery preview that follows the active Markdown note.
+- Mobile support with responsive scaling of fixed Homebrewery pages without
+  reflowing their contents.
+- Browser-assisted mobile PDF export with a preserved standalone HTML artifact.
+- Live Homebrewery preview that follows the active Markdown note on desktop and
+  mobile.
+- Offline vault-image embeds in preview, HTML export, and desktop/mobile PDF
+  workflows.
 - Player's Handbook parchment, SRD / Unearthed Arcana, and Blank themes.
 - Upstream-derived Homebrewery fonts, page measurements, headings, tables,
   notes, descriptive boxes, monster blocks, and page furniture.
@@ -16,18 +27,27 @@ export it directly as a PDF or self-contained HTML file.
   reveal and edit its original source.
 - Numbered editor separators for explicit `\page` directives.
 - Automatic pagination without changing the source Markdown file.
-- Direct US Letter PDF export with backgrounds and fonts preserved.
+- Direct US Letter PDF export on desktop with backgrounds and fonts preserved.
 - Self-contained HTML export that can be opened without BrewVault.
 - Collision-safe output names: existing exports are preserved as `_1`, `_2`,
   and later numbered copies.
 - Configurable vault-relative export folder, defaulting to
   `BrewVault-Exports`.
-- Fully local and offline. No external browser, server, or Chromium installation
-  is required.
+- Fully local and offline. Desktop requires no external browser, server, or
+  Chromium installation; mobile delegates only the final print/save step to an
+  installed browser.
+
+## Mobile support
+
+Mobile preview scales each fixed-size page to the available viewport without
+changing page count, columns, wrapping, tables, or explicit page boundaries.
+Mobile PDF commands save a self-contained `.brew.html` file first, then open it
+through Android so the browser can use **Print → Save as PDF**. The HTML file
+remains available if the handoff is cancelled or fails.
 
 ## Installation
 
-BrewVault is desktop-only and requires Obsidian `1.7.2` or newer.
+BrewVault 0.3.0 supports desktop and mobile Obsidian `1.7.2` or newer.
 
 1. Download or obtain `manifest.json`, `main.js`, and `styles.css` from the
    BrewVault release package.
@@ -50,15 +70,23 @@ can also be opened using BrewVault's scroll icon in the ribbon.
 | --- | --- |
 | **Open Homebrewery preview** | Opens or reveals a live preview of the active Markdown note. |
 | **Export current file as HTML** | Creates a self-contained `.brew.html` file using the selected theme. |
-| **Export current file as Homebrewery PDF** | Creates a PDF using the theme selected in BrewVault settings. |
-| **Export current file as Homebrewery PDF in PHB style** | Creates a one-off PDF using the Player's Handbook parchment theme. |
-| **Export current file as Homebrewery PDF in SRD style** | Creates a one-off PDF using the SRD / Unearthed Arcana theme. |
-| **Export current file as Homebrewery PDF in Blank style** | Creates a one-off PDF using the plain Blank theme. |
+| **Export current file as Homebrewery PDF** | Creates a direct PDF on desktop or starts the browser-assisted mobile workflow using the selected theme. |
+| **Export current file as Homebrewery PDF in PHB style** | Uses the Player's Handbook parchment theme for direct desktop PDF or mobile browser handoff. |
+| **Export current file as Homebrewery PDF in SRD style** | Uses the SRD / Unearthed Arcana theme for direct desktop PDF or mobile browser handoff. |
+| **Export current file as Homebrewery PDF in Blank style** | Uses the plain Blank theme for direct desktop PDF or mobile browser handoff. |
 
 Theme-specific PDF functions do not change the saved preview theme.
 
-Exports are written directly to the configured folder without opening a print
-or save dialog. For a note named `Alchemist.md`, BrewVault creates:
+On mobile, PDF commands first save a collision-safe
+`.brew.html` artifact in the configured export folder. BrewVault then opens a
+dialog where **Open in Browser** asks Android to open the saved file with its
+default application. In the browser, use **Print → Save as PDF**. The HTML
+artifact remains in the vault if Android cannot open it. Android controls the
+available-app chooser and may include HTML viewers or system handlers alongside
+browsers; BrewVault cannot filter that system list.
+
+Desktop exports are written directly to the configured folder without opening
+a print or save dialog. For a note named `Alchemist.md`, BrewVault creates:
 
 ```text
 BrewVault-Exports/Alchemist.pdf

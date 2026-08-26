@@ -24,6 +24,7 @@ import { homebreweryTagPreviewExtension } from "./editor/homebreweryTagPreview";
 import { detectPlatform } from "./platform/detectPlatform";
 import { createBackendProvider } from "./platform/createBackendProvider";
 import type { ExportBackendProvider } from "./platform/ExportBackendProvider";
+import { MobilePdfHandoffModal } from "./ui/MobilePdfHandoffModal";
 import { resolveVaultImageEmbeds } from "./obsidian/resolveVaultImageEmbeds";
 
 // The community reviewer analyzes source without running BrewVault's esbuild
@@ -160,9 +161,10 @@ export default class BrewVaultPlugin extends Plugin {
 		}
 	}
 
-	/** Generate a PDF with Obsidian's bundled Chromium and write it directly. */
+	/** Export directly on desktop or preserve and hand off HTML on mobile. */
 	async exportFileAsPdf(file: TFile, themeOverride?: BrewTheme): Promise<void> {
 		try {
+			const backend = await this.getExportBackendProvider().getBackend();
 			const theme = themeOverride ?? this.settings.theme;
 			const exportFolder = await this.ensureExportFolder();
 			const source = await this.app.vault.cachedRead(file);
@@ -190,14 +192,22 @@ export default class BrewVaultPlugin extends Plugin {
 				this.settings.pageHeightPx
 			);
 
-			const backend = await this.getExportBackendProvider().getBackend();
 			const result = await backend.export({ html, basename: file.basename });
-			if (result.kind !== "pdf") {
-				throw new Error(
-					result.kind === "unsupported"
-						? result.reason
-						: "The selected BrewVault backend does not support direct PDF export."
+			if (result.kind === "html-handoff") {
+				const outPath = this.allocateExportPath(
+					exportFolder,
+					file.basename,
+					".brew.html"
 				);
+				await this.app.vault.create(outPath, result.html);
+
+				new MobilePdfHandoffModal(this.app, outPath).open();
+				return;
+			}
+
+			if (result.kind === "unsupported") {
+				new Notice(result.reason);
+				return;
 			}
 
 			const outPath = this.allocateExportPath(exportFolder, file.basename, ".pdf");

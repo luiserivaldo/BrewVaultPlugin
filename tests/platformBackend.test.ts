@@ -84,7 +84,12 @@ void test("the default mobile backend initializes without Electron or window", a
 	const result = await backend.export({ html: "<p>safe</p>", basename: "safe" });
 
 	assert.equal(backend.platform, "mobile");
-	assert.equal(result.kind, "unsupported");
+	assert.equal(backend.supportsDirectPdf, false);
+	assert.deepEqual(result, {
+		kind: "html-handoff",
+		html: "<p>safe</p>",
+		suggestedName: "safe.brew.html",
+	});
 	provider.dispose();
 });
 
