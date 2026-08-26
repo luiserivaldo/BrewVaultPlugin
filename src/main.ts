@@ -11,9 +11,18 @@ import { renderBrewMarkdown } from "./renderer";
 import { paginateBrewPages } from "./renderer/paginateDom";
 import { buildStandaloneHtml } from "./export/buildStandaloneHtml";
 import { allocateExportPath } from "./export/allocateExportPath";
-import { BUNDLED_THEME_CSS } from "virtual:brewvault-theme-css";
+import { BUNDLED_THEME_CSS as UNCHECKED_THEME_CSS } from "virtual:brewvault-theme-css";
 import { ElectronPdfExporter } from "./electron/ElectronPdfExporter";
 import { homebreweryTagPreviewExtension } from "./editor/homebreweryTagPreview";
+
+// The community reviewer analyzes source without running BrewVault's esbuild
+// virtual-module loader. Narrow through `unknown` so both that environment and
+// the production bundle have a verified string at every renderer call site.
+const uncheckedThemeCss: unknown = UNCHECKED_THEME_CSS;
+if (typeof uncheckedThemeCss !== "string") {
+	throw new TypeError("BrewVault's bundled theme CSS is not a string.");
+}
+const BUNDLED_THEME_CSS: string = uncheckedThemeCss;
 
 export default class BrewVaultPlugin extends Plugin {
 	settings: BrewVaultSettings = DEFAULT_SETTINGS;
