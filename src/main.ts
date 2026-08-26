@@ -24,6 +24,7 @@ import { homebreweryTagPreviewExtension } from "./editor/homebreweryTagPreview";
 import { detectPlatform } from "./platform/detectPlatform";
 import { createBackendProvider } from "./platform/createBackendProvider";
 import type { ExportBackendProvider } from "./platform/ExportBackendProvider";
+import { getDirectPdfUnavailableNotice } from "./commands/pdfAvailability";
 
 export default class BrewVaultPlugin extends Plugin {
 	settings: BrewVaultSettings = DEFAULT_SETTINGS;
@@ -142,9 +143,16 @@ export default class BrewVaultPlugin extends Plugin {
 		}
 	}
 
-	/** Generate a PDF with Obsidian's bundled Chromium and write it directly. */
+	/** Generate a direct PDF when the selected platform backend supports it. */
 	async exportFileAsPdf(file: TFile, themeOverride?: BrewTheme): Promise<void> {
 		try {
+			const backend = await this.getExportBackendProvider().getBackend();
+			const unavailableNotice = getDirectPdfUnavailableNotice(backend);
+			if (unavailableNotice) {
+				new Notice(unavailableNotice);
+				return;
+			}
+
 			const theme = themeOverride ?? this.settings.theme;
 			const exportFolder = await this.ensureExportFolder();
 			const source = await this.app.vault.cachedRead(file);
@@ -164,7 +172,6 @@ export default class BrewVaultPlugin extends Plugin {
 				this.settings.pageHeightPx
 			);
 
-			const backend = await this.getExportBackendProvider().getBackend();
 			const result = await backend.export({ html, basename: file.basename });
 			if (result.kind !== "pdf") {
 				throw new Error(

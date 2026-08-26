@@ -67,6 +67,10 @@ can also be opened using BrewVault's scroll icon in the ribbon.
 
 Theme-specific PDF functions do not change the saved preview theme.
 
+On mobile Phase 2 builds, direct PDF commands stop before rendering and explain
+how to export HTML, open it in a browser, and use **Print → Save as PDF**. Mobile
+browser/share handoff is planned for a later phase.
+
 Exports are written directly to the configured folder without opening a print
 or save dialog. For a note named `Alchemist.md`, BrewVault creates:
 
