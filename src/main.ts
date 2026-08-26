@@ -175,13 +175,7 @@ export default class BrewVaultPlugin extends Plugin {
 				);
 				await this.app.vault.create(outPath, result.html);
 
-				const filename = outPath.slice(outPath.lastIndexOf("/") + 1);
-				new MobilePdfHandoffModal(
-					this.app,
-					outPath,
-					result.html,
-					filename
-				).open();
+				new MobilePdfHandoffModal(this.app, outPath).open();
 				return;
 			}
 

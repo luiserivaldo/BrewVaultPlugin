@@ -67,10 +67,9 @@ Theme-specific PDF functions do not change the saved preview theme.
 
 On mobile development builds, PDF commands first save a collision-safe
 `.brew.html` artifact in the configured export folder. BrewVault then opens a
-dialog where **Share HTML…** launches Android sharing from a fresh user tap.
-Choose a browser or file app, open the document, and use
-**Print → Save as PDF**. The HTML artifact remains in the vault if sharing is
-cancelled, unavailable, or fails.
+dialog where **Open in Browser** asks Android to open the saved file with its
+default application. In the browser, use **Print → Save as PDF**. The HTML
+artifact remains in the vault if Android cannot open it.
 
 Desktop exports are written directly to the configured folder without opening
 a print or save dialog. For a note named `Alchemist.md`, BrewVault creates:

@@ -1,19 +1,18 @@
 import { App, Modal, Notice } from "obsidian";
 import {
-	getMobilePdfHandoffNotice,
-	shareHtmlArtifact,
-} from "../mobile/shareHtmlArtifact";
+	getSavedHtmlArtifactMessage,
+	MOBILE_PDF_BROWSER_INSTRUCTION,
+	MOBILE_PDF_OPEN_BUTTON_LABEL,
+	openHtmlArtifact,
+} from "../mobile/openHtmlArtifact";
 
 /**
- * Requests the fresh user gesture required by Android's Web Share API after
- * rendering and vault persistence have completed.
+ * Opens the preserved mobile HTML artifact in Android's default browser/app.
  */
 export class MobilePdfHandoffModal extends Modal {
 	constructor(
 		app: App,
-		private readonly artifactPath: string,
-		private readonly html: string,
-		private readonly filename: string
+		private readonly artifactPath: string
 	) {
 		super(app);
 	}
@@ -23,19 +22,18 @@ export class MobilePdfHandoffModal extends Modal {
 		contentEl.empty();
 		contentEl.createEl("h2", { text: "Mobile PDF export ready" });
 		contentEl.createEl("p", {
-			text: `Saved "${this.artifactPath}".`,
+			text: getSavedHtmlArtifactMessage(this.artifactPath),
 		});
 		contentEl.createEl("p", {
-			text: "Tap share HTML, choose a browser or file app, then use print → save as PDF. The saved HTML remains in your vault if sharing is cancelled or fails.",
+			text: MOBILE_PDF_BROWSER_INSTRUCTION,
 		});
 
-		const status = contentEl.createEl("p");
-		const shareButton = contentEl.createEl("button", {
-			text: "Share HTML…",
+		const openButton = contentEl.createEl("button", {
+			text: MOBILE_PDF_OPEN_BUTTON_LABEL,
 			cls: "mod-cta",
 		});
-		shareButton.addEventListener("click", () => {
-			void this.shareArtifact(shareButton, status);
+		openButton.addEventListener("click", () => {
+			void this.openArtifact(openButton);
 		});
 
 		const closeButton = contentEl.createEl("button", { text: "Close" });
@@ -46,26 +44,17 @@ export class MobilePdfHandoffModal extends Modal {
 		this.contentEl.empty();
 	}
 
-	private async shareArtifact(
-		shareButton: HTMLButtonElement,
-		status: HTMLParagraphElement
-	): Promise<void> {
-		shareButton.disabled = true;
-		status.setText("Opening share sheet…");
-		const outcome = await shareHtmlArtifact(this.html, this.filename);
-		const notice = getMobilePdfHandoffNotice(this.artifactPath, outcome);
+	private async openArtifact(openButton: HTMLButtonElement): Promise<void> {
+		openButton.disabled = true;
+		const outcome = await openHtmlArtifact(this.app, this.artifactPath);
 
-		if (outcome.kind === "failed") {
-			console.warn("BrewVault mobile HTML handoff failed", outcome.reason);
-		}
-
-		new Notice(notice);
-		if (outcome.kind === "shared") {
+		if (outcome.kind === "opened") {
 			this.close();
 			return;
 		}
 
-		status.setText(notice);
-		shareButton.disabled = false;
+		console.warn("BrewVault could not open the mobile HTML artifact", outcome.reason);
+		new Notice("Could not open the saved HTML file in a browser.");
+		openButton.disabled = false;
 	}
 }
