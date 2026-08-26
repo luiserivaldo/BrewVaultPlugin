@@ -5,6 +5,7 @@ import { pageBreakRule } from "./rules/pageBreak";
 import { columnBreakRule } from "./rules/columnBreak";
 import { wikilinkRule } from "./rules/wikilink";
 import { templateLineRule } from "./rules/templateLine";
+import { imageAttributeRule } from "./rules/imageAttributes";
 
 /**
  * Builds a fresh markdown-it instance configured for Homebrewery-flavored
@@ -35,7 +36,8 @@ export function createBrewMarkdownEngine(): MarkdownIt {
 
 	md.inline.ruler.before("emphasis", "brew_inline_span", inlineSpanRule);
 	md.inline.ruler.before("image", "brew_wikilink", wikilinkRule);
-	md.core.ruler.after("inline", "brew_attribution_paragraph", (state) => {
+	md.core.ruler.after("inline", "brew_image_attributes", imageAttributeRule);
+	md.core.ruler.after("brew_image_attributes", "brew_attribution_paragraph", (state) => {
 		for (let index = 1; index < state.tokens.length; index += 1) {
 			const inlineToken = state.tokens[index];
 			const paragraphOpen = state.tokens[index - 1];
@@ -65,6 +67,8 @@ export function createBrewMarkdownEngine(): MarkdownIt {
 		const token = tokens[index];
 		return `<span${md.renderer.renderAttrs(token)}>${md.renderInline(token.content)}</span>`;
 	};
+	md.renderer.rules.brew_vault_image = (tokens, index) =>
+		`<img${md.renderer.renderAttrs(tokens[index])}>`;
 
 	return md;
 }

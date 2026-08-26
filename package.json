@@ -1,6 +1,6 @@
 {
   "name": "brewvault",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "description": "Render Markdown notes into Homebrewery-style D&D 5e documents inside Obsidian.",
   "main": "main.js",
   "scripts": {
