@@ -4,6 +4,7 @@ import { paginateBrewPages } from "../renderer/paginateDom";
 import type BrewVaultPlugin from "../main";
 import { ALL_THEME_CLASS_NAMES, getThemeClassNames } from "../themes/registry";
 import { appendRenderedHtml } from "../renderer/renderedHtml";
+import { resolveVaultImageEmbeds } from "../obsidian/resolveVaultImageEmbeds";
 
 export const HOMEBREWERY_VIEW_TYPE = "brewvault-preview";
 
@@ -12,6 +13,7 @@ export class HomebreweryView extends ItemView {
 	private trackedFile: TFile | null = null;
 	private pagesContainer!: HTMLElement;
 	private debounceHandle: number | null = null;
+	private imageDependencyPaths = new Set<string>();
 
 	constructor(leaf: WorkspaceLeaf, plugin: BrewVaultPlugin) {
 		super(leaf);
@@ -39,7 +41,10 @@ export class HomebreweryView extends ItemView {
 
 		this.registerEvent(
 			this.app.vault.on("modify", (file) => {
-				if (file instanceof TFile && file === this.trackedFile) {
+				if (
+					file instanceof TFile &&
+					(file === this.trackedFile || this.imageDependencyPaths.has(file.path))
+				) {
 					this.scheduleRender();
 				}
 			})
@@ -99,7 +104,16 @@ export class HomebreweryView extends ItemView {
 		}
 
 		const source = await this.app.vault.cachedRead(this.trackedFile);
-		const renderedPages = renderBrewMarkdown(source);
+		const resolvedImages = await resolveVaultImageEmbeds(
+			source,
+			this.trackedFile,
+			this.app.vault,
+			this.app.metadataCache
+		);
+		this.imageDependencyPaths = new Set(resolvedImages.dependencyPaths);
+		const renderedPages = renderBrewMarkdown(source, {
+			imageEmbeds: resolvedImages.imageEmbeds,
+		});
 		const { theme, pageWidthPx, pageHeightPx } = this.plugin.settings;
 		const pages = await paginateBrewPages(renderedPages, { theme, pageWidthPx, pageHeightPx });
 

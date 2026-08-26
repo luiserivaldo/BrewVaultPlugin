@@ -169,8 +169,29 @@ Obsidian wikilinks render as readable text without their brackets:
 See [[Classes/Alchemist|Alchemist]].
 ```
 
-The rendered document displays `See Alchemist.` Unresolved `![[embeds]]` are
-omitted from Homebrewery preview and exports instead of exposing vault paths.
+The rendered document displays `See Alchemist.`
+
+Vault-local raster images use the same embed syntax as an Obsidian note:
+
+```markdown
+![[Images/imp.png]]
+![[Images/imp.png|Infernal scout]]
+![[Images/imp.png|320]]
+![[Images/imp.png|320x180]]
+![[Images/imp.png|392]]{width:200px}
+```
+
+BrewVault resolves these through Obsidian, embeds their image data in preview,
+HTML, and PDF output, and leaves the Markdown source unchanged. PNG, JPEG, GIF,
+WebP, AVIF, and BMP files are supported. A numeric alias sets width; `WIDTHxHEIGHT`
+sets both dimensions. Unresolved or unsupported embeds are omitted instead of
+exposing vault paths.
+
+Homebrewery-style size attributes may follow a local or standard Markdown
+image, with or without a separating space. Supported properties are `width`,
+`height`, `min-width`, `min-height`, `max-width`, and `max-height`. When both an
+Obsidian numeric size and a Homebrewery width are present, the Homebrewery
+attribute takes visual precedence.
 
 ## Plugin settings
 

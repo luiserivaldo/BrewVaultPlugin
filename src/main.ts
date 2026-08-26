@@ -24,6 +24,7 @@ import { homebreweryTagPreviewExtension } from "./editor/homebreweryTagPreview";
 import { detectPlatform } from "./platform/detectPlatform";
 import { createBackendProvider } from "./platform/createBackendProvider";
 import type { ExportBackendProvider } from "./platform/ExportBackendProvider";
+import { resolveVaultImageEmbeds } from "./obsidian/resolveVaultImageEmbeds";
 
 // The community reviewer analyzes source without running BrewVault's esbuild
 // virtual-module loader. Narrow through `unknown` so both that environment and
@@ -122,7 +123,15 @@ export default class BrewVaultPlugin extends Plugin {
 	async exportFileAsHtml(file: TFile): Promise<void> {
 		try {
 			const source = await this.app.vault.cachedRead(file);
-			const renderedPages = renderBrewMarkdown(source);
+			const resolvedImages = await resolveVaultImageEmbeds(
+				source,
+				file,
+				this.app.vault,
+				this.app.metadataCache
+			);
+			const renderedPages = renderBrewMarkdown(source, {
+				imageEmbeds: resolvedImages.imageEmbeds,
+			});
 			const pages = await paginateBrewPages(renderedPages, {
 				theme: this.settings.theme,
 				pageWidthPx: this.settings.pageWidthPx,
@@ -157,7 +166,15 @@ export default class BrewVaultPlugin extends Plugin {
 			const theme = themeOverride ?? this.settings.theme;
 			const exportFolder = await this.ensureExportFolder();
 			const source = await this.app.vault.cachedRead(file);
-			const renderedPages = renderBrewMarkdown(source);
+			const resolvedImages = await resolveVaultImageEmbeds(
+				source,
+				file,
+				this.app.vault,
+				this.app.metadataCache
+			);
+			const renderedPages = renderBrewMarkdown(source, {
+				imageEmbeds: resolvedImages.imageEmbeds,
+			});
 			const pages = await paginateBrewPages(renderedPages, {
 				theme,
 				pageWidthPx: this.settings.pageWidthPx,
