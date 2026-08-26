@@ -8,6 +8,10 @@ The current 0.2.3 production release remains desktop-only. Builds from the
 separate `codex/mobile-overhaul-p2` branch enable controlled mobile preview
 testing while fixed-layout scaling is validated on real phones and tablets.
 
+Mobile adaptation is under active development on a separate Phase 2 branch.
+The current 0.2.2 release remains desktop-only while fixed-layout preview
+scaling is validated on real phones and tablets.
+
 ## Features
 
 - Live Homebrewery preview that follows the active Markdown note.
