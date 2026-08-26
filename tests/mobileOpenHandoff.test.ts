@@ -3,6 +3,7 @@ import test from "node:test";
 import {
 	getSavedHtmlArtifactMessage,
 	MOBILE_PDF_BROWSER_INSTRUCTION,
+	MOBILE_PDF_DIALOG_TITLE,
 	MOBILE_PDF_OPEN_BUTTON_LABEL,
 	openHtmlArtifact,
 } from "../src/mobile/openHtmlArtifact";
@@ -58,8 +59,9 @@ void test("reports a default-app launch failure without losing the path", async 
 void test("uses the approved concise mobile handoff copy", () => {
 	assert.equal(
 		getSavedHtmlArtifactMessage("BrewVault-Exports/Note.brew.html"),
-		"Saved file as BrewVault-Exports/Note.brew.html."
+		'Saved file as "BrewVault-Exports/Note.brew.html".'
 	);
+	assert.equal(MOBILE_PDF_DIALOG_TITLE, "Export to PDF export ready");
 	assert.equal(
 		MOBILE_PDF_BROWSER_INSTRUCTION,
 		'Click "Open in Browser", then Print -> Save as PDF.'

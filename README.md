@@ -69,7 +69,9 @@ On mobile development builds, PDF commands first save a collision-safe
 `.brew.html` artifact in the configured export folder. BrewVault then opens a
 dialog where **Open in Browser** asks Android to open the saved file with its
 default application. In the browser, use **Print → Save as PDF**. The HTML
-artifact remains in the vault if Android cannot open it.
+artifact remains in the vault if Android cannot open it. Android controls the
+available-app chooser and may include HTML viewers or system handlers alongside
+browsers; BrewVault cannot filter that system list.
 
 Desktop exports are written directly to the configured folder without opening
 a print or save dialog. For a note named `Alchemist.md`, BrewVault creates:

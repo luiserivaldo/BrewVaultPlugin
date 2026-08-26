@@ -2,6 +2,7 @@ import { App, Modal, Notice } from "obsidian";
 import {
 	getSavedHtmlArtifactMessage,
 	MOBILE_PDF_BROWSER_INSTRUCTION,
+	MOBILE_PDF_DIALOG_TITLE,
 	MOBILE_PDF_OPEN_BUTTON_LABEL,
 	openHtmlArtifact,
 } from "../mobile/openHtmlArtifact";
@@ -20,7 +21,7 @@ export class MobilePdfHandoffModal extends Modal {
 	onOpen(): void {
 		const { contentEl } = this;
 		contentEl.empty();
-		contentEl.createEl("h2", { text: "Mobile PDF export ready" });
+		contentEl.createEl("h2", { text: MOBILE_PDF_DIALOG_TITLE });
 		contentEl.createEl("p", {
 			text: getSavedHtmlArtifactMessage(this.artifactPath),
 		});
@@ -28,7 +29,10 @@ export class MobilePdfHandoffModal extends Modal {
 			text: MOBILE_PDF_BROWSER_INSTRUCTION,
 		});
 
-		const openButton = contentEl.createEl("button", {
+		const actions = contentEl.createDiv({
+			cls: "brewvault-mobile-pdf-actions",
+		});
+		const openButton = actions.createEl("button", {
 			text: MOBILE_PDF_OPEN_BUTTON_LABEL,
 			cls: "mod-cta",
 		});
@@ -36,7 +40,7 @@ export class MobilePdfHandoffModal extends Modal {
 			void this.openArtifact(openButton);
 		});
 
-		const closeButton = contentEl.createEl("button", { text: "Close" });
+		const closeButton = actions.createEl("button", { text: "Close" });
 		closeButton.addEventListener("click", () => this.close());
 	}
 
