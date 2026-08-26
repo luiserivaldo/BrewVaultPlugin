@@ -6,11 +6,8 @@ a self-contained HTML file or, on desktop, directly as a PDF.
 
 The current 0.2.3 production release remains desktop-only. Builds from the
 separate `codex/mobile-overhaul-p2` branch enable controlled mobile preview
-testing while fixed-layout scaling is validated on real phones and tablets.
-
-Mobile adaptation is under active development on a separate Phase 2 branch.
-The current 0.2.2 release remains desktop-only while fixed-layout preview
-scaling is validated on real phones and tablets.
+testing and browser-assisted PDF export while the mobile workflow is validated
+on real devices.
 
 ## Features
 
@@ -36,8 +33,9 @@ scaling is validated on real phones and tablets.
 ## Installation
 
 BrewVault requires Obsidian `1.7.2` or newer. The production release is
-desktop-only; mobile preview testing requires a build from the dedicated Phase
-2 branch. Direct PDF export remains unavailable on mobile during this phase.
+desktop-only; mobile testing requires a build from the dedicated mobile branch.
+Mobile builds preserve a standalone HTML artifact and hand it to Android for
+browser printing instead of generating PDF bytes inside Obsidian.
 
 1. Download or obtain `manifest.json`, `main.js`, and `styles.css` from the
    BrewVault release package.
@@ -60,19 +58,22 @@ can also be opened using BrewVault's scroll icon in the ribbon.
 | --- | --- |
 | **Open Homebrewery preview** | Opens or reveals a live preview of the active Markdown note. |
 | **Export current file as HTML** | Creates a self-contained `.brew.html` file using the selected theme. |
-| **Export current file as Homebrewery PDF** | Creates a PDF using the theme selected in BrewVault settings. |
-| **Export current file as Homebrewery PDF in PHB style** | Creates a one-off PDF using the Player's Handbook parchment theme. |
-| **Export current file as Homebrewery PDF in SRD style** | Creates a one-off PDF using the SRD / Unearthed Arcana theme. |
-| **Export current file as Homebrewery PDF in Blank style** | Creates a one-off PDF using the plain Blank theme. |
+| **Export current file as Homebrewery PDF** | Creates a direct PDF on desktop or starts the browser-assisted mobile workflow using the selected theme. |
+| **Export current file as Homebrewery PDF in PHB style** | Uses the Player's Handbook parchment theme for direct desktop PDF or mobile browser handoff. |
+| **Export current file as Homebrewery PDF in SRD style** | Uses the SRD / Unearthed Arcana theme for direct desktop PDF or mobile browser handoff. |
+| **Export current file as Homebrewery PDF in Blank style** | Uses the plain Blank theme for direct desktop PDF or mobile browser handoff. |
 
 Theme-specific PDF functions do not change the saved preview theme.
 
-On mobile Phase 2 builds, direct PDF commands stop before rendering and explain
-how to export HTML, open it in a browser, and use **Print → Save as PDF**. Mobile
-browser/share handoff is planned for a later phase.
+On mobile development builds, PDF commands first save a collision-safe
+`.brew.html` artifact in the configured export folder. BrewVault then opens a
+dialog where **Share HTML…** launches Android sharing from a fresh user tap.
+Choose a browser or file app, open the document, and use
+**Print → Save as PDF**. The HTML artifact remains in the vault if sharing is
+cancelled, unavailable, or fails.
 
-Exports are written directly to the configured folder without opening a print
-or save dialog. For a note named `Alchemist.md`, BrewVault creates:
+Desktop exports are written directly to the configured folder without opening
+a print or save dialog. For a note named `Alchemist.md`, BrewVault creates:
 
 ```text
 BrewVault-Exports/Alchemist.pdf

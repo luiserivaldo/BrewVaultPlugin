@@ -9,10 +9,10 @@ const DEFAULT_BACKEND_LOADERS: BackendLoaders = {
 		return createDesktopPdfBackend();
 	},
 	async loadMobile() {
-		const { createUnsupportedMobileBackend } = await import(
-			"../mobile/UnsupportedMobileBackend"
+		const { createMobileHandoffBackend } = await import(
+			"../mobile/MobileHandoffBackend"
 		);
-		return createUnsupportedMobileBackend();
+		return createMobileHandoffBackend();
 	},
 };
 
