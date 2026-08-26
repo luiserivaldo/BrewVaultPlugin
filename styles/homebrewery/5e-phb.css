@@ -1,4 +1,4 @@
-/* doiuse-disable multicolumn, css-text-indent */
+/* stylelint-disable plugin/no-unsupported-browser-features -- PHB parity requires CSS columns and basic first-line indentation. */
 
 /* Upstream-derived Homebrewery V3 5ePHB presentation. Physical measurements,
    typography, break behavior, and furniture intentionally remain theme CSS. */

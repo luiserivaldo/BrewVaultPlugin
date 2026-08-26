@@ -1,4 +1,4 @@
-/* doiuse-disable multicolumn */
+/* stylelint-disable plugin/no-unsupported-browser-features -- Homebrewery's fixed-page layout requires CSS columns. */
 
 /* Everything is scoped under .brewvault-root so it can never leak into the
    rest of Obsidian's UI (editor, other panes, etc.). */

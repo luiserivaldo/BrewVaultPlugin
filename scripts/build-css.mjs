@@ -2,7 +2,7 @@ import esbuild from "esbuild";
 import { readFileSync, writeFileSync } from "node:fs";
 
 export const CSS_COMPATIBILITY_CONTROL =
-	"/* doiuse-disable multicolumn, css-text-indent */\n";
+	"/* stylelint-disable plugin/no-unsupported-browser-features -- Homebrewery requires fixed-page columns and basic first-line indentation. */\n";
 
 /**
  * Standalone CSS build step. The control comment records two intentional,
