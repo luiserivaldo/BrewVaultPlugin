@@ -26,6 +26,12 @@ import { createBackendProvider } from "./platform/createBackendProvider";
 import type { ExportBackendProvider } from "./platform/ExportBackendProvider";
 import { MobilePdfHandoffModal } from "./ui/MobilePdfHandoffModal";
 import { resolveVaultImageEmbeds } from "./obsidian/resolveVaultImageEmbeds";
+import type { BrewPage } from "./renderer/types";
+import {
+	createCustomStyleSubmission,
+	findCustomStyle,
+	type CustomStyleDefinition,
+} from "./themes/customStyles";
 
 // The community reviewer analyzes source without running BrewVault's esbuild
 // virtual-module loader. Narrow through `unknown` so both that environment and
@@ -39,21 +45,23 @@ const BUNDLED_THEME_CSS: string = uncheckedThemeCss;
 export default class BrewVaultPlugin extends Plugin {
 	settings: BrewVaultSettings = DEFAULT_SETTINGS;
 	private exportBackendProvider: ExportBackendProvider | null = null;
+	private customStyleSheet: CSSStyleSheet | null = null;
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
+		this.installCustomStyleSheet();
 		this.exportBackendProvider = createBackendProvider(detectPlatform(Platform));
 		this.registerEditorExtension(homebreweryTagPreviewExtension);
 
 		this.registerView(HOMEBREWERY_VIEW_TYPE, (leaf) => new HomebreweryView(leaf, this));
 
-		this.addRibbonIcon("scroll", "Open Homebrewery preview", () => {
+		this.addRibbonIcon("scroll", "Open preview", () => {
 			void this.activateView();
 		});
 
 		this.addCommand({
 			id: "open-homebrewery-preview",
-			name: "Open Homebrewery preview",
+			name: "Open preview",
 			callback: () => {
 				void this.activateView();
 			},
@@ -78,7 +86,7 @@ export default class BrewVaultPlugin extends Plugin {
 		// Default PDF export uses the theme selected in BrewVault settings.
 		this.addPdfExportCommand(
 			"export-current-file-as-pdf",
-			"Export current file as Homebrewery PDF"
+			"Export current file as BrewVault PDF"
 		);
 
 		// Curated theme-specific commands are intentionally limited to the three
@@ -86,17 +94,17 @@ export default class BrewVaultPlugin extends Plugin {
 		// stable command IDs are suitable for Obsidian CLI invocation.
 		this.addPdfExportCommand(
 			"export-current-file-as-pdf-phb",
-			"Export current file as Homebrewery PDF in PHB style",
+			"Export current file as BrewVault PDF in PHB style",
 			"phb"
 		);
 		this.addPdfExportCommand(
 			"export-current-file-as-pdf-srd",
-			"Export current file as Homebrewery PDF in SRD style",
+			"Export current file as BrewVault PDF in SRD style",
 			"srd"
 		);
 		this.addPdfExportCommand(
 			"export-current-file-as-pdf-blank",
-			"Export current file as Homebrewery PDF in Blank style",
+			"Export current file as BrewVault PDF in Blank style",
 			"blank"
 		);
 	}
@@ -133,16 +141,12 @@ export default class BrewVaultPlugin extends Plugin {
 			const renderedPages = renderBrewMarkdown(source, {
 				imageEmbeds: resolvedImages.imageEmbeds,
 			});
-			const pages = await paginateBrewPages(renderedPages, {
-				theme: this.settings.theme,
-				pageWidthPx: this.settings.pageWidthPx,
-				pageHeightPx: this.settings.pageHeightPx,
-			});
+			const pages = await this.paginateWithTheme(renderedPages, this.settings.theme);
 
 			const html = buildStandaloneHtml(
 				pages,
 				this.settings.theme,
-				BUNDLED_THEME_CSS,
+				this.getThemeCss(this.settings.theme),
 				file.basename,
 				this.settings.pageWidthPx,
 				this.settings.pageHeightPx
@@ -177,16 +181,12 @@ export default class BrewVaultPlugin extends Plugin {
 			const renderedPages = renderBrewMarkdown(source, {
 				imageEmbeds: resolvedImages.imageEmbeds,
 			});
-			const pages = await paginateBrewPages(renderedPages, {
-				theme,
-				pageWidthPx: this.settings.pageWidthPx,
-				pageHeightPx: this.settings.pageHeightPx,
-			});
+			const pages = await this.paginateWithTheme(renderedPages, theme);
 
 			const html = buildStandaloneHtml(
 				pages,
 				theme,
-				BUNDLED_THEME_CSS,
+				this.getThemeCss(theme),
 				file.basename,
 				this.settings.pageWidthPx,
 				this.settings.pageHeightPx
@@ -284,9 +284,76 @@ export default class BrewVaultPlugin extends Plugin {
 
 	async saveSettings(): Promise<void> {
 		await this.saveData(this.settings);
+		this.syncCustomStyleSheet(this.settings.theme);
 	}
 
-	/** Re-render every open Homebrewery preview leaf (e.g. after a settings change). */
+	async submitCustomStyle(css: string): Promise<CustomStyleDefinition> {
+		if (!this.customStyleSheet) {
+			throw new Error("This Obsidian runtime does not support custom stylesheets.");
+		}
+		const submission = createCustomStyleSubmission(
+			css,
+			this.settings.customStyles,
+			this.settings.nextCustomStyleNumber
+		);
+		this.settings.customStyles = [...this.settings.customStyles, submission.style];
+		this.settings.nextCustomStyleNumber = submission.nextCustomStyleNumber;
+		await this.saveSettings();
+		return submission.style;
+	}
+
+	async removeCustomStyle(theme: BrewTheme): Promise<void> {
+		const remaining = this.settings.customStyles.filter((style) => style.id !== theme);
+		if (remaining.length === this.settings.customStyles.length) return;
+
+		this.settings.customStyles = remaining;
+		if (this.settings.theme === theme) this.settings.theme = DEFAULT_SETTINGS.theme;
+		await this.saveSettings();
+		this.refreshAllViews();
+	}
+
+	getCustomCssForTheme(theme: BrewTheme): string {
+		return findCustomStyle(theme, this.settings.customStyles)?.css ?? "";
+	}
+
+	private getThemeCss(theme: BrewTheme): string {
+		const customCss = this.getCustomCssForTheme(theme);
+		return customCss ? `${BUNDLED_THEME_CSS}\n${customCss}` : BUNDLED_THEME_CSS;
+	}
+
+	private installCustomStyleSheet(): void {
+		if (typeof CSSStyleSheet === "undefined" || !("adoptedStyleSheets" in document)) return;
+		const sheet = new CSSStyleSheet();
+		document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+		this.customStyleSheet = sheet;
+		this.syncCustomStyleSheet(this.settings.theme);
+		this.register(() => {
+			document.adoptedStyleSheets = document.adoptedStyleSheets.filter(
+				(candidate) => candidate !== sheet
+			);
+			if (this.customStyleSheet === sheet) this.customStyleSheet = null;
+		});
+	}
+
+	private syncCustomStyleSheet(theme: BrewTheme): void {
+		this.customStyleSheet?.replaceSync(this.getCustomCssForTheme(theme));
+	}
+
+	private async paginateWithTheme(pages: BrewPage[], theme: BrewTheme): Promise<BrewPage[]> {
+		const selectedTheme = this.settings.theme;
+		this.syncCustomStyleSheet(theme);
+		try {
+			return await paginateBrewPages(pages, {
+				theme,
+				pageWidthPx: this.settings.pageWidthPx,
+				pageHeightPx: this.settings.pageHeightPx,
+			});
+		} finally {
+			this.syncCustomStyleSheet(selectedTheme);
+		}
+	}
+
+	/** Re-render every open BrewVault preview leaf (e.g. after a settings change). */
 	refreshAllViews(): void {
 		for (const leaf of this.app.workspace.getLeavesOfType(HOMEBREWERY_VIEW_TYPE)) {
 			const view = leaf.view;
@@ -296,7 +363,7 @@ export default class BrewVaultPlugin extends Plugin {
 		}
 	}
 
-	/** Opens (or reveals) the Homebrewery Preview view in a new right-hand leaf. */
+	/** Opens (or reveals) the BrewVault preview view in a new right-hand leaf. */
 	async activateView(): Promise<HomebreweryView> {
 		const existing = this.app.workspace.getLeavesOfType(HOMEBREWERY_VIEW_TYPE);
 		let leaf: WorkspaceLeaf;

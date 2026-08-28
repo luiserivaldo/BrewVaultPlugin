@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { getThemeClassNames, THEME_REGISTRY } from "../src/themes/registry";
+import {
+	CUSTOM_THEME_CLASS_NAME,
+	getThemeClassNames,
+	THEME_REGISTRY,
+} from "../src/themes/registry";
 import { renderBrewMarkdown } from "../src/renderer";
 
 void test("theme registry preserves upstream inheritance", () => {
@@ -12,6 +16,10 @@ void test("theme registry preserves upstream inheritance", () => {
 		"brewvault-theme-blank",
 		"brewvault-theme-phb",
 	]);
+});
+
+void test("custom themes use the custom render class without PHB inheritance", () => {
+	assert.deepEqual(getThemeClassNames("custom:3"), [CUSTOM_THEME_CLASS_NAME]);
 });
 
 void test("block containers expose Homebrewery semantic classes", () => {
