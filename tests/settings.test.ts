@@ -65,6 +65,15 @@ void test("a missing custom theme falls back to PHB", () => {
 	assert.equal(result.shouldPersist, true);
 });
 
+void test("the bundled DMG theme remains selected", () => {
+	const result = normalizeStoredSettings({
+		theme: "dmg",
+		exportFolder: "Custom",
+	});
+
+	assert.equal(result.settings.theme, "dmg");
+});
+
 void test("legacy journal themes still normalize to SRD", () => {
 	const result = normalizeStoredSettings({
 		theme: "journal",

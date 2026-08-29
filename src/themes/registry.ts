@@ -1,5 +1,5 @@
 export type ThemeId = "blank" | "phb" | "dmg" | "journal" | "srd";
-export type SelectableThemeId = "blank" | "phb" | "srd";
+export type SelectableThemeId = "blank" | "phb" | "dmg" | "srd";
 export type CustomThemeId = `custom:${number}`;
 export type ThemeSelectionId = SelectableThemeId | CustomThemeId;
 
@@ -60,9 +60,9 @@ export const THEME_REGISTRY: Readonly<Record<ThemeId, ThemeDefinition>> = {
 		upstreamId: "5eDMG",
 		baseTheme: "phb",
 		stylesheetEntry: "styles/homebrewery/5e-dmg.css",
-		assets: ["dmg-background", "dmg-footer-accent"],
+		assets: ["dmg-background", "dmg-footer-accent", "dmg-part-cover-header"],
 		fonts: [],
-		selectable: false,
+		selectable: true,
 	},
 	journal: {
 		id: "journal",
@@ -111,7 +111,7 @@ export function getThemeClassNames(theme: ThemeSelectionId): string[] {
 }
 
 export function isSelectableThemeId(value: unknown): value is SelectableThemeId {
-	return value === "phb" || value === "srd" || value === "blank";
+	return value === "phb" || value === "dmg" || value === "srd" || value === "blank";
 }
 
 export function isCustomThemeId(value: unknown): value is CustomThemeId {
