@@ -28,7 +28,7 @@ export class HomebreweryView extends ItemView {
 	}
 
 	getDisplayText(): string {
-		return this.trackedFile ? `Brew: ${this.trackedFile.basename}` : "Homebrewery Preview";
+		return this.trackedFile ? `Brew: ${this.trackedFile.basename}` : "BrewVault Preview";
 	}
 
 	getIcon(): string {
@@ -123,7 +123,11 @@ export class HomebreweryView extends ItemView {
 			imageEmbeds: resolvedImages.imageEmbeds,
 		});
 		const { theme, pageWidthPx, pageHeightPx } = this.plugin.settings;
-		const pages = await paginateBrewPages(renderedPages, { theme, pageWidthPx, pageHeightPx });
+		const pages = await paginateBrewPages(renderedPages, {
+			theme,
+			pageWidthPx,
+			pageHeightPx,
+		});
 
 		this.pagesContainer.empty();
 		this.pagesContainer.setCssProps({

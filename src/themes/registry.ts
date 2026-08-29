@@ -1,5 +1,7 @@
 export type ThemeId = "blank" | "phb" | "dmg" | "journal" | "srd";
 export type SelectableThemeId = "blank" | "phb" | "srd";
+export type CustomThemeId = `custom:${number}`;
+export type ThemeSelectionId = SelectableThemeId | CustomThemeId;
 
 export interface ThemeCompatibility {
 	components: readonly string[];
@@ -84,12 +86,16 @@ export const THEME_REGISTRY: Readonly<Record<ThemeId, ThemeDefinition>> = {
 	},
 };
 
-export const ALL_THEME_CLASS_NAMES = Object.keys(THEME_REGISTRY).map(
-	(id) => `brewvault-theme-${id}`
-);
+export const CUSTOM_THEME_CLASS_NAME = "brewvault-theme-custom";
+export const ALL_THEME_CLASS_NAMES = [
+	...Object.keys(THEME_REGISTRY).map((id) => `brewvault-theme-${id}`),
+	CUSTOM_THEME_CLASS_NAME,
+];
 
 /** Resolves base-first inheritance classes, equivalent to themes.json. */
-export function getThemeClassNames(theme: SelectableThemeId): string[] {
+export function getThemeClassNames(theme: ThemeSelectionId): string[] {
+	if (isCustomThemeId(theme)) return [CUSTOM_THEME_CLASS_NAME];
+
 	const chain: ThemeId[] = [];
 	const seen = new Set<ThemeId>();
 	let current: ThemeId | null = theme;
@@ -102,4 +108,12 @@ export function getThemeClassNames(theme: SelectableThemeId): string[] {
 	}
 
 	return chain.map((id) => `brewvault-theme-${id}`);
+}
+
+export function isSelectableThemeId(value: unknown): value is SelectableThemeId {
+	return value === "phb" || value === "srd" || value === "blank";
+}
+
+export function isCustomThemeId(value: unknown): value is CustomThemeId {
+	return typeof value === "string" && /^custom:[1-9]\d*$/.test(value);
 }

@@ -26,11 +26,43 @@ void test("the exact legacy default folder migrates automatically", () => {
 void test("custom export folders remain untouched", () => {
 	const result = normalizeStoredSettings({
 		theme: "phb",
+		customStyles: [],
+		nextCustomStyleNumber: 1,
 		exportFolder: "My Campaign/PDF Exports",
 	});
 
 	assert.equal(result.settings.exportFolder, "My Campaign/PDF Exports");
 	assert.equal(result.shouldPersist, false);
+});
+
+void test("a stored custom theme remains selected when its validated style exists", () => {
+	const result = normalizeStoredSettings({
+		theme: "custom:1",
+		customStyles: [
+			{
+				id: "custom:1",
+				name: "Night",
+				css: ".brewvault-theme-custom .brewPage { color: white; background: black; }\n",
+			},
+		],
+		nextCustomStyleNumber: 1,
+		exportFolder: "Custom",
+	});
+
+	assert.equal(result.settings.theme, "custom:1");
+	assert.equal(result.settings.customStyles[0].name, "Night");
+});
+
+void test("a missing custom theme falls back to PHB", () => {
+	const result = normalizeStoredSettings({
+		theme: "custom:9",
+		customStyles: [],
+		nextCustomStyleNumber: 1,
+		exportFolder: "Custom",
+	});
+
+	assert.equal(result.settings.theme, "phb");
+	assert.equal(result.shouldPersist, true);
 });
 
 void test("legacy journal themes still normalize to SRD", () => {

@@ -1,49 +1,38 @@
 # BrewVault
 
-BrewVault is a desktop and mobile Obsidian plugin for turning Markdown notes
-into paginated, Homebrewery-style documents. Preview your work inside Obsidian,
-export directly to PDF on desktop, or use the browser-assisted PDF workflow on
-mobile.
-
-BrewVault 0.3.0 introduces mobile support as its headline feature while
-preserving the fixed page geometry and desktop export behavior of earlier
-releases.
+BrewVault is an Obsidian plugin for turning Markdown notes into themed,
+D&D 5e-style documents. Preview your work inside Obsidian, export directly to
+PDF using preconfigured themes, or export as HTML and apply custom CSS styles.
 
 ## Features
 
-- Mobile support with responsive scaling of fixed Homebrewery pages without
-  reflowing their contents.
-- Browser-assisted mobile PDF export with a preserved standalone HTML artifact.
-- Live Homebrewery preview that follows the active Markdown note on desktop and
-  mobile.
-- Offline vault-image embeds in preview, HTML export, and desktop/mobile PDF
-  workflows.
-- Player's Handbook parchment, SRD / Unearthed Arcana, and Blank themes.
-- Upstream-derived Homebrewery fonts, page measurements, headings, tables,
+- Live rendered preview that follows the active Markdown note as its source.
+- Preconfigured Player's Handbook and SRD / Unearthed Arcana themes.
+- Styling inspired by Homebrewery fonts, page measurements, headings, tables,
   notes, descriptive boxes, monster blocks, and page furniture.
-- Standard Obsidian Markdown plus Homebrewery blocks, inline tags, page breaks,
-  column breaks, and wide elements.
-- Compact Homebrewery tag labels in the Markdown editor. Select a label to
-  reveal and edit its original source.
-- Numbered editor separators for explicit `\page` directives.
+- Standard Obsidian Markdown plus Homebrewery-style blocks, inline tags, page
+  breaks, column breaks, and wide elements.
+- Compact Homebrewery tag labels in the Markdown editor for a seamless workflow
+  transition.
 - Automatic pagination without changing the source Markdown file.
-- Direct US Letter PDF export on desktop with backgrounds and fonts preserved.
-- Self-contained HTML export that can be opened without BrewVault.
-- Collision-safe output names: existing exports are preserved as `_1`, `_2`,
-  and later numbered copies.
-- Configurable vault-relative export folder, defaulting to
+- Direct PDF export with backgrounds and fonts preserved.
+- Self-contained HTML export that can be opened without Obsidian or BrewVault.
+- Configurable vault-relative export folder; defaults to the root folder at
   `BrewVault-Exports`.
 - Fully local and offline. Desktop requires no external browser, server, or
-  Chromium installation; mobile delegates only the final print/save step to an
-  installed browser.
+  Chromium installation; mobile delegates only the final print/export step to
+  an installed browser.
 
 ## Mobile support
 
-Mobile preview scales each fixed-size page to the available viewport without
-changing page count, columns, wrapping, tables, or explicit page boundaries.
-Mobile PDF commands save a self-contained `.brew.html` file first, then open it
-through Android so the browser can use **Print → Save as PDF**. The HTML file
-remains available if the handoff is cancelled or fails.
+Mobile preview scales each fixed-size page to the available screen space
+without changing page count, columns, wrapping, tables, or explicit page
+boundaries. Mobile PDF commands save a self-contained `.brew.html` file first,
+then open it through a browser that supports **Print → Save as PDF**. The HTML
+file remains available if the handoff is cancelled or fails.
+
+**Note:** Current releases are tested on Android devices only. Behavior on iOS
+may vary.
 
 ## Installation
 
@@ -68,12 +57,12 @@ can also be opened using BrewVault's scroll icon in the ribbon.
 
 | Function | Effect |
 | --- | --- |
-| **Open Homebrewery preview** | Opens or reveals a live preview of the active Markdown note. |
+| **Open preview** | Opens or reveals a live BrewVault preview of the active Markdown note. |
 | **Export current file as HTML** | Creates a self-contained `.brew.html` file using the selected theme. |
-| **Export current file as Homebrewery PDF** | Creates a direct PDF on desktop or starts the browser-assisted mobile workflow using the selected theme. |
-| **Export current file as Homebrewery PDF in PHB style** | Uses the Player's Handbook parchment theme for direct desktop PDF or mobile browser handoff. |
-| **Export current file as Homebrewery PDF in SRD style** | Uses the SRD / Unearthed Arcana theme for direct desktop PDF or mobile browser handoff. |
-| **Export current file as Homebrewery PDF in Blank style** | Uses the plain Blank theme for direct desktop PDF or mobile browser handoff. |
+| **Export current file as BrewVault PDF** | Creates a direct PDF on desktop or starts the browser-assisted mobile workflow using the selected theme. |
+| **Export current file as BrewVault PDF in PHB style** | Uses the Player's Handbook parchment theme for direct desktop PDF or mobile browser handoff. |
+| **Export current file as BrewVault PDF in SRD style** | Uses the SRD / Unearthed Arcana theme for direct desktop PDF or mobile browser handoff. |
+| **Export current file as BrewVault PDF in Blank style** | Uses the plain Blank theme for direct desktop PDF or mobile browser handoff. |
 
 Theme-specific PDF functions do not change the saved preview theme.
 
@@ -227,7 +216,8 @@ Open **Settings → BrewVault** to configure the plugin.
 
 | Setting | Default | Effect |
 | --- | --- | --- |
-| Theme | Player's Handbook (parchment) | Controls the live preview and normal HTML/PDF export appearance. |
+| Choose theme | Player's Handbook (parchment) | Controls the live preview and normal HTML/PDF export appearance. |
+| Submit custom stylesheet | None | Validates and stores a selected local `.css` file as a selectable theme. |
 | Export folder | `BrewVault-Exports` | Sets the vault-relative output folder. BrewVault creates it automatically. |
 | Page width | `816px` | Controls rendered page width; the default represents 8.5 inches at 96 CSS dpi. |
 | Page height | `1056px` | Controls rendered page height; the default represents 11 inches at 96 CSS dpi. |
@@ -235,6 +225,33 @@ Open **Settings → BrewVault** to configure the plugin.
 
 Custom export paths remain unchanged. Installations using the former exact
 default `BrewVault Exports` are automatically migrated to `BrewVault-Exports`.
+
+### Custom CSS styles
+
+Use **Submit custom stylesheet** to select a local `.css` file. Add this
+metadata tag inside a CSS comment to control the name shown under
+**Choose theme**:
+
+```css
+/* @brewvault-theme: Midnight Parchment */
+
+.brewvault-theme-custom .brewPage {
+	background: #171717;
+	color: #f3ead3;
+}
+```
+
+If the tag is absent, BrewVault assigns `Custom_Style_1`, then
+`Custom_Style_2`, and so on. Submitted CSS must contain valid rules, may use
+embedded `data:` resources, and cannot import stylesheets or load other resource
+URLs. Every style selector must include `.brewvault-theme-custom` so that user
+CSS cannot affect the surrounding Obsidian interface. Custom styles are stored
+locally in the plugin settings. Removing the currently selected custom style
+returns **Choose theme** to the default Player's Handbook theme.
+
+The generic **Export current file as BrewVault PDF** function always uses the
+theme currently selected under **Choose theme**. The PHB, SRD, and Blank export
+functions remain explicit one-off overrides and do not change that selection.
 
 ## Accreditation and licensing
 
