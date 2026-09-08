@@ -114,6 +114,7 @@ export class BrewVaultSettingTab extends PluginSettingTab {
 			this.themeDropdowns.push(drop);
 			drop
 				.addOption("phb", "Player's Handbook (parchment)")
+				.addOption("dmg", "Dungeon master's guide")
 				.addOption("srd", "SRD / Unearthed Arcana")
 				.addOption("blank", "Blank (plain paginated page)");
 			for (const style of this.plugin.settings.customStyles) {

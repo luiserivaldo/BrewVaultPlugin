@@ -89,13 +89,18 @@ export default class BrewVaultPlugin extends Plugin {
 			"Export current file as BrewVault PDF"
 		);
 
-		// Curated theme-specific commands are intentionally limited to the three
+		// Curated theme-specific commands are intentionally limited to the four
 		// baseline styles. Besides being convenient in the command palette, the
 		// stable command IDs are suitable for Obsidian CLI invocation.
 		this.addPdfExportCommand(
 			"export-current-file-as-pdf-phb",
 			"Export current file as BrewVault PDF in PHB style",
 			"phb"
+		);
+		this.addPdfExportCommand(
+			"export-current-file-as-pdf-dmg",
+			"Export current file as BrewVault PDF in DMG style",
+			"dmg"
 		);
 		this.addPdfExportCommand(
 			"export-current-file-as-pdf-srd",

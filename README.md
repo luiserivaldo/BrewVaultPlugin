@@ -7,7 +7,8 @@ PDF using preconfigured themes, or export as HTML and apply custom CSS styles.
 ## Features
 
 - Live rendered preview that follows the active Markdown note as its source.
-- Preconfigured Player's Handbook and SRD / Unearthed Arcana themes.
+- Preconfigured Player's Handbook, Dungeon Master's Guide, and SRD / Unearthed
+  Arcana themes.
 - Styling inspired by Homebrewery fonts, page measurements, headings, tables,
   notes, descriptive boxes, monster blocks, and page furniture.
 - Standard Obsidian Markdown plus Homebrewery-style blocks, inline tags, page
@@ -61,6 +62,7 @@ can also be opened using BrewVault's scroll icon in the ribbon.
 | **Export current file as HTML** | Creates a self-contained `.brew.html` file using the selected theme. |
 | **Export current file as BrewVault PDF** | Creates a direct PDF on desktop or starts the browser-assisted mobile workflow using the selected theme. |
 | **Export current file as BrewVault PDF in PHB style** | Uses the Player's Handbook parchment theme for direct desktop PDF or mobile browser handoff. |
+| **Export current file as BrewVault PDF in DMG style** | Uses the Dungeon Master's Guide theme for direct desktop PDF or mobile browser handoff. |
 | **Export current file as BrewVault PDF in SRD style** | Uses the SRD / Unearthed Arcana theme for direct desktop PDF or mobile browser handoff. |
 | **Export current file as BrewVault PDF in Blank style** | Uses the plain Blank theme for direct desktop PDF or mobile browser handoff. |
 

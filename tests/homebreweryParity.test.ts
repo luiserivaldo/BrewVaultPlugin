@@ -7,6 +7,7 @@ import { renderBrewMarkdown } from "../src/renderer";
 
 const fixture = readFileSync("tests/fixtures/homebrewery-parity.md", "utf8");
 const phbThemeCss = readFileSync("styles/homebrewery/5e-phb.css", "utf8");
+const dmgThemeCss = readFileSync("styles/homebrewery/5e-dmg.css", "utf8");
 
 void test("parity fixture emits Homebrewery semantic component classes", () => {
 	const html = renderBrewMarkdown(fixture).map((page) => page.html).join("\n");
@@ -46,4 +47,23 @@ void test("PHB headings retain Homebrewery's inherited bold Mr Eaves weight", ()
 		phbThemeCss,
 		/:where\(h1, h2, h3, h4\)[^{]*\{[^}]*font-family: "MrEavesRemake";[^}]*font-weight: 700;/
 	);
+});
+
+void test("DMG inherits PHB layout and overrides official theme furniture", () => {
+	const html = buildStandaloneHtml(
+		renderBrewMarkdown(fixture),
+		"dmg",
+		"/* fixture */",
+		"DMG Fixture",
+		816,
+		1056
+	);
+
+	assert.match(
+		html,
+		/brewvault-theme-blank brewvault-theme-phb brewvault-theme-dmg/
+	);
+	assert.match(dmgThemeCss, /DMG_background\.jpg/);
+	assert.match(dmgThemeCss, /DMG_footerAccent\.png/);
+	assert.match(dmgThemeCss, /partCoverHeaderDMG\.svg/);
 });

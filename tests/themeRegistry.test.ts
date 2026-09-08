@@ -16,6 +16,17 @@ void test("theme registry preserves upstream inheritance", () => {
 		"brewvault-theme-blank",
 		"brewvault-theme-phb",
 	]);
+	assert.deepEqual(getThemeClassNames("dmg"), [
+		"brewvault-theme-blank",
+		"brewvault-theme-phb",
+		"brewvault-theme-dmg",
+	]);
+	assert.equal(THEME_REGISTRY.dmg.selectable, true);
+	assert.deepEqual(THEME_REGISTRY.dmg.assets, [
+		"dmg-background",
+		"dmg-footer-accent",
+		"dmg-part-cover-header",
+	]);
 });
 
 void test("custom themes use the custom render class without PHB inheritance", () => {

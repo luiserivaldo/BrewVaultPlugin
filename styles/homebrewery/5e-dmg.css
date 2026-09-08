@@ -1,0 +1,34 @@
+/* Adapted from Homebrewery V3 5eDMG. This theme intentionally inherits the
+   Blank and 5ePHB classes before applying the official DMG overrides. */
+.brewvault-theme-dmg .page {
+	--HB_Color_Accent: #ebcec3;
+	--HB_Color_Footnotes: #5c5c5c;
+	background-image: url("../../vendor/homebrewery/assets/DMG_background.jpg");
+	background-size: cover;
+}
+
+.brewvault-theme-dmg .page .note table tbody tr:nth-child(odd) {
+	background: #fff;
+}
+
+.brewvault-theme-dmg .page h1 + p::first-letter {
+	color: #000;
+	background-image: unset;
+}
+
+.brewvault-theme-dmg .page .quote p:first-child::first-line {
+	all: unset;
+}
+
+.brewvault-theme-dmg .page::after {
+	height: 58px;
+	background-image: url("../../vendor/homebrewery/assets/DMG_footerAccent.png");
+}
+
+.brewvault-theme-dmg .page .footnote {
+	bottom: 40px;
+}
+
+.brewvault-theme-dmg .page .partCover {
+	background-image: url("../../vendor/homebrewery/assets/partCoverHeaderDMG.svg");
+}
