@@ -1,10 +1,23 @@
-import type { SelectableThemeId } from "../themes/registry";
+import {
+	isCustomThemeId,
+	isSelectableThemeId,
+	type ThemeSelectionId,
+} from "../themes/registry";
+import {
+	inferNextCustomStyleNumber,
+	normalizeStoredCustomStyles,
+	type CustomStyleDefinition,
+} from "../themes/customStyles";
 
-export type BrewTheme = SelectableThemeId;
+export type BrewTheme = ThemeSelectionId;
 
 export interface BrewVaultSettings {
 	/** Which theme stylesheet variant to apply to the preview pages. */
 	theme: BrewTheme;
+	/** User-submitted, self-contained CSS styles. */
+	customStyles: CustomStyleDefinition[];
+	/** Monotonic suffix reserved for the next unnamed custom style. */
+	nextCustomStyleNumber: number;
 	/** Vault-relative folder used for file-based exports. */
 	exportFolder: string;
 	/** Page width in pixels (US Letter at 96 CSS dpi). */
@@ -19,6 +32,8 @@ export const LEGACY_DEFAULT_EXPORT_FOLDER = "BrewVault Exports";
 
 export const DEFAULT_SETTINGS: BrewVaultSettings = {
 	theme: "phb",
+	customStyles: [],
+	nextCustomStyleNumber: 1,
 	exportFolder: "BrewVault-Exports",
 	pageWidthPx: 816,
 	pageHeightPx: 1056,
@@ -38,8 +53,15 @@ export interface NormalizedSettings {
 export function normalizeStoredSettings(
 	stored: Record<string, unknown> | null
 ): NormalizedSettings {
+	const rawCustomStyles = stored?.customStyles;
+	const customStyles = normalizeStoredCustomStyles(rawCustomStyles);
+	const rawNextCustomStyleNumber = stored?.nextCustomStyleNumber;
+	const nextCustomStyleNumber = inferNextCustomStyleNumber(
+		customStyles,
+		rawNextCustomStyleNumber
+	);
 	const rawTheme = stored?.theme;
-	const theme: BrewTheme = isBrewTheme(rawTheme)
+	const theme: BrewTheme = isBrewTheme(rawTheme, customStyles)
 		? rawTheme
 		: rawTheme === "journal"
 			? "srd"
@@ -59,16 +81,28 @@ export function normalizeStoredSettings(
 		...DEFAULT_SETTINGS,
 		...(stored ?? {}),
 		theme,
+		customStyles,
+		nextCustomStyleNumber,
 		exportFolder,
 	};
 
 	return {
 		settings,
 		shouldPersist:
-			!stored || rawTheme !== theme || rawExportFolder !== exportFolder,
+			!stored ||
+			rawTheme !== theme ||
+			rawExportFolder !== exportFolder ||
+			rawNextCustomStyleNumber !== nextCustomStyleNumber ||
+			JSON.stringify(rawCustomStyles ?? []) !== JSON.stringify(customStyles),
 	};
 }
 
-export function isBrewTheme(value: unknown): value is BrewTheme {
-	return value === "phb" || value === "srd" || value === "blank";
+export function isBrewTheme(
+	value: unknown,
+	customStyles: readonly CustomStyleDefinition[] = []
+): value is BrewTheme {
+	return (
+		isSelectableThemeId(value) ||
+		(isCustomThemeId(value) && customStyles.some((style) => style.id === value))
+	);
 }
