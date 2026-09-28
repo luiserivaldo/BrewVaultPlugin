@@ -9,6 +9,31 @@ export interface PaginationOptions {
 	pageHeightPx: number;
 }
 
+export interface OverflowDimensions {
+	readonly scrollWidth: number;
+	readonly clientWidth: number;
+	readonly scrollHeight: number;
+	readonly clientHeight: number;
+}
+
+export interface ImageReadinessTarget {
+	readonly complete: boolean;
+	decode?: () => Promise<void>;
+	addEventListener?: (type: "load" | "error", listener: () => void) => void;
+	removeEventListener?: (type: "load" | "error", listener: () => void) => void;
+}
+
+export interface TimerHost {
+	setTimeout(callback: () => void, timeoutMs: number): unknown;
+	clearTimeout(handle: unknown): void;
+}
+
+const IMAGE_READY_TIMEOUT_MS = 3_000;
+const BROWSER_TIMER_HOST: TimerHost = {
+	setTimeout: (callback, timeoutMs) => window.setTimeout(callback, timeoutMs),
+	clearTimeout: (handle) => window.clearTimeout(handle as number),
+};
+
 /**
  * Converts explicitly-delimited renderer pages into physical pages by measuring
  * them with the same CSS used by preview/export. The source Markdown is never
@@ -64,6 +89,7 @@ export async function paginateBrewPages(
 			for (const node of nodes) {
 				const clone = node.cloneNode(true);
 				columnWrapper.appendChild(clone);
+				await waitForImages(clone);
 
 				if (pageOverflows(measurementPage) && hasContent) {
 					columnWrapper.removeChild(clone);
@@ -103,7 +129,70 @@ function getColumnWrapper(page: HTMLElement): HTMLElement {
 }
 
 function pageOverflows(page: HTMLElement): boolean {
-	return page.scrollWidth > page.clientWidth + 1 || page.scrollHeight > page.clientHeight + 1;
+	return dimensionsOverflow(page) || dimensionsOverflow(getColumnWrapper(page));
+}
+
+export function dimensionsOverflow(dimensions: OverflowDimensions): boolean {
+	return (
+		dimensions.scrollWidth > dimensions.clientWidth + 1 ||
+		dimensions.scrollHeight > dimensions.clientHeight + 1
+	);
+}
+
+async function waitForImages(root: Node): Promise<void> {
+	if (root.nodeType !== Node.ELEMENT_NODE) return;
+
+	const element = root as Element;
+	const images = Array.from(element.querySelectorAll<HTMLImageElement>("img"));
+	if (element.tagName === "IMG") images.unshift(element as HTMLImageElement);
+	await Promise.all(images.map((image) => waitForImageReadiness(image)));
+}
+
+export async function waitForImageReadiness(
+	image: ImageReadinessTarget,
+	timeoutMs = IMAGE_READY_TIMEOUT_MS,
+	timerHost: TimerHost = BROWSER_TIMER_HOST
+): Promise<void> {
+	if (image.decode) {
+		const decoded = await settlesWithin(image.decode(), timeoutMs, timerHost);
+		if (decoded || image.complete) return;
+	} else if (image.complete) {
+		return;
+	}
+
+	if (!image.addEventListener || !image.removeEventListener) return;
+
+	await new Promise<void>((resolve) => {
+		let timeoutId: unknown;
+		const finish = (): void => {
+			timerHost.clearTimeout(timeoutId);
+			image.removeEventListener?.("load", finish);
+			image.removeEventListener?.("error", finish);
+			resolve();
+		};
+
+		image.addEventListener?.("load", finish);
+		image.addEventListener?.("error", finish);
+		timeoutId = timerHost.setTimeout(finish, timeoutMs);
+	});
+}
+
+async function settlesWithin(
+	promise: Promise<void>,
+	timeoutMs: number,
+	timerHost: TimerHost
+): Promise<boolean> {
+	return new Promise((resolve) => {
+		let settled = false;
+		const finish = (result: boolean): void => {
+			if (settled) return;
+			settled = true;
+			timerHost.clearTimeout(timeoutId);
+			resolve(result);
+		};
+		const timeoutId = timerHost.setTimeout(() => finish(false), timeoutMs);
+		void promise.then(() => finish(true), () => finish(false));
+	});
 }
 
 function pushMeasuredPage(output: BrewPage[], page: HTMLElement): void {

@@ -76,6 +76,8 @@
 	overflow: hidden;
 	padding: 1.4cm 1.9cm 1.7cm;
 	column-count: 2;
+	/* Pagination fills columns in reading order; balancing creates premature
+	   column breaks and leaves the bottom of fixed pages empty. */
 	column-fill: auto;
 	column-gap: 0.9cm;
 	column-width: 8cm;
@@ -186,6 +188,10 @@
 
 .brewPage .columnWrapper {
 	column-gap: inherit;
+	/* This wrapper owns the content columns. A real height is required for
+	   column-fill:auto to advance into the second column rather than report an
+	   overflow after the first one. */
+	height: 100%;
 	max-height: 100%;
 	column-span: all;
 	columns: inherit;

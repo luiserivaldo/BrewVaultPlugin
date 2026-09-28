@@ -60,5 +60,16 @@ void test("PHB spacing clears adjacent margins and reserves footer space", () =>
 	const css = readFileSync("styles/homebrewery/5e-phb.css", "utf8");
 	assert.match(css, /\.page \.blank \{ margin-top: 0; \}/);
 	assert.match(css, /\.page \.blank \+ \* \{ margin-top: 0; \}/);
-	assert.match(css, /\.page \.columnWrapper \{ max-height: calc\(100% - \.3cm\); \}/);
+	assert.match(css, /\.page \.columnWrapper \{ height: calc\(100% - \.3cm\); max-height: calc\(100% - \.3cm\); \}/);
+});
+
+void test("fixed pages fill columns sequentially instead of balancing them", () => {
+	const css = readFileSync("styles/base.css", "utf8");
+	assert.match(css, /\.brewPage \{[\s\S]*?column-fill: auto;/);
+	assert.doesNotMatch(css, /\.brewPage \{[\s\S]*?column-fill: balance;/);
+});
+
+void test("the content wrapper has a fixed height so preview uses both columns", () => {
+	const css = readFileSync("styles/base.css", "utf8");
+	assert.match(css, /\.brewPage \.columnWrapper \{[\s\S]*?height: 100%;/);
 });
