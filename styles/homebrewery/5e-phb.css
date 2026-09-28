@@ -70,7 +70,7 @@
 
 .brewvault-theme-phb .page .blank { margin-top: 0; }
 .brewvault-theme-phb .page .blank + * { margin-top: 0; }
-.brewvault-theme-phb .page .columnWrapper { max-height: 100%; }
+.brewvault-theme-phb .page .columnWrapper { height: calc(100% - .3cm); max-height: calc(100% - .3cm); }
 
 .brewvault-theme-phb .page .classTable.frame { width: calc(100% + .2cm); margin: .7cm -.1cm .9cm; border-collapse: separate; background: #fff; border: solid; border-image: url("../../vendor/homebrewery/assets/frameBorder.png") 200 stretch; border-image-width: 47px; border-image-outset: .4cm .3cm; }
 .brewvault-theme-phb .page .classTable th[colspan]:not([rowspan]) { white-space: nowrap; }

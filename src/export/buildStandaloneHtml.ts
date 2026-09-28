@@ -85,31 +85,46 @@ body {
 	cursor: pointer;
 }
 ${themeCss}
-@page { size: Letter portrait; margin: 1.4cm 1.9cm 1.7cm; }
+/* .brewPage is a complete Letter sheet. Its own padding is the document
+   margin, so printer margins must remain zero or the browser scales and
+   repaginates the fixed-size sheet. */
+@page { size: Letter portrait; margin: 0; }
 @media print {
 	html, body { width: 8.5in; margin: 0; padding: 0; }
-	body { background: none; padding: 0; gap: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+	body { display: block; background: none; padding: 0; gap: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 	.brewvault-export-controls { display: none !important; }
 	.brewvault-pages { display: block; }
 	.brewPage {
 		box-shadow: none;
 		margin: 0;
+		/* The wrapper holds the two fixed columns. Do not balance them: that
+		   leaves intentionally empty space and diverges from preview. */
+		column-count: initial;
+		column-width: auto;
 		break-inside: avoid;
 		page-break-inside: avoid;
 		-webkit-print-color-adjust: exact;
 		print-color-adjust: exact;
-		/* Disable CSS columns — pages are already paginated by JS; re-flow breaks layout */
-		column-count: 1;
+	}
+	.brewPage .columnWrapper {
+		height: 100%;
+		max-height: 100%;
+		column-count: 2;
+		column-width: 8cm;
+		column-gap: .9cm;
 		column-fill: auto;
+	}
+	.brewvault-theme-phb .page .columnWrapper {
+		height: calc(100% - .3cm);
+		max-height: calc(100% - .3cm);
+	}
+	.brewvault-pages > .brewPage:not(:last-child) {
+		break-after: page;
+		page-break-after: always;
 	}
 	.brewvault-pages > .brewPage:last-child {
 		break-after: auto;
 		page-break-after: auto;
-	}
-	/* Ensure PHB columnWrapper respects print page height without extra calc offset */
-	.brewvault-theme-phb .page .columnWrapper {
-		height: 100%;
-		max-height: 100%;
 	}
 }
 </style>
@@ -118,7 +133,7 @@ ${themeCss}
 <aside class="brewvault-export-controls" aria-label="PDF export controls">
 	<strong>BrewVault PDF export</strong>
 	<button type="button" data-brewvault-print aria-describedby="brewvault-print-help">Print / Save as PDF</button>
-	<span id="brewvault-print-help">Open in your browser, then use Print → Save as PDF.</span>
+	<span id="brewvault-print-help">Use this button to open the print dialog.</span>
 </aside>
 <div class="brewvault-pages ${themeClassNames}">
 ${pagesHtml}

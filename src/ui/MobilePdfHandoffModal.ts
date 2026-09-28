@@ -1,10 +1,10 @@
 import { App, Modal, Notice } from "obsidian";
 import {
+	closeThenOpenHtmlArtifact,
 	getSavedHtmlArtifactMessage,
 	MOBILE_PDF_BROWSER_INSTRUCTION,
 	MOBILE_PDF_DIALOG_TITLE,
 	MOBILE_PDF_OPEN_BUTTON_LABEL,
-	openHtmlArtifact,
 } from "../mobile/openHtmlArtifact";
 
 /**
@@ -37,7 +37,7 @@ export class MobilePdfHandoffModal extends Modal {
 			cls: "mod-cta",
 		});
 		openButton.addEventListener("click", () => {
-			void this.openArtifact(openButton);
+			void this.openArtifact();
 		});
 
 		const closeButton = actions.createEl("button", { text: "Close" });
@@ -48,17 +48,18 @@ export class MobilePdfHandoffModal extends Modal {
 		this.contentEl.empty();
 	}
 
-	private async openArtifact(openButton: HTMLButtonElement): Promise<void> {
-		openButton.disabled = true;
-		const outcome = await openHtmlArtifact(this.app, this.artifactPath);
+	private async openArtifact(): Promise<void> {
+		const outcome = await closeThenOpenHtmlArtifact(
+			this.app,
+			this.artifactPath,
+			() => this.close()
+		);
 
 		if (outcome.kind === "opened") {
-			this.close();
 			return;
 		}
 
 		console.warn("BrewVault could not open the mobile HTML artifact", outcome.reason);
 		new Notice("Could not open the saved HTML file in a browser.");
-		openButton.disabled = false;
 	}
 }
