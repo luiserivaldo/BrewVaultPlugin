@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-	closeThenOpenHtmlArtifact,
 	getSavedHtmlArtifactMessage,
 	MOBILE_PDF_BROWSER_INSTRUCTION,
 	MOBILE_PDF_DIALOG_TITLE,
@@ -25,23 +24,6 @@ void test("opens the saved vault path with Obsidian's default-app bridge", async
 
 	assert.deepEqual(outcome, { kind: "opened" });
 	assert.equal(openedPath, "BrewVault-Exports/Note.brew.html");
-});
-
-void test("closes the plugin modal before Android receives the file", async () => {
-	const events: string[] = [];
-	const outcome = await closeThenOpenHtmlArtifact(
-		app,
-		"BrewVault-Exports/Note.brew.html",
-		() => events.push("closed"),
-		{
-			openWithDefaultApp: () => {
-				events.push("opened");
-			},
-		}
-	);
-
-	assert.deepEqual(outcome, { kind: "opened" });
-	assert.deepEqual(events, ["closed", "opened"]);
 });
 
 void test("reports an unavailable default-app bridge", async () => {

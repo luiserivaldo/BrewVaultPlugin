@@ -68,15 +68,37 @@ ${themeCss}
 @page { size: Letter portrait; margin: 0; }
 @media print {
 	html, body { width: 8.5in; margin: 0; padding: 0; }
-	body { background: none; padding: 0; gap: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+	body { display: block; background: none; padding: 0; gap: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+	.brewvault-pages { display: block; }
 	.brewvault-mobile-print-helper { display: none !important; }
-	.brewPage {
+	.brewPage { column-count: initial; column-width: auto; }
+	.brewPage .columnWrapper {
+		height: 100%;
+		max-height: 100%;
+		column-count: 2;
+		column-width: 8cm;
+		column-gap: .9cm;
+		column-fill: auto;
+	}
+	.brewvault-theme-phb .page .columnWrapper {
+		height: calc(100% - .3cm);
+		max-height: calc(100% - .3cm);
+	}
+	.brewvault-pages > .brewPage {
 		box-shadow: none;
 		margin: 0;
-		break-after: page;
-		page-break-after: always;
+		break-inside: avoid;
+		page-break-inside: avoid;
 		-webkit-print-color-adjust: exact;
 		print-color-adjust: exact;
+	}
+	.brewvault-pages > .brewPage:not(:last-child) {
+		break-after: page;
+		page-break-after: always;
+	}
+	.brewvault-pages > .brewPage:last-child {
+		break-after: auto;
+		page-break-after: auto;
 	}
 }
 </style>

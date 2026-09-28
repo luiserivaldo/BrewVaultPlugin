@@ -43,17 +43,6 @@ export async function openHtmlArtifact(
 	}
 }
 
-/** Unmount plugin UI before Android creates or launches its native resolver. */
-export async function closeThenOpenHtmlArtifact(
-	app: App,
-	artifactPath: string,
-	closeDialog: () => void,
-	opener: DefaultAppOpener = app as unknown as DefaultAppOpener
-): Promise<OpenHtmlArtifactOutcome> {
-	closeDialog();
-	return openHtmlArtifact(app, artifactPath, opener);
-}
-
 function getErrorMessage(error: unknown): string {
 	return error instanceof Error ? error.message : String(error);
 }
