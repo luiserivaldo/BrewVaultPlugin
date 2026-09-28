@@ -98,6 +98,9 @@ ${themeCss}
 		page-break-inside: avoid;
 		-webkit-print-color-adjust: exact;
 		print-color-adjust: exact;
+		/* Disable CSS columns — pages are already paginated by JS; re-flow breaks layout */
+		column-count: 1;
+		column-fill: auto;
 	}
 	.brewvault-pages > .brewPage:last-child {
 		break-after: auto;
