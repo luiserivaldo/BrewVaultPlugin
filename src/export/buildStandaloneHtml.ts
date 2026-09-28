@@ -118,7 +118,7 @@ ${themeCss}
 <aside class="brewvault-export-controls" aria-label="PDF export controls">
 	<strong>BrewVault PDF export</strong>
 	<button type="button" data-brewvault-print aria-describedby="brewvault-print-help">Print / Save as PDF</button>
-	<span id="brewvault-print-help">If no print dialog opens in Chrome, tap &#8942; &rarr; Share, swipe the action row to Print, then choose Save as PDF.</span>
+	<span id="brewvault-print-help">Open in your browser, then use Print → Save as PDF.</span>
 </aside>
 <div class="brewvault-pages ${themeClassNames}">
 ${pagesHtml}

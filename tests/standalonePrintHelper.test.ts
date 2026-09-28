@@ -30,3 +30,7 @@ void test("standalone HTML provides one-click Print button with fallback guidanc
 	// Script is present and calls window.print()
 	assert.match(html, /<script>document\.querySelector\("\[data-brewvault-print]"\)\.addEventListener\("click",\(\)=>window\.print\(\)\);<\/script>/);
 });
+
+void test("standalone HTML help text is generic and concise", () => {
+	assert.match(html, /Open in your browser, then use Print → Save as PDF\./);
+});
