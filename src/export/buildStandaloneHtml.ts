@@ -51,11 +51,25 @@ body {
 	padding: 24px;
 	font-family: sans-serif;
 }
+
+.brewvault-mobile-print-helper {
+	box-sizing: border-box;
+	display: flex;
+	justify-content: center;
+	gap: 8px;
+	width: min(100%, var(--brew-page-width));
+	padding: 10px 12px;
+	border-radius: 6px;
+	background: #f5f5f5;
+	color: #1f1f1f;
+	font: 15px/1.3 sans-serif;
+}
 ${themeCss}
 @page { size: Letter portrait; margin: 0; }
 @media print {
 	html, body { width: 8.5in; margin: 0; padding: 0; }
 	body { background: none; padding: 0; gap: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+	.brewvault-mobile-print-helper { display: none !important; }
 	.brewPage {
 		box-shadow: none;
 		margin: 0;
@@ -68,6 +82,10 @@ ${themeCss}
 </style>
 </head>
 <body class="${themeClassNames}">
+<aside class="brewvault-mobile-print-helper" aria-label="Save as PDF help">
+	<strong>Save as PDF:</strong>
+	<span>Share &rarr; Print &rarr; Save as PDF</span>
+</aside>
 <div class="brewvault-pages ${themeClassNames}">
 ${pagesHtml}
 </div>
