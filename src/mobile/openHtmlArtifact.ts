@@ -10,9 +10,9 @@ export interface DefaultAppOpener {
 }
 
 export const MOBILE_PDF_BROWSER_INSTRUCTION =
-	'Click "Open in Browser", then Print -> Save as PDF.';
+	"In the browser: Share → Print → Save as PDF.";
 export const MOBILE_PDF_OPEN_BUTTON_LABEL = "Open in Browser";
-export const MOBILE_PDF_DIALOG_TITLE = "Export to PDF export ready";
+export const MOBILE_PDF_DIALOG_TITLE = "PDF export ready";
 
 export function getSavedHtmlArtifactMessage(artifactPath: string): string {
 	return `Saved file as "${artifactPath}".`;
