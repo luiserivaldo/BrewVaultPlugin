@@ -65,8 +65,16 @@ can also be opened using BrewVault's scroll icon in the ribbon.
 | **Export current file as BrewVault PDF in DMG style** | Uses the Dungeon Master's Guide theme for direct desktop PDF or mobile browser handoff. |
 | **Export current file as BrewVault PDF in SRD style** | Uses the SRD / Unearthed Arcana theme for direct desktop PDF or mobile browser handoff. |
 | **Export current file as BrewVault PDF in Blank style** | Uses the plain Blank theme for direct desktop PDF or mobile browser handoff. |
+| **Export current file as basic PDF (experimental)** | Generates a simple searchable PDF directly inside the plugin on desktop or mobile, without Homebrewery styling or a browser handoff. |
 
 Theme-specific PDF functions do not change the saved preview theme.
+
+The experimental basic exporter is a proof of concept for direct mobile PDF
+generation. It preserves standard Markdown headings, emphasis, lists,
+blockquotes, links, tables, and supported embedded PNG/JPEG images, but it does
+not reproduce Homebrewery themes, columns, page furniture, or explicit layout
+directives. Its files use names such as `Alchemist.basic.pdf` so they cannot be
+confused with styled BrewVault PDFs.
 
 On mobile, PDF commands first save a collision-safe
 `.brew.html` artifact in the configured export folder. BrewVault then opens a

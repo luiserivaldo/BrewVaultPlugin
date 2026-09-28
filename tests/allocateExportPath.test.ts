@@ -32,3 +32,13 @@ void test("places the copy number before the complete HTML export suffix", () =>
 		"Exports/Alter Fate_1.brew.html"
 	);
 });
+
+void test("keeps experimental basic PDFs distinct from styled PDFs", () => {
+	const existing = new Set(["Exports/Introduction.basic.pdf"]);
+	assert.equal(
+		allocateExportPath("Exports", "Introduction.basic", ".pdf", (path) =>
+			existing.has(path)
+		),
+		"Exports/Introduction.basic_1.pdf"
+	);
+});

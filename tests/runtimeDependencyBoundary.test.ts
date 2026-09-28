@@ -37,6 +37,18 @@ void test("shared startup has no static desktop or Electron adapter import", asy
 	);
 });
 
+void test("basic PDF runtime remains lazy on desktop and mobile startup", async () => {
+	const mainSource = await readFile(join(SOURCE_ROOT, "main.ts"), "utf8");
+	assert.match(
+		mainSource,
+		/import\(\s*["']\.\/export\/basicPdf\/BasicPdfExporter["']\s*\)/
+	);
+	assert.doesNotMatch(
+		mainSource,
+		/import\s+[^;]*from\s+["']\.\/export\/basicPdf\/BasicPdfExporter["']/
+	);
+});
+
 async function collectTypeScriptFiles(directory: string): Promise<string[]> {
 	const entries = await readdir(directory, { withFileTypes: true });
 	const files: string[] = [];
