@@ -5,6 +5,7 @@ import {
 	MOBILE_PDF_BROWSER_INSTRUCTION,
 	MOBILE_PDF_DIALOG_TITLE,
 	MOBILE_PDF_OPEN_BUTTON_LABEL,
+	MOBILE_PDF_PICKER_NOTICE,
 } from "../mobile/openHtmlArtifact";
 
 /**
@@ -27,6 +28,9 @@ export class MobilePdfHandoffModal extends Modal {
 		});
 		contentEl.createEl("p", {
 			text: MOBILE_PDF_BROWSER_INSTRUCTION,
+		});
+		contentEl.createEl("p", {
+			text: MOBILE_PDF_PICKER_NOTICE,
 		});
 
 		const actions = contentEl.createDiv({

@@ -6,6 +6,7 @@ import {
 	MOBILE_PDF_BROWSER_INSTRUCTION,
 	MOBILE_PDF_DIALOG_TITLE,
 	MOBILE_PDF_OPEN_BUTTON_LABEL,
+	MOBILE_PDF_PICKER_NOTICE,
 	openHtmlArtifact,
 } from "../src/mobile/openHtmlArtifact";
 
@@ -82,7 +83,11 @@ void test("uses the approved concise mobile handoff copy", () => {
 	assert.equal(MOBILE_PDF_DIALOG_TITLE, "Export to PDF export ready");
 	assert.equal(
 		MOBILE_PDF_BROWSER_INSTRUCTION,
-		'Click "Open in Browser", then Print -> Save as PDF.'
+		'Choose Chrome or Brave, then tap "Print / Save as PDF" in the document. Chrome fallback: menu -> Share -> swipe to Print -> Save as PDF.'
+	);
+	assert.equal(
+		MOBILE_PDF_PICKER_NOTICE,
+		"Android controls the app list, spacing, and layout; BrewVault cannot filter it."
 	);
 	assert.equal(MOBILE_PDF_OPEN_BUTTON_LABEL, "Open in Browser");
 });

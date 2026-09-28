@@ -29,8 +29,10 @@ PDF using preconfigured themes, or export as HTML and apply custom CSS styles.
 Mobile preview scales each fixed-size page to the available screen space
 without changing page count, columns, wrapping, tables, or explicit page
 boundaries. Mobile PDF commands save a self-contained `.brew.html` file first,
-then open it through a browser that supports **Print → Save as PDF**. The HTML
-file remains available if the handoff is cancelled or fails.
+then open it through a browser. The document includes a **Print / Save as PDF**
+button. If Chrome does not open the print dialog, use **⋮ → Share**, swipe the
+action row to **Print**, and select **Save as PDF**. The HTML file remains
+available if the handoff is cancelled or fails.
 
 **Note:** Current releases are tested on Android devices only. Behavior on iOS
 may vary.
@@ -71,10 +73,12 @@ Theme-specific PDF functions do not change the saved preview theme.
 On mobile, PDF commands first save a collision-safe
 `.brew.html` artifact in the configured export folder. BrewVault then opens a
 dialog where **Open in Browser** asks Android to open the saved file with its
-default application. In the browser, use **Print → Save as PDF**. The HTML
-artifact remains in the vault if Android cannot open it. Android controls the
-available-app chooser and may include HTML viewers or system handlers alongside
-browsers; BrewVault cannot filter that system list.
+default application. Choose Chrome or Brave, then use the document's
+**Print / Save as PDF** button. In Chrome, the manual fallback is **⋮ → Share**,
+swipe the action row to **Print**, then choose **Save as PDF**. The HTML artifact
+remains in the vault if Android cannot open it. Android controls the available-
+app chooser, including its layout and spacing, and may include HTML viewers or
+system handlers alongside browsers; BrewVault cannot filter that system list.
 
 Desktop exports are written directly to the configured folder without opening
 a print or save dialog. For a note named `Alchemist.md`, BrewVault creates:

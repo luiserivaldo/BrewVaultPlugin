@@ -10,7 +10,9 @@ export interface DefaultAppOpener {
 }
 
 export const MOBILE_PDF_BROWSER_INSTRUCTION =
-	'Click "Open in Browser", then Print -> Save as PDF.';
+	'Choose Chrome or Brave, then tap "Print / Save as PDF" in the document. Chrome fallback: menu -> Share -> swipe to Print -> Save as PDF.';
+export const MOBILE_PDF_PICKER_NOTICE =
+	"Android controls the app list, spacing, and layout; BrewVault cannot filter it.";
 export const MOBILE_PDF_OPEN_BUTTON_LABEL = "Open in Browser";
 export const MOBILE_PDF_DIALOG_TITLE = "Export to PDF export ready";
 
