@@ -11,16 +11,22 @@ const html = buildStandaloneHtml(
 	1056
 );
 
-void test("standalone HTML provides compact script-free mobile print guidance", () => {
-	assert.match(html, /Save as PDF:<\/strong>/);
-	assert.match(html, /Share &rarr; Print &rarr; Save as PDF/);
-	assert.match(html, /\.brewvault-mobile-print-helper \{ display: none !important; \}/);
-	assert.match(html, /body \{ display: block; background: none;/);
+void test("standalone HTML provides one-click Print button with fallback guidance", () => {
+	assert.match(html, /BrewVault PDF export<\/strong>/);
+	assert.match(html, /Print \/ Save as PDF/);
+	assert.match(html, /data-brewvault-print/);
+	assert.match(html, /\.brewvault-export-controls \{ display: none !important; \}/);
+	assert.match(html, /body \{ background: none; padding: 0; gap: 0;/);
 	assert.match(html, /\.brewvault-pages \{ display: block; \}/);
-	assert.match(html, /\.brewPage \{ column-count: initial; column-width: auto; \}/);
-	assert.match(html, /\.brewPage \.columnWrapper \{[^}]*height: 100%;[^}]*column-count: 2;/);
-	assert.match(html, /\.brewvault-theme-phb \.page \.columnWrapper \{[^}]*height: calc\(100% - \.3cm\);/);
-	assert.match(html, /\.brewPage:not\(:last-child\) \{[^}]*break-after: page;/);
+	// No forced break-after: page on non-last pages — pages already laid out by paginator
+	assert.match(html, /\.brewPage \{[^}]*break-inside: avoid;/);
 	assert.match(html, /\.brewPage:last-child \{[^}]*break-after: auto;/);
-	assert.doesNotMatch(html, /<script|window\.print|data-brewvault-print/);
+	// PHB columnWrapper no longer uses calc(100% - .3cm) offset
+	assert.match(html, /\.brewvault-theme-phb \.page \.columnWrapper \{[^}]*height: 100%;[^}]*max-height: 100%;/);
+	// @page margins match page padding (1.4cm 1.9cm 1.7cm)
+	assert.match(html, /@page \{[^}]*margin: 1\.4cm 1\.9cm 1\.7cm;/);
+	// CSP allows the inline print script via hash
+	assert.match(html, /script-src 'sha256-vvRiW0cCBu7DM39Mp9A2V0XV9yDXvVHLnlmvhmPzKEk=';/);
+	// Script is present and calls window.print()
+	assert.match(html, /<script>document\.querySelector\("\[data-brewvault-print]"\)\.addEventListener\("click",\(\)=>window\.print\(\)\);<\/script>/);
 });

@@ -76,7 +76,7 @@
 	overflow: hidden;
 	padding: 1.4cm 1.9cm 1.7cm;
 	column-count: 2;
-	column-fill: auto;
+	column-fill: balance;
 	column-gap: 0.9cm;
 	column-width: 8cm;
 	flex-shrink: 0;

@@ -60,5 +60,5 @@ void test("PHB spacing clears adjacent margins and reserves footer space", () =>
 	const css = readFileSync("styles/homebrewery/5e-phb.css", "utf8");
 	assert.match(css, /\.page \.blank \{ margin-top: 0; \}/);
 	assert.match(css, /\.page \.blank \+ \* \{ margin-top: 0; \}/);
-	assert.match(css, /\.page \.columnWrapper \{ max-height: calc\(100% - \.3cm\); \}/);
+	assert.match(css, /\.page \.columnWrapper \{ max-height: 100%; \}/);
 });

@@ -29,11 +29,16 @@ export function buildStandaloneHtml(
 		)
 		.join("\n");
 
+	const PRINT_CONTROL_SCRIPT =
+		'document.querySelector("[data-brewvault-print]").addEventListener("click",()=>window.print());';
+	const PRINT_CONTROL_SCRIPT_SHA256 =
+		"sha256-vvRiW0cCBu7DM39Mp9A2V0XV9yDXvVHLnlmvhmPzKEk=";
+
 	return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src '${PRINT_CONTROL_SCRIPT_SHA256}'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'" />
 <title>${escapeHtml(title)}</title>
 <style>
 :root {
@@ -52,39 +57,41 @@ body {
 	font-family: sans-serif;
 }
 
-.brewvault-mobile-print-helper {
+.brewvault-export-controls {
 	box-sizing: border-box;
-	display: flex;
-	justify-content: center;
-	gap: 8px;
 	width: min(100%, var(--brew-page-width));
-	padding: 10px 12px;
-	border-radius: 6px;
+	padding: 16px;
+	border: 1px solid #777;
+	border-radius: 8px;
 	background: #f5f5f5;
 	color: #1f1f1f;
-	font: 15px/1.3 sans-serif;
+	font: 16px/1.4 sans-serif;
+}
+
+.brewvault-export-controls strong,
+.brewvault-export-controls span {
+	display: block;
+}
+
+.brewvault-export-controls button {
+	width: 100%;
+	min-height: 48px;
+	margin: 12px 0;
+	border: 0;
+	border-radius: 6px;
+	background: #6c31e3;
+	color: #fff;
+	font: 700 16px/1.2 sans-serif;
+	cursor: pointer;
 }
 ${themeCss}
-@page { size: Letter portrait; margin: 0; }
+@page { size: Letter portrait; margin: 1.4cm 1.9cm 1.7cm; }
 @media print {
 	html, body { width: 8.5in; margin: 0; padding: 0; }
-	body { display: block; background: none; padding: 0; gap: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+	body { background: none; padding: 0; gap: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+	.brewvault-export-controls { display: none !important; }
 	.brewvault-pages { display: block; }
-	.brewvault-mobile-print-helper { display: none !important; }
-	.brewPage { column-count: initial; column-width: auto; }
-	.brewPage .columnWrapper {
-		height: 100%;
-		max-height: 100%;
-		column-count: 2;
-		column-width: 8cm;
-		column-gap: .9cm;
-		column-fill: auto;
-	}
-	.brewvault-theme-phb .page .columnWrapper {
-		height: calc(100% - .3cm);
-		max-height: calc(100% - .3cm);
-	}
-	.brewvault-pages > .brewPage {
+	.brewPage {
 		box-shadow: none;
 		margin: 0;
 		break-inside: avoid;
@@ -92,25 +99,28 @@ ${themeCss}
 		-webkit-print-color-adjust: exact;
 		print-color-adjust: exact;
 	}
-	.brewvault-pages > .brewPage:not(:last-child) {
-		break-after: page;
-		page-break-after: always;
-	}
 	.brewvault-pages > .brewPage:last-child {
 		break-after: auto;
 		page-break-after: auto;
+	}
+	/* Ensure PHB columnWrapper respects print page height without extra calc offset */
+	.brewvault-theme-phb .page .columnWrapper {
+		height: 100%;
+		max-height: 100%;
 	}
 }
 </style>
 </head>
 <body class="${themeClassNames}">
-<aside class="brewvault-mobile-print-helper" aria-label="Save as PDF help">
-	<strong>Save as PDF:</strong>
-	<span>Share &rarr; Print &rarr; Save as PDF</span>
+<aside class="brewvault-export-controls" aria-label="PDF export controls">
+	<strong>BrewVault PDF export</strong>
+	<button type="button" data-brewvault-print aria-describedby="brewvault-print-help">Print / Save as PDF</button>
+	<span id="brewvault-print-help">If no print dialog opens in Chrome, tap &#8942; &rarr; Share, swipe the action row to Print, then choose Save as PDF.</span>
 </aside>
 <div class="brewvault-pages ${themeClassNames}">
 ${pagesHtml}
 </div>
+<script>${PRINT_CONTROL_SCRIPT}</script>
 </body>
 </html>
 `;
