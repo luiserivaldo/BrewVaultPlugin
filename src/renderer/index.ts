@@ -19,10 +19,21 @@ export function renderBrewMarkdown(
 	source: string,
 	options: BrewRenderOptions = {}
 ): BrewPage[] {
+	return splitIntoPages(renderBrewDocumentHtml(source, options));
+}
+
+/**
+ * Renders one sanitized semantic HTML document without applying physical page
+ * splitting. Exporters that do not use BrewVault's fixed-page HTML layout can
+ * consume this boundary without creating a second Markdown parser.
+ */
+export function renderBrewDocumentHtml(
+	source: string,
+	options: BrewRenderOptions = {}
+): string {
 	const engine = createBrewMarkdownEngine();
 	const environment: BrewRenderEnvironment = {
 		imageEmbeds: options.imageEmbeds,
 	};
-	const html = engine.render(source, environment);
-	return splitIntoPages(html);
+	return engine.render(source, environment);
 }

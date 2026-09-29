@@ -1,3 +1,5 @@
+import { copyValidatedPdf } from "../export/pdfBytes";
+
 const PDF_EXPORT_TIMEOUT_MS = 30_000;
 
 export const ELECTRON_PDF_PRINT_OPTIONS = Object.freeze({
@@ -177,21 +179,4 @@ async function withTimeout<T>(
 	} finally {
 		if (timeoutHandle !== undefined) window.clearTimeout(timeoutHandle);
 	}
-}
-
-export function copyValidatedPdf(pdfBytes: Uint8Array): ArrayBuffer {
-	if (
-		pdfBytes.byteLength < 5 ||
-		pdfBytes[0] !== 0x25 ||
-		pdfBytes[1] !== 0x50 ||
-		pdfBytes[2] !== 0x44 ||
-		pdfBytes[3] !== 0x46 ||
-		pdfBytes[4] !== 0x2d
-	) {
-		throw new Error("Electron returned an invalid PDF document.");
-	}
-
-	const copy = new Uint8Array(pdfBytes.byteLength);
-	copy.set(pdfBytes);
-	return copy.buffer;
 }
