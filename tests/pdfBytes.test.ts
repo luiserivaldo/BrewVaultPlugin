@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-	copyValidatedPdf,
 	encodeHtmlAsDataUrl,
 } from "../src/electron/ElectronPdfExporter";
+import { copyValidatedPdf } from "../src/export/pdfBytes";
 
 void test("valid PDF bytes are copied into an exact ArrayBuffer", () => {
 	const backing = new Uint8Array(16);

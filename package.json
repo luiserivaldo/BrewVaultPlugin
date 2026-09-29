@@ -1,6 +1,6 @@
 {
   "name": "brewvault",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Render Markdown notes into Homebrewery-style D&D 5e documents inside Obsidian.",
   "main": "main.js",
   "scripts": {
@@ -26,6 +26,7 @@
     "@eslint/js": "^9.39.4",
     "@types/markdown-it": "^14.2.0",
     "@types/node": "^20.11.0",
+    "@types/pdfmake": "0.3.3",
     "esbuild": "^0.20.0",
     "eslint": "^9.39.4",
     "eslint-plugin-obsidianmd": "^0.4.0",
@@ -40,6 +41,8 @@
   },
   "dependencies": {
     "@codemirror/view": "^6.38.6",
-    "markdown-it": "^14.1.0"
+    "html-to-pdfmake": "2.5.34",
+    "markdown-it": "^14.1.0",
+    "pdfmake": "0.2.23"
   }
 }
