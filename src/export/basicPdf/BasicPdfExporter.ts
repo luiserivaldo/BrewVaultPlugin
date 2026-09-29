@@ -2,7 +2,12 @@ import type { Content, Style, TDocumentDefinitions } from "pdfmake/interfaces";
 import type { HtmlToPdfMakeOptions } from "html-to-pdfmake";
 import type { ExportRequest } from "../../platform/types";
 import { copyValidatedPdf } from "../pdfBytes";
-import type { BasicPdfExporterContract, BasicPdfResult } from "./types";
+import { buildSrdPdfDefinition } from "./srdProfile";
+import type {
+	BasicPdfExporterContract,
+	BasicPdfProfile,
+	BasicPdfResult,
+} from "./types";
 
 const LETTER_PAGE_MARGINS: [number, number, number, number] = [54, 54, 54, 54];
 const MAX_CONTENT_WIDTH_PT = 504;
@@ -45,7 +50,10 @@ let runtimePromise: Promise<BasicPdfRuntime> | null = null;
 export class BasicPdfExporter implements BasicPdfExporterContract {
 	private disposed = false;
 
-	async export(request: ExportRequest): Promise<BasicPdfResult> {
+	async export(
+		request: ExportRequest,
+		profile: BasicPdfProfile = "basic"
+	): Promise<BasicPdfResult> {
 		this.ensureAvailable();
 		const runtime = await loadBasicPdfRuntime();
 		this.ensureAvailable();
@@ -77,7 +85,10 @@ export class BasicPdfExporter implements BasicPdfExporterContract {
 			],
 		});
 		const content = sanitizeBasicPdfContent(converted);
-		const definition = buildBasicPdfDefinition(content, request.basename);
+		const definition =
+			profile === "srd"
+				? buildSrdPdfDefinition(content, request.basename)
+				: buildBasicPdfDefinition(content, request.basename);
 		const bytes = await createPdfBytes(runtime.pdfMake, definition);
 		this.ensureAvailable();
 

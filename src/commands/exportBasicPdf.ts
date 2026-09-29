@@ -1,7 +1,10 @@
 import type { MetadataCache, TFile, Vault } from "obsidian";
 import { resolveVaultImageEmbeds } from "../obsidian/resolveVaultImageEmbeds";
 import { renderBrewDocumentHtml } from "../renderer";
-import type { BasicPdfExporterContract } from "../export/basicPdf/types";
+import type {
+	BasicPdfExporterContract,
+	BasicPdfProfile,
+} from "../export/basicPdf/types";
 
 export interface BasicPdfExportDependencies {
 	readonly vault: Vault;
@@ -25,7 +28,9 @@ export interface BasicPdfExportReport {
 /** Generates the complete PDF before creating any vault file. */
 export async function exportBasicPdf(
 	file: TFile,
-	dependencies: BasicPdfExportDependencies
+	dependencies: BasicPdfExportDependencies,
+	profile: BasicPdfProfile = "basic",
+	fileSuffix: string = profile
 ): Promise<BasicPdfExportReport> {
 	const startedAt = performance.now();
 	const source = await dependencies.vault.cachedRead(file);
@@ -39,7 +44,7 @@ export async function exportBasicPdf(
 		imageEmbeds: resolvedImages.imageEmbeds,
 	});
 	const exporter = await dependencies.loadExporter();
-	const result = await exporter.export({ html, basename: file.basename });
+	const result = await exporter.export({ html, basename: file.basename }, profile);
 
 	if (!dependencies.canWriteResult()) {
 		throw new Error("BrewVault unloaded before basic PDF generation finished.");
@@ -48,7 +53,7 @@ export async function exportBasicPdf(
 	const exportFolder = await dependencies.ensureExportFolder();
 	const outPath = dependencies.allocateExportPath(
 		exportFolder,
-		`${file.basename}.basic`,
+		`${file.basename}.${fileSuffix}`,
 		".pdf"
 	);
 	await dependencies.vault.createBinary(outPath, result.bytes);

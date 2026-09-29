@@ -119,13 +119,13 @@ export default class BrewVaultPlugin extends Plugin {
 		);
 
 		this.addCommand({
-			id: "export-current-file-as-basic-pdf-experimental",
-			name: "Export current file as basic PDF (experimental)",
+			id: "export-current-file-as-plain-pdf-experimental",
+			name: "Export current file as plain PDF (experimental)",
 			checkCallback: (checking) => {
 				const file = this.app.workspace.getActiveFile();
 				const canRun = file instanceof TFile && file.extension === "md";
 				if (canRun && !checking) {
-					void this.exportFileAsBasicPdf(file);
+					void this.exportFileAsPlainPdf(file);
 				}
 				return canRun;
 			},
@@ -243,7 +243,16 @@ export default class BrewVaultPlugin extends Plugin {
 		}
 	}
 
-	async exportFileAsBasicPdf(file: TFile): Promise<void> {
+	async exportFileAsPlainPdf(file: TFile): Promise<void> {
+		await this.exportExperimentalPdf(file, "srd", "plain", "plain");
+	}
+
+	private async exportExperimentalPdf(
+		file: TFile,
+		profile: "basic" | "srd",
+		profileLabel: string,
+		fileSuffix: string
+	): Promise<void> {
 		try {
 			const report = await exportBasicPdf(file, {
 				vault: this.app.vault,
@@ -253,14 +262,14 @@ export default class BrewVaultPlugin extends Plugin {
 					this.allocateExportPath(folder, basename, suffix),
 				loadExporter: () => this.getBasicPdfExporter(),
 				canWriteResult: () => !this.unloaded,
-			});
+			}, profile, fileSuffix);
 			new Notice(
-				`Exported experimental basic PDF to ${report.outPath} ` +
+				`Exported experimental ${profileLabel} PDF to ${report.outPath} ` +
 					`(${formatMegabytes(report.byteLength)} MB in ${formatSeconds(report.elapsedMs)} s)`
 			);
 		} catch (err) {
-			console.error("BrewVault basic PDF export failed", err);
-			new Notice("BrewVault basic PDF export failed — see console for details.");
+			console.error("BrewVault experimental PDF export failed", err);
+			new Notice("BrewVault experimental PDF export failed — see console for details.");
 		}
 	}
 
