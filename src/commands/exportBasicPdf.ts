@@ -30,7 +30,7 @@ export async function exportBasicPdf(
 	file: TFile,
 	dependencies: BasicPdfExportDependencies,
 	profile: BasicPdfProfile = "basic",
-	fileSuffix: string = profile
+	fileSuffix?: string
 ): Promise<BasicPdfExportReport> {
 	const startedAt = performance.now();
 	const source = await dependencies.vault.cachedRead(file);
@@ -53,7 +53,7 @@ export async function exportBasicPdf(
 	const exportFolder = await dependencies.ensureExportFolder();
 	const outPath = dependencies.allocateExportPath(
 		exportFolder,
-		`${file.basename}.${fileSuffix}`,
+		fileSuffix ? `${file.basename}.${fileSuffix}` : file.basename,
 		".pdf"
 	);
 	await dependencies.vault.createBinary(outPath, result.bytes);

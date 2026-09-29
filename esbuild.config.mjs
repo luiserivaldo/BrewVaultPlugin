@@ -13,6 +13,7 @@ if you want to view the source, visit the GitHub repository of this plugin
 const prod = process.argv[2] === "production";
 const watch = process.argv[2] === "watch";
 const themeCssModule = "virtual:brewvault-theme-css";
+const nativePdfAssetsModule = "virtual:brewvault-native-pdf-assets";
 
 const themeCssModulePlugin = {
   name: "brewvault-theme-css-module",
@@ -33,6 +34,42 @@ const themeCssModulePlugin = {
   },
 };
 
+const nativePdfAssetsModulePlugin = {
+  name: "brewvault-native-pdf-assets-module",
+  setup(build) {
+    build.onResolve({ filter: /^virtual:brewvault-native-pdf-assets$/ }, () => ({
+      path: nativePdfAssetsModule,
+      namespace: "brewvault-native-pdf-assets",
+    }));
+    build.onLoad(
+      { filter: /.*/, namespace: "brewvault-native-pdf-assets" },
+      async () => {
+        const asDataUrl = async (path) =>
+          `data:image/jpeg;base64,${(await readFile(path)).toString("base64")}`;
+        const asBase64 = async (path) => (await readFile(path)).toString("base64");
+        return {
+          contents: [
+            `export const PHB_PARCHMENT_BACKGROUND = ${JSON.stringify(
+              await asDataUrl("vendor/homebrewery/assets/parchmentBackground.jpg")
+            )};`,
+            `export const DMG_BACKGROUND = ${JSON.stringify(
+              await asDataUrl("vendor/homebrewery/assets/DMG_background.jpg")
+            )};`,
+            `export const NATIVE_PDF_FONT_FILES = ${JSON.stringify({
+              "BookInsanity.woff2": await asBase64("vendor/homebrewery/fonts/5e/Bookinsanity.woff2"),
+              "BookInsanity Bold.woff2": await asBase64("vendor/homebrewery/fonts/5e/Bookinsanity Bold.woff2"),
+              "BookInsanity Italic.woff2": await asBase64("vendor/homebrewery/fonts/5e/Bookinsanity Italic.woff2"),
+              "BookInsanity Bold Italic.woff2": await asBase64("vendor/homebrewery/fonts/5e/Bookinsanity Bold Italic.woff2"),
+              "Mr Eaves Small Caps.woff2": await asBase64("vendor/homebrewery/fonts/5e/Mr Eaves Small Caps.woff2"),
+            })};`,
+          ].join("\n"),
+          loader: "js",
+        };
+      }
+    );
+  },
+};
+
 // CSS must exist before the virtual module snapshots it into the JS bundle.
 await buildCss(prod);
 
@@ -40,7 +77,7 @@ const jsContext = await esbuild.context({
   banner: { js: banner },
   entryPoints: ["src/main.ts"],
   bundle: true,
-  plugins: [themeCssModulePlugin],
+  plugins: [themeCssModulePlugin, nativePdfAssetsModulePlugin],
   external: [
     "obsidian",
     "electron",

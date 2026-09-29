@@ -28,9 +28,14 @@ PDF using preconfigured themes, or export as HTML and apply custom CSS styles.
 
 Mobile preview scales each fixed-size page to the available screen space
 without changing page count, columns, wrapping, tables, or explicit page
-boundaries. Mobile PDF commands save a self-contained `.brew.html` file first,
-then open it through a browser. Use **Share → Print → Save as PDF**. The HTML
-file remains available if the handoff is cancelled or fails.
+boundaries. The themed PDF commands now use BrewVault's native PDF backend on
+mobile. This experimental P13 path preserves semantic Markdown and the selected
+built-in theme's background, typography, headings, tables, callouts, and
+two-column palette without opening a browser or print dialog. It does not add
+any header, footer, note title, or page number that is absent from the source
+Markdown. It is intentionally an
+approximation rather than CSS-identical Homebrewery output; custom CSS themes
+currently use the PHB-native fallback.
 
 **Note:** Current releases are tested on Android devices only. Behavior on iOS
 may vary.
@@ -60,32 +65,21 @@ can also be opened using BrewVault's scroll icon in the ribbon.
 | --- | --- |
 | **Open preview** | Opens or reveals a live BrewVault preview of the active Markdown note. |
 | **Export current file as HTML** | Creates a self-contained `.brew.html` file using the selected theme. |
-| **Export current file as BrewVault PDF** | Creates a direct PDF on desktop or starts the browser-assisted mobile workflow using the selected theme. |
-| **Export current file as BrewVault PDF in PHB style** | Uses the Player's Handbook parchment theme for direct desktop PDF or mobile browser handoff. |
-| **Export current file as BrewVault PDF in DMG style** | Uses the Dungeon Master's Guide theme for direct desktop PDF or mobile browser handoff. |
-| **Export current file as BrewVault PDF in SRD style** | Uses the SRD / Unearthed Arcana theme for direct desktop PDF or mobile browser handoff. |
-| **Export current file as BrewVault PDF in Blank style** | Uses the plain Blank theme for direct desktop PDF or mobile browser handoff. |
-| **Export current file as plain PDF (experimental)** | Creates a direct, searchable, two-column SRD / Unearthed Arcana-inspired Letter PDF through BrewVault's plugin-only PDF backend. |
+| **Export current file as BrewVault PDF** | Creates a direct PDF using the selected theme; desktop uses Electron and mobile uses the experimental native themed backend. |
+| **Export current file as BrewVault PDF in PHB style** | Uses the Player's Handbook theme in the desktop or mobile native PDF backend. |
+| **Export current file as BrewVault PDF in DMG style** | Uses the Dungeon Master's Guide theme in the desktop or mobile native PDF backend. |
+| **Export current file as BrewVault PDF in SRD style** | Uses the SRD / Unearthed Arcana theme in the desktop or mobile native PDF backend. |
+| **Export current file as BrewVault PDF in Blank style** | Uses the Blank theme in the desktop or mobile native PDF backend. |
 
 Theme-specific PDF functions do not change the saved preview theme.
 
-The experimental plain-PDF command is separate from the existing styled desktop
-exporter and mobile browser handoff. Its layout is intentionally an
-approximation rather than CSS-identical Homebrewery output; the SRD-inspired
-profile is the current multicolumn styling proof of concept.
-
-The experimental plain-PDF exporter is a proof of concept for direct mobile PDF
+The native themed exporter is a proof of concept for direct mobile PDF
 generation. It preserves standard Markdown headings, emphasis, lists,
-blockquotes, links, tables, and supported embedded PNG/JPEG images, but it does
-not reproduce Homebrewery themes, page furniture, or explicit layout
-directives. Its files use names such as `Alchemist.plain.pdf` so they cannot be
-confused with styled BrewVault PDFs.
-
-On mobile, the existing styled PDF commands first save a collision-safe
-`.brew.html` artifact in the configured export folder. BrewVault then opens a
-dialog where **Open in Browser** asks Android to open the saved file with its
-default application. In the browser, use **Share → Print → Save as PDF**. The
-experimental plain-PDF command writes its PDF directly instead.
+blockquotes, links, tables, and supported embedded PNG/JPEG images. It maps the
+four bundled themes to native palettes rather than executing Homebrewery CSS,
+so custom CSS and explicit layout directives remain fidelity work for later
+P13 gates. Choose a nested export folder such as
+`BrewVault-Exports/Test/phb` when collecting style-specific test artifacts.
 
 Desktop exports are written directly to the configured folder without opening
 a print or save dialog. For a note named `Alchemist.md`, BrewVault creates:

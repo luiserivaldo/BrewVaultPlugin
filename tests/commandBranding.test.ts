@@ -9,8 +9,9 @@ void test("user-facing preview and PDF commands use BrewVault branding", () => {
 	assert.doesNotMatch(mainSource, /"(?:Open|Export)[^"]*Homebrewery[^"]*"/);
 	assert.match(mainSource, /"Open preview"/);
 	assert.match(mainSource, /"Export current file as BrewVault PDF"/);
-	assert.match(mainSource, /"Export current file as plain PDF \(experimental\)"/);
-	assert.doesNotMatch(mainSource, /Export current file as SRD PDF \(experimental\)/);
+	assert.doesNotMatch(mainSource, /Export current file as plain PDF \(experimental\)/);
+	assert.match(mainSource, /backend\.platform === "mobile"/);
+	assert.match(mainSource, /exportNativeThemedPdf\(file, theme\)/);
 	assert.doesNotMatch(readme, /\*\*(?:Open|Export)[^*]*Homebrewery[^*]*\*\*/);
 });
 

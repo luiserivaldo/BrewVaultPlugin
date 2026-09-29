@@ -117,19 +117,6 @@ export default class BrewVaultPlugin extends Plugin {
 			"Export current file as BrewVault PDF in Blank style",
 			"blank"
 		);
-
-		this.addCommand({
-			id: "export-current-file-as-plain-pdf-experimental",
-			name: "Export current file as plain PDF (experimental)",
-			checkCallback: (checking) => {
-				const file = this.app.workspace.getActiveFile();
-				const canRun = file instanceof TFile && file.extension === "md";
-				if (canRun && !checking) {
-					void this.exportFileAsPlainPdf(file);
-				}
-				return canRun;
-			},
-		});
 	}
 
 	private addPdfExportCommand(id: string, name: string, theme?: BrewTheme): void {
@@ -188,11 +175,15 @@ export default class BrewVaultPlugin extends Plugin {
 		}
 	}
 
-	/** Export directly on desktop or preserve and hand off HTML on mobile. */
+	/** Export through Electron on desktop and the native themed backend on mobile. */
 	async exportFileAsPdf(file: TFile, themeOverride?: BrewTheme): Promise<void> {
 		try {
 			const backend = await this.getExportBackendProvider().getBackend();
 			const theme = themeOverride ?? this.settings.theme;
+			if (backend.platform === "mobile") {
+				await this.exportNativeThemedPdf(file, theme);
+				return;
+			}
 			const exportFolder = await this.ensureExportFolder();
 			const source = await this.app.vault.cachedRead(file);
 			const resolvedImages = await resolveVaultImageEmbeds(
@@ -243,17 +234,12 @@ export default class BrewVaultPlugin extends Plugin {
 		}
 	}
 
-	async exportFileAsPlainPdf(file: TFile): Promise<void> {
-		await this.exportExperimentalPdf(file, "srd", "plain", "plain");
-	}
-
-	private async exportExperimentalPdf(
+	private async exportNativeThemedPdf(
 		file: TFile,
-		profile: "basic" | "srd",
-		profileLabel: string,
-		fileSuffix: string
+		theme: BrewTheme
 	): Promise<void> {
 		try {
+			const profile = nativePdfProfileForTheme(theme);
 			const report = await exportBasicPdf(file, {
 				vault: this.app.vault,
 				metadataCache: this.app.metadataCache,
@@ -262,13 +248,13 @@ export default class BrewVaultPlugin extends Plugin {
 					this.allocateExportPath(folder, basename, suffix),
 				loadExporter: () => this.getBasicPdfExporter(),
 				canWriteResult: () => !this.unloaded,
-			}, profile, fileSuffix);
+			}, profile);
 			new Notice(
-				`Exported experimental ${profileLabel} PDF to ${report.outPath} ` +
+				`Exported native ${profile.toUpperCase()} PDF to ${report.outPath} ` +
 					`(${formatMegabytes(report.byteLength)} MB in ${formatSeconds(report.elapsedMs)} s)`
 			);
 		} catch (err) {
-			console.error("BrewVault experimental PDF export failed", err);
+			console.error("BrewVault native themed PDF export failed", err);
 			new Notice("BrewVault experimental PDF export failed — see console for details.");
 		}
 	}
@@ -454,6 +440,12 @@ export default class BrewVaultPlugin extends Plugin {
 		await this.app.workspace.revealLeaf(leaf);
 		return leaf.view as HomebreweryView;
 	}
+}
+
+function nativePdfProfileForTheme(theme: BrewTheme): "blank" | "phb" | "dmg" | "srd" {
+	return theme === "blank" || theme === "phb" || theme === "dmg" || theme === "srd"
+		? theme
+		: "phb";
 }
 
 function formatMegabytes(byteLength: number): string {

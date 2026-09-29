@@ -1,4 +1,9 @@
 import type { Content, Style, TDocumentDefinitions } from "pdfmake/interfaces";
+import {
+	DMG_BACKGROUND,
+	PHB_PARCHMENT_BACKGROUND,
+} from "virtual:brewvault-native-pdf-assets";
+import type { BasicPdfProfile } from "./types";
 
 const SRD_PAGE_MARGINS: [number, number, number, number] = [46, 54, 46, 46];
 const SRD_COLUMN_GAP = 16;
@@ -21,44 +26,125 @@ export const SRD_PDF_DEFAULT_STYLES: Readonly<Record<string, Style>> = {
 	a: { color: "#1C4C7A", decoration: "underline" },
 };
 
+type ThemedPdfProfile = Exclude<BasicPdfProfile, "basic">;
+
+interface ThemePalette {
+	readonly label: string;
+	readonly headingColor: string;
+	readonly headerColor: string;
+	readonly textColor: string;
+	readonly bodyFont: string;
+	readonly headingFont: string;
+	readonly background?: string;
+	readonly quoteFill: string;
+	readonly tableAltFill: string;
+	readonly tableBodyFill: string;
+}
+
+const THEME_PALETTES: Readonly<Record<ThemedPdfProfile, ThemePalette>> = {
+	blank: {
+		label: "BLANK THEME",
+		headingColor: "#2A2A2A",
+		headerColor: "#555555",
+		textColor: "#222222",
+		bodyFont: "Roboto",
+		headingFont: "Roboto",
+		quoteFill: "#F1F1F1",
+		tableAltFill: "#F2F2F2",
+		tableBodyFill: "#FFFFFF",
+	},
+	phb: {
+		label: "PLAYER'S HANDBOOK THEME",
+		headingColor: "#58180D",
+		headerColor: "#6E1808",
+		textColor: "#1A1005",
+		bodyFont: "BookInsanity",
+		// pdfmake on Android does not reliably render the bundled Mr Eaves WOFF2.
+		// Book Insanity is bundled alongside it and produces selectable, visible
+		// heading glyphs on the target device.
+		headingFont: "BookInsanity",
+		background: PHB_PARCHMENT_BACKGROUND,
+		quoteFill: "#F6E5BD",
+		tableAltFill: "#F5E8C9",
+		tableBodyFill: "#FFF9EC",
+	},
+	dmg: {
+		label: "DUNGEON MASTER'S GUIDE THEME",
+		headingColor: "#274C5E",
+		headerColor: "#1D3A48",
+		textColor: "#171717",
+		bodyFont: "BookInsanity",
+		headingFont: "BookInsanity",
+		background: DMG_BACKGROUND,
+		quoteFill: "#DCE9E6",
+		tableAltFill: "#E2EFEC",
+		tableBodyFill: "#F8FCFB",
+	},
+	srd: {
+		label: "SRD / UNEARTHED ARCANA THEME",
+		headingColor: "#58180D",
+		headerColor: "#58180D",
+		textColor: "#282018",
+		bodyFont: "Roboto",
+		headingFont: "Roboto",
+		quoteFill: "#F1E7CE",
+		tableAltFill: "#F1E7CE",
+		tableBodyFill: "#FBF8EF",
+	},
+};
+
 /**
  * pdfmake has columns but not continuous CSS-style column flow. This keeps
  * top-level semantic blocks together and conservatively distributes them into
  * paired columns so a block moves before it can be clipped at a page edge.
  */
 export function buildSrdPdfDefinition(content: Content, title: string): TDocumentDefinitions {
+	return buildThemedPdfDefinition(content, title, "srd");
+}
+
+/**
+ * The native backend maps BrewVault's bundled themes to faithful semantic
+ * palettes. It deliberately does not execute arbitrary Homebrewery CSS.
+ */
+export function buildThemedPdfDefinition(
+	content: Content,
+	title: string,
+	profile: ThemedPdfProfile
+): TDocumentDefinitions {
+	const palette = THEME_PALETTES[profile];
+	const backgroundImage = palette.background;
 	return {
-		content: flowIntoSrdColumns(applySrdTreatments(content)),
+		content: flowIntoSrdColumns(applySrdTreatments(content, palette)),
 		pageSize: "LETTER",
 		pageMargins: SRD_PAGE_MARGINS,
 		defaultStyle: {
-			font: "Roboto",
+			font: palette.bodyFont,
 			fontSize: 9.5,
 			lineHeight: 1.18,
-			color: "#282018",
+			color: palette.textColor,
 		},
-		styles: SRD_PDF_DEFAULT_STYLES,
+		styles: createThemeStyles(palette),
 		info: {
 			title,
 			creator: "BrewVault",
-			producer: "BrewVault plain PDF exporter (experimental)",
+			producer: "BrewVault native themed PDF exporter (experimental)",
 		},
-		header: () => ({
-			text: "BREWVAULT  |  SRD / UNEARTHED ARCANA EXPERIMENT",
-			fontSize: 7,
-			color: "#6B5A47",
-			margin: [46, 22, 46, 0],
-			characterSpacing: 0.5,
-		}),
-		footer: (currentPage, pageCount) => ({
-			columns: [
-				{ text: title, alignment: "left" },
-				{ text: `${currentPage} / ${pageCount}`, alignment: "right" },
-			],
-			fontSize: 7,
-			color: "#6B5A47",
-			margin: [46, 0, 46, 18],
-		}),
+		background: backgroundImage
+			? () => ({ image: backgroundImage, width: 612, height: 792 })
+			: undefined,
+	};
+}
+
+function createThemeStyles(palette: ThemePalette): Readonly<Record<string, Style>> {
+	return {
+		...SRD_PDF_DEFAULT_STYLES,
+		h1: { ...SRD_PDF_DEFAULT_STYLES.h1, color: palette.headingColor, font: palette.headingFont },
+		h2: { ...SRD_PDF_DEFAULT_STYLES.h2, color: palette.headingColor, font: palette.headingFont },
+		h3: { ...SRD_PDF_DEFAULT_STYLES.h3, color: palette.headingColor, font: palette.headingFont },
+		h4: { ...SRD_PDF_DEFAULT_STYLES.h4, color: palette.headingColor, font: palette.headingFont },
+		h5: { ...SRD_PDF_DEFAULT_STYLES.h5, color: palette.headingColor, font: palette.headingFont },
+		h6: { ...SRD_PDF_DEFAULT_STYLES.h6, color: palette.headingColor, font: palette.headingFont },
+		th: { ...SRD_PDF_DEFAULT_STYLES.th, fillColor: palette.headerColor },
 	};
 }
 
@@ -203,16 +289,16 @@ function groupHeadingsWithFollowingBlock(blocks: Content[]): Content[] {
 	return grouped;
 }
 
-function applySrdTreatments(value: Content): Content {
-	return transformValue(value) as Content;
+function applySrdTreatments(value: Content, palette: ThemePalette): Content {
+	return transformValue(value, palette) as Content;
 }
 
-function transformValue(value: unknown): unknown {
-	if (Array.isArray(value)) return value.map(transformValue);
+function transformValue(value: unknown, palette: ThemePalette): unknown {
+	if (Array.isArray(value)) return value.map((entry) => transformValue(entry, palette));
 	if (!isRecord(value)) return value;
 
 	const transformed = Object.fromEntries(
-		Object.entries(value).map(([key, entry]) => [key, transformValue(entry)])
+		Object.entries(value).map(([key, entry]) => [key, transformValue(entry, palette)])
 	);
 	if (typeof transformed.image === "string") {
 		// The basic profile bounds images to the full Letter content width. This
@@ -220,23 +306,68 @@ function transformValue(value: unknown): unknown {
 		// pdfmake lays out the paired column stacks.
 		return { ...transformed, fit: [SRD_COLUMN_WIDTH, 300] };
 	}
+	const heading = themedHeadingProperties(transformed, palette);
+	if (heading) {
+		return {
+			...transformed,
+			...heading,
+			text: applyHeadingInlineTheme(transformed.text, palette),
+		};
+	}
 	if (isBlockquote(transformed)) {
 		return {
 			...transformed,
-			fillColor: "#F1E7CE",
+			fillColor: palette.quoteFill,
 			margin: [0, 4, 0, 8],
 		};
 	}
-	if (isTable(transformed)) return styleSrdTable(transformed);
+	if (isTable(transformed)) return styleSrdTable(transformed, palette);
 	return transformed;
 }
 
-function styleSrdTable(table: Record<string, unknown>): Record<string, unknown> {
+/**
+ * html-to-pdfmake keeps its internal `html-h*` style names in the converted
+ * content. Preserve them (they carry its tested block semantics) and layer
+ * BrewVault's selected theme directly onto each heading instead.
+ */
+function themedHeadingProperties(
+	value: Record<string, unknown>,
+	palette: ThemePalette
+): Readonly<Record<string, unknown>> | undefined {
+	const style = readStyle(value.style);
+	const match = /^(?:html-)?h([1-6])$/.exec(style ?? "");
+	if (!match) return undefined;
+	const headingStyle = SRD_PDF_DEFAULT_STYLES[`h${match[1]}`];
+	return {
+		font: palette.headingFont,
+		fontSize: headingStyle?.fontSize,
+		bold: true,
+		color: palette.headingColor,
+		margin: headingStyle?.margin,
+	};
+}
+
+/** html-to-pdfmake puts the visible heading glyphs in inline text nodes. */
+function applyHeadingInlineTheme(value: unknown, palette: ThemePalette): unknown {
+	if (Array.isArray(value)) {
+		return value.map((entry) => applyHeadingInlineTheme(entry, palette));
+	}
+	if (!isRecord(value)) return value;
+	return {
+		...value,
+		font: palette.headingFont,
+		bold: true,
+		color: palette.headingColor,
+		text: applyHeadingInlineTheme(value.text, palette),
+	};
+}
+
+function styleSrdTable(table: Record<string, unknown>, palette: ThemePalette): Record<string, unknown> {
 	const tableValue = table.table;
 	if (!isRecord(tableValue) || !Array.isArray(tableValue.body)) return table;
 	const body = (tableValue.body as unknown[]).map((row, index) => {
 		if (!Array.isArray(row)) return row;
-		return row.map((cell) => styleSrdTableCell(cell, index));
+		return row.map((cell) => styleSrdTableCell(cell, index, palette));
 	});
 	return {
 		...table,
@@ -245,12 +376,12 @@ function styleSrdTable(table: Record<string, unknown>): Record<string, unknown> 
 	};
 }
 
-function styleSrdTableCell(cell: unknown, rowIndex: number): unknown {
-	const fillColor = rowIndex === 0 ? "#58180D" : rowIndex % 2 === 0 ? "#F1E7CE" : "#FBF8EF";
+function styleSrdTableCell(cell: unknown, rowIndex: number, palette: ThemePalette): unknown {
+	const fillColor = rowIndex === 0 ? palette.headerColor : rowIndex % 2 === 0 ? palette.tableAltFill : palette.tableBodyFill;
 	if (isRecord(cell)) {
 		return {
 			...cell,
-			fillColor: rowIndex === 0 ? "#58180D" : cell.fillColor ?? fillColor,
+			fillColor: rowIndex === 0 ? palette.headerColor : cell.fillColor ?? fillColor,
 			color: rowIndex === 0 ? "#FFFFFF" : cell.color,
 			bold: rowIndex === 0 ? true : cell.bold,
 			margin: cell.margin ?? [3, 3, 3, 3],
@@ -344,7 +475,7 @@ function isBlockquote(value: Record<string, unknown>): boolean {
 function isHeading(value: Content): boolean {
 	if (!isRecord(value)) return false;
 	const style = readStyle(value.style);
-	return style !== undefined && /^h[1-6]$/.test(style);
+	return style !== undefined && /^(?:html-)?h[1-6]$/.test(style);
 }
 
 function isTable(value: Record<string, unknown>): boolean {

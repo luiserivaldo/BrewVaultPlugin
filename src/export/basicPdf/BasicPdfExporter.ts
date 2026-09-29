@@ -2,7 +2,8 @@ import type { Content, Style, TDocumentDefinitions } from "pdfmake/interfaces";
 import type { HtmlToPdfMakeOptions } from "html-to-pdfmake";
 import type { ExportRequest } from "../../platform/types";
 import { copyValidatedPdf } from "../pdfBytes";
-import { buildSrdPdfDefinition } from "./srdProfile";
+import { buildThemedPdfDefinition } from "./srdProfile";
+import { NATIVE_PDF_FONT_FILES } from "virtual:brewvault-native-pdf-assets";
 import type {
 	BasicPdfExporterContract,
 	BasicPdfProfile,
@@ -35,6 +36,12 @@ interface PdfDocumentHandle {
 
 interface PdfMakeRuntime {
 	vfs: Record<string, string>;
+	fonts?: Record<string, {
+		normal: string;
+		bold?: string;
+		italics?: string;
+		bolditalics?: string;
+	}>;
 	createPdf(definition: TDocumentDefinitions): PdfDocumentHandle;
 }
 
@@ -86,9 +93,9 @@ export class BasicPdfExporter implements BasicPdfExporterContract {
 		});
 		const content = sanitizeBasicPdfContent(converted);
 		const definition =
-			profile === "srd"
-				? buildSrdPdfDefinition(content, request.basename)
-				: buildBasicPdfDefinition(content, request.basename);
+			profile === "basic"
+				? buildBasicPdfDefinition(content, request.basename)
+				: buildThemedPdfDefinition(content, request.basename, profile);
 		const bytes = await createPdfBytes(runtime.pdfMake, definition);
 		this.ensureAvailable();
 
@@ -140,6 +147,12 @@ export function sanitizeBasicPdfContent(content: Content): Content {
 	return sanitizeContentValue(content) as Content;
 }
 
+/**
+ * html-to-pdfmake emits tag styles such as `html-h2`, while the document
+ * profiles intentionally use the stable semantic names `h2`. Normalize those
+ * internal implementation names before applying a BrewVault profile so a
+ * converter detail cannot override themed heading typography or colour.
+ */
 function sanitizeContentValue(value: unknown): unknown {
 	if (Array.isArray(value)) return value.map((entry) => sanitizeContentValue(entry));
 	if (!isRecord(value)) return value;
@@ -185,12 +198,32 @@ async function loadBasicPdfRuntime(): Promise<BasicPdfRuntime> {
 		}
 
 		pdfMakeValue.vfs = vfsValue;
+		installBundledThemeFonts(pdfMakeValue);
 		return {
 			pdfMake: pdfMakeValue,
 			convertHtml: converterValue as HtmlConverter,
 		};
 	});
 	return runtimePromise;
+}
+
+function installBundledThemeFonts(pdfMake: PdfMakeRuntime): void {
+	Object.assign(pdfMake.vfs, NATIVE_PDF_FONT_FILES);
+	pdfMake.fonts = {
+		...(pdfMake.fonts ?? {}),
+		BookInsanity: {
+			normal: "BookInsanity.woff2",
+			bold: "BookInsanity Bold.woff2",
+			italics: "BookInsanity Italic.woff2",
+			bolditalics: "BookInsanity Bold Italic.woff2",
+		},
+		MrEaves: {
+			normal: "Mr Eaves Small Caps.woff2",
+			bold: "Mr Eaves Small Caps.woff2",
+			italics: "Mr Eaves Small Caps.woff2",
+			bolditalics: "Mr Eaves Small Caps.woff2",
+		},
+	};
 }
 
 function createPdfBytes(

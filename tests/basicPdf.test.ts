@@ -10,6 +10,7 @@ import {
 	sanitizeBasicPdfContent,
 } from "../src/export/basicPdf/BasicPdfExporter";
 import {
+	buildThemedPdfDefinition,
 	buildSrdPdfDefinition,
 	flowIntoSrdColumns,
 	SRD_PDF_DEFAULT_STYLES,
@@ -108,8 +109,8 @@ void test("SRD profile uses a distinct two-column Letter presentation", () => {
 	assert.deepEqual(definition.pageMargins, [46, 54, 46, 46]);
 	assert.equal(definition.defaultStyle?.fontSize, 9.5);
 	assert.equal(SRD_PDF_DEFAULT_STYLES.h1?.color, "#58180D");
-	assert.equal(typeof definition.header, "function");
-	assert.equal(typeof definition.footer, "function");
+	assert.equal(definition.header, undefined);
+	assert.equal(definition.footer, undefined);
 	assert.ok(Array.isArray(definition.content));
 	const firstPage = definition.content?.[0] as { columns?: unknown[] };
 	assert.equal(firstPage.columns?.length, 2);
@@ -117,6 +118,57 @@ void test("SRD profile uses a distinct two-column Letter presentation", () => {
 	assert.match(serialized, /"fit":\[252,300\]/);
 	assert.match(serialized, /"fillColor":"#58180D"/);
 	assert.match(serialized, /"color":"#FFFFFF"/);
+});
+
+void test("native profiles preserve distinct PHB, DMG, SRD, and Blank palettes", () => {
+	const profiles = [
+		["phb", "#6E1808"],
+		["dmg", "#1D3A48"],
+		["srd", "#58180D"],
+		["blank", "#555555"],
+	] as const;
+	const headers = new Set<string>();
+	for (const [profile, headerColor] of profiles) {
+		const definition = buildThemedPdfDefinition(
+			{ table: { body: [["Heading"], ["Body"]] } },
+			"Llynwych",
+			profile
+		);
+		const serialized = JSON.stringify(definition);
+		assert.match(serialized, /"columns"/);
+		assert.match(serialized, new RegExp(headerColor));
+		if (profile === "phb" || profile === "dmg") {
+			assert.equal(definition.defaultStyle?.font, "BookInsanity");
+			assert.equal(definition.styles?.h1?.font, "BookInsanity");
+		}
+		assert.equal(definition.header, undefined);
+		assert.equal(definition.footer, undefined);
+		if (profile === "phb" || profile === "dmg") {
+			assert.equal(typeof definition.background, "function");
+		} else {
+			assert.equal(definition.background, undefined);
+		}
+		headers.add(profile);
+	}
+	assert.equal(headers.size, profiles.length);
+});
+
+void test("native profiles layer themed heading properties over html-to-pdfmake headings", () => {
+	const definition = buildThemedPdfDefinition(
+		{ text: [{ text: "Everwoods" }], style: "html-h2" },
+		"Llynwych",
+		"phb"
+	);
+	const pages = definition.content as Array<{
+		columns?: Array<{ stack?: Array<Record<string, unknown>> }>;
+	}>;
+	const firstPage = pages[0];
+	const heading = firstPage.columns?.[0]?.stack?.[0];
+	assert.equal(heading?.style, "html-h2");
+	assert.equal(heading?.font, "BookInsanity");
+	assert.equal(heading?.color, "#58180D");
+	assert.equal((heading?.text as Array<Record<string, unknown>>)[0]?.font, "BookInsanity");
+	assert.equal((heading?.text as Array<Record<string, unknown>>)[0]?.color, "#58180D");
 });
 
 void test("SRD column flow keeps table blocks whole and starts another page", () => {
