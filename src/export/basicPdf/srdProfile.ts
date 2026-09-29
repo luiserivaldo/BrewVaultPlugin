@@ -8,7 +8,10 @@ import type { BasicPdfProfile } from "./types";
 const SRD_PAGE_MARGINS: [number, number, number, number] = [46, 54, 46, 46];
 const SRD_COLUMN_GAP = 16;
 const SRD_COLUMN_WIDTH = (612 - SRD_PAGE_MARGINS[0] - SRD_PAGE_MARGINS[2] - SRD_COLUMN_GAP) / 2;
-const SRD_COLUMN_HEIGHT = 625;
+// The prior conservative planner left a visibly oversized blank strip at the
+// bottom of each page. This remains below the usable Letter height while
+// allowing the second column to carry more real content.
+const SRD_COLUMN_HEIGHT = 660;
 
 export const SRD_PDF_DEFAULT_STYLES: Readonly<Record<string, Style>> = {
 	h1: { fontSize: 22, bold: true, color: "#58180D", margin: [0, 0, 0, 10] },
@@ -35,6 +38,7 @@ interface ThemePalette {
 	readonly textColor: string;
 	readonly bodyFont: string;
 	readonly headingFont: string;
+	readonly headingRuleLevels: readonly number[];
 	readonly background?: string;
 	readonly quoteFill: string;
 	readonly tableAltFill: string;
@@ -49,13 +53,14 @@ const THEME_PALETTES: Readonly<Record<ThemedPdfProfile, ThemePalette>> = {
 		textColor: "#222222",
 		bodyFont: "Roboto",
 		headingFont: "Roboto",
+		headingRuleLevels: [],
 		quoteFill: "#F1F1F1",
 		tableAltFill: "#F2F2F2",
 		tableBodyFill: "#FFFFFF",
 	},
 	phb: {
 		label: "PLAYER'S HANDBOOK THEME",
-		headingColor: "#58180D",
+		headingColor: "#9C1C10",
 		headerColor: "#6E1808",
 		textColor: "#1A1005",
 		bodyFont: "BookInsanity",
@@ -63,6 +68,7 @@ const THEME_PALETTES: Readonly<Record<ThemedPdfProfile, ThemePalette>> = {
 		// Book Insanity is bundled alongside it and produces selectable, visible
 		// heading glyphs on the target device.
 		headingFont: "BookInsanity",
+		headingRuleLevels: [2, 3],
 		background: PHB_PARCHMENT_BACKGROUND,
 		quoteFill: "#F6E5BD",
 		tableAltFill: "#F5E8C9",
@@ -70,11 +76,12 @@ const THEME_PALETTES: Readonly<Record<ThemedPdfProfile, ThemePalette>> = {
 	},
 	dmg: {
 		label: "DUNGEON MASTER'S GUIDE THEME",
-		headingColor: "#274C5E",
+		headingColor: "#1F6579",
 		headerColor: "#1D3A48",
 		textColor: "#171717",
 		bodyFont: "BookInsanity",
 		headingFont: "BookInsanity",
+		headingRuleLevels: [2, 3],
 		background: DMG_BACKGROUND,
 		quoteFill: "#DCE9E6",
 		tableAltFill: "#E2EFEC",
@@ -87,6 +94,7 @@ const THEME_PALETTES: Readonly<Record<ThemedPdfProfile, ThemePalette>> = {
 		textColor: "#282018",
 		bodyFont: "Roboto",
 		headingFont: "Roboto",
+		headingRuleLevels: [2, 3],
 		quoteFill: "#F1E7CE",
 		tableAltFill: "#F1E7CE",
 		tableBodyFill: "#FBF8EF",
@@ -304,7 +312,11 @@ function transformValue(value: unknown, palette: ThemePalette): unknown {
 		// The basic profile bounds images to the full Letter content width. This
 		// profile packs content into narrower columns, so clamp again here before
 		// pdfmake lays out the paired column stacks.
-		return { ...transformed, fit: [SRD_COLUMN_WIDTH, 300] };
+		return {
+			...transformed,
+			fit: [SRD_COLUMN_WIDTH, 300],
+			margin: transformed.margin ?? [0, 3, 0, 10],
+		};
 	}
 	const heading = themedHeadingProperties(transformed, palette);
 	if (heading) {
@@ -316,9 +328,21 @@ function transformValue(value: unknown, palette: ThemePalette): unknown {
 	}
 	if (isBlockquote(transformed)) {
 		return {
-			...transformed,
-			fillColor: palette.quoteFill,
-			margin: [0, 4, 0, 8],
+			columns: [
+				{
+					width: 12,
+					text: "◆",
+					fontSize: 8,
+					color: palette.headingColor,
+					margin: [0, 2, 0, 0],
+				},
+				{
+					width: "*",
+					stack: [{ ...transformed, fillColor: palette.quoteFill, margin: [0, 0, 0, 0] }],
+				},
+			],
+			columnGap: 3,
+			margin: [0, 2, 0, 4],
 		};
 	}
 	if (isTable(transformed)) return styleSrdTable(transformed, palette);
@@ -337,14 +361,26 @@ function themedHeadingProperties(
 	const style = readStyle(value.style);
 	const match = /^(?:html-)?h([1-6])$/.exec(style ?? "");
 	if (!match) return undefined;
-	const headingStyle = SRD_PDF_DEFAULT_STYLES[`h${match[1]}`];
+	const level = Number(match[1]);
+	const headingStyle = SRD_PDF_DEFAULT_STYLES[`h${level}`];
 	return {
 		font: palette.headingFont,
 		fontSize: headingStyle?.fontSize,
 		bold: true,
 		color: palette.headingColor,
-		margin: headingStyle?.margin,
+		margin: headingMargin(level, palette.headingRuleLevels.includes(level)),
+		decoration: palette.headingRuleLevels.includes(level) ? "underline" : undefined,
+		decorationColor: palette.headingRuleLevels.includes(level) ? palette.headingColor : undefined,
+		decorationStyle: palette.headingRuleLevels.includes(level) ? "solid" : undefined,
 	};
+}
+
+function headingMargin(level: number, hasRule: boolean): [number, number, number, number] {
+	if (hasRule) return level === 2 ? [0, 10, 0, 1] : [0, 7, 0, 1];
+	const defaultMargin = SRD_PDF_DEFAULT_STYLES[`h${level}`]?.margin;
+	return Array.isArray(defaultMargin)
+		? [defaultMargin[0] ?? 0, defaultMargin[1] ?? 0, defaultMargin[2] ?? 0, defaultMargin[3] ?? 0]
+		: [0, 0, 0, 0];
 }
 
 /** html-to-pdfmake puts the visible heading glyphs in inline text nodes. */
@@ -455,7 +491,11 @@ function textLength(value: unknown): number {
 
 function readStyle(value: unknown): string | undefined {
 	if (typeof value === "string") return value;
-	if (Array.isArray(value)) return value.find((entry): entry is string => typeof entry === "string");
+	if (Array.isArray(value)) {
+		const styles = value.filter((entry): entry is string => typeof entry === "string");
+		return styles.find((style) => /^(?:html-)?(?:h[1-6]|blockquote|ul|ol|table|th|a)$/.test(style))
+			?? styles[0];
+	}
 	return undefined;
 }
 
@@ -469,13 +509,14 @@ function isForcedPageBreak(value: Content): boolean {
 
 function isBlockquote(value: Record<string, unknown>): boolean {
 	const style = readStyle(value.style);
-	return style === "blockquote";
+	return style === "blockquote" || style === "html-blockquote";
 }
 
-function isHeading(value: Content): boolean {
+function isHeading(value: unknown): boolean {
 	if (!isRecord(value)) return false;
 	const style = readStyle(value.style);
-	return style !== undefined && /^(?:html-)?h[1-6]$/.test(style);
+	if (style !== undefined && /^(?:html-)?h[1-6]$/.test(style)) return true;
+	return Array.isArray(value.stack) && value.stack.length > 0 && isHeading(value.stack[0]);
 }
 
 function isTable(value: Record<string, unknown>): boolean {

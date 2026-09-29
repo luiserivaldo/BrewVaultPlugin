@@ -155,7 +155,7 @@ void test("native profiles preserve distinct PHB, DMG, SRD, and Blank palettes",
 
 void test("native profiles layer themed heading properties over html-to-pdfmake headings", () => {
 	const definition = buildThemedPdfDefinition(
-		{ text: [{ text: "Everwoods" }], style: "html-h2" },
+		{ text: [{ text: "Everwoods" }], style: ["html-div", "html-h2"] },
 		"Llynwych",
 		"phb"
 	);
@@ -164,11 +164,30 @@ void test("native profiles layer themed heading properties over html-to-pdfmake 
 	}>;
 	const firstPage = pages[0];
 	const heading = firstPage.columns?.[0]?.stack?.[0];
-	assert.equal(heading?.style, "html-h2");
+	assert.deepEqual(heading?.style, ["html-div", "html-h2"]);
 	assert.equal(heading?.font, "BookInsanity");
-	assert.equal(heading?.color, "#58180D");
+	assert.equal(heading?.color, "#9C1C10");
 	assert.equal((heading?.text as Array<Record<string, unknown>>)[0]?.font, "BookInsanity");
-	assert.equal((heading?.text as Array<Record<string, unknown>>)[0]?.color, "#58180D");
+	assert.equal((heading?.text as Array<Record<string, unknown>>)[0]?.color, "#9C1C10");
+});
+
+void test("PHB headings and blockquotes receive compact native decorative treatment", () => {
+	const definition = buildThemedPdfDefinition(
+		[
+			{ text: [{ text: "Section" }], style: ["html-div", "html-h2"] },
+			{ text: [{ text: "Read aloud" }], style: ["html-div", "html-blockquote"], margin: [18, 4, 0, 8] },
+			{ image: "data:image/png;base64,cG5n", fit: [504, 684] },
+		],
+		"Llynwych",
+		"phb"
+	);
+	const serialized = JSON.stringify(definition.content);
+	assert.match(serialized, /"decoration":"underline"/);
+	assert.match(serialized, /"decorationColor":"#9C1C10"/);
+	assert.match(serialized, /"text":"◆"/);
+	assert.match(serialized, /"fillColor":"#F6E5BD"/);
+	assert.match(serialized, /"margin":\[0,3,0,10\]/);
+	assert.doesNotMatch(serialized, /"margin":\[18,4,0,8\]/);
 });
 
 void test("SRD column flow keeps table blocks whole and starts another page", () => {
