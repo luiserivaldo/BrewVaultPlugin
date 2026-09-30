@@ -7,6 +7,7 @@ import {
 	BasicPdfExporter,
 	buildBasicPdfDefinition,
 	isSupportedBasicPdfImageSource,
+	removeBlankPdfNodes,
 	sanitizeBasicPdfContent,
 } from "../src/export/basicPdf/BasicPdfExporter";
 import {
@@ -81,6 +82,17 @@ void test("basic PDF bounds embedded images and removes remote images before gen
 		{ image: "data:image/png;base64,cG5n", fit: [504, 684] },
 		{ text: "" },
 	]);
+});
+
+void test("native PDF removes converter whitespace nodes around blockquotes", () => {
+	assert.deepEqual(
+		removeBlankPdfNodes([
+			{ text: " " },
+			{ stack: [{ text: "\n" }, { text: "Read aloud" }, { text: "\t" }] },
+			{ text: "After" },
+		]),
+		[{ stack: [{ text: "Read aloud" }] }, { text: "After" }]
+	);
 });
 
 void test("disposed basic exporter fails before loading its heavy runtime", async () => {

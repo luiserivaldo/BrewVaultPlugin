@@ -71,7 +71,7 @@ export class BasicPdfExporter implements BasicPdfExporterContract {
 			tableAutoSize: false,
 			imagesByReference: false,
 			removeExtraBlanks: true,
-			removeTagClasses: true,
+			removeTagClasses: false,
 			ignoreStyles: [
 				"background",
 				"background-color",
@@ -91,7 +91,7 @@ export class BasicPdfExporter implements BasicPdfExporterContract {
 				"width",
 			],
 		});
-		const content = sanitizeBasicPdfContent(converted);
+		const content = sanitizeBasicPdfContent(removeBlankPdfNodes(converted));
 		const definition =
 			profile === "basic"
 				? buildBasicPdfDefinition(content, request.basename)
@@ -145,6 +145,27 @@ export function isSupportedBasicPdfImageSource(source: string): boolean {
 /** Rejects remote/unsupported images and bounds embedded images before pdfmake. */
 export function sanitizeBasicPdfContent(content: Content): Content {
 	return sanitizeContentValue(content) as Content;
+}
+
+export function removeBlankPdfNodes(content: Content): Content {
+	return tidyPdfValue(content) as Content;
+}
+
+function tidyPdfValue(value: unknown): unknown {
+	if (Array.isArray(value)) {
+		return value.filter((entry) => !isBlankPdfNode(entry)).map((entry) => tidyPdfValue(entry));
+	}
+	if (!isRecord(value)) return value;
+	return Object.fromEntries(
+		Object.entries(value).map(([key, entry]) => [
+			key,
+			["stack", "ul", "ol"].includes(key) ? tidyPdfValue(entry) : entry,
+		])
+	);
+}
+
+function isBlankPdfNode(value: unknown): boolean {
+	return isRecord(value) && typeof value.text === "string" && value.text.trim() === "" && value.nodeName === undefined && value.image === undefined;
 }
 
 /**

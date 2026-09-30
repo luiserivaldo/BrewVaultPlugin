@@ -369,9 +369,13 @@ function themedHeadingProperties(
 		bold: true,
 		color: palette.headingColor,
 		margin: headingMargin(level, palette.headingRuleLevels.includes(level)),
-		decoration: palette.headingRuleLevels.includes(level) ? "underline" : undefined,
-		decorationColor: palette.headingRuleLevels.includes(level) ? palette.headingColor : undefined,
-		decorationStyle: palette.headingRuleLevels.includes(level) ? "solid" : undefined,
+		...(palette.headingRuleLevels.includes(level)
+			? {
+					decoration: "underline",
+					decorationColor: palette.headingColor,
+					decorationStyle: "solid",
+				}
+			: {}),
 	};
 }
 
