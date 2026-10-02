@@ -1,5 +1,6 @@
 import { MetadataCache, TFile, Vault } from "obsidian";
 import type { ResolvedImageEmbed } from "../renderer/imageEmbeds";
+import { stripYamlFrontmatter } from "../renderer/frontmatter";
 
 const IMAGE_MIME_TYPES: Readonly<Record<string, string>> = {
 	avif: "image/avif",
@@ -62,7 +63,7 @@ export async function resolveVaultImageEmbeds(
 export function collectImageEmbedTargets(source: string): string[] {
 	const targets = new Set<string>();
 	const embedPattern = /!\[\[([^\]\n]+)\]\]/g;
-	for (const match of source.matchAll(embedPattern)) {
+	for (const match of stripYamlFrontmatter(source).matchAll(embedPattern)) {
 		const inner = match[1]?.trim() ?? "";
 		const separator = inner.indexOf("|");
 		const target = (separator === -1 ? inner : inner.slice(0, separator)).trim();
