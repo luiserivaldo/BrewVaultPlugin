@@ -37,7 +37,7 @@ may vary.
 
 ## Installation
 
-BrewVault 0.4.0 supports desktop and mobile Obsidian `1.7.2` or newer.
+BrewVault 0.4.3 supports desktop and mobile Obsidian `1.7.2` or newer.
 
 1. Download or obtain `manifest.json`, `main.js`, and `styles.css` from the
    BrewVault release package.
@@ -108,6 +108,10 @@ HTML exports use the same policy with names such as `Alchemist.brew.html` and
 
 BrewVault supports normal Markdown headings, emphasis, links, blockquotes,
 lists, and tables. It also recognizes Homebrewery-style syntax.
+
+YAML frontmatter at the beginning of a note is ignored when rendering. For
+example, `created` and `updated` properties remain available to Obsidian but
+do not appear in the preview or exported HTML/PDF.
 
 ### Blocks
 
@@ -283,3 +287,15 @@ endorsed by NaturalCrit, Obsidian, or Wizards of the Coast. Dungeons & Dragons
 and related marks are property of Wizards of the Coast.
 
 BrewVault itself is released under the [MIT License](./LICENSE).
+
+## Versioning policy
+
+- Major release (`X.0.0`): a significant change or feature merge, culminating
+  various updates and feature additions that introduce a new or impactful feature.
+- Major patch (`0.X.0`): a new feature or major restructure of existing features.
+- Minor hotfix (`0.0.X`): a bug fix, quick patch, or glitch resolution.
+
+These patterns identify the version component to increment: retain the higher
+components and reset lower components to zero. For example, a hotfix after
+`1.2.3` is `1.2.4`, a major patch is `1.3.0`, and a major release is `2.0.0`.
+Choose the increment by the change's scope, not by the branch being merged.
