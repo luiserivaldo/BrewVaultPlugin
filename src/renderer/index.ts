@@ -1,5 +1,6 @@
 import { createBrewMarkdownEngine } from "./markdownEngine";
 import { splitIntoPages } from "./pageSplitter";
+import { stripYamlFrontmatter } from "./frontmatter";
 import type { BrewPage } from "./types";
 import type { BrewRenderOptions, BrewRenderEnvironment } from "./imageEmbeds";
 
@@ -35,5 +36,7 @@ export function renderBrewDocumentHtml(
 	const environment: BrewRenderEnvironment = {
 		imageEmbeds: options.imageEmbeds,
 	};
-	return engine.render(source, environment);
+	return engine.render(stripYamlFrontmatter(source), environment);
 }
+
+export { stripYamlFrontmatter } from "./frontmatter";
