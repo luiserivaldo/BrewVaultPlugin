@@ -17,7 +17,9 @@
 }
 
 .brewvault-theme-dmg .page .quote p:first-child::first-line {
-	all: unset;
+	font-size: inherit;
+	font-style: inherit;
+	font-variant: inherit;
 }
 
 .brewvault-theme-dmg .page::after {

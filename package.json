@@ -42,7 +42,7 @@
   "dependencies": {
     "@codemirror/view": "^6.38.6",
     "html-to-pdfmake": "2.5.34",
-    "markdown-it": "^14.1.0",
+    "markdown-it": "^14.3.3",
     "pdfmake": "0.2.23"
   }
 }
