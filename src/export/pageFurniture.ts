@@ -5,9 +5,14 @@
 export interface PageFurniture {
 	readonly footer: string;
 	readonly showPageNumbers: boolean;
+	readonly firstPageNumber: number;
 }
 
-export const DEFAULT_PAGE_FURNITURE: PageFurniture = { footer: "", showPageNumbers: true };
+export const DEFAULT_PAGE_FURNITURE: PageFurniture = {
+	footer: "",
+	showPageNumbers: true,
+	firstPageNumber: 1,
+};
 
 /** Footer text for a page, or null when no footer is shown. */
 export function pageFooterText(furniture: PageFurniture): string | null {
@@ -17,5 +22,6 @@ export function pageFooterText(furniture: PageFurniture): string | null {
 
 /** Visible page number for a 1-based page index, or null when hidden. */
 export function pageNumberText(pageIndex: number, furniture: PageFurniture): string | null {
-	return furniture.showPageNumbers ? String(pageIndex) : null;
+	if (!furniture.showPageNumbers) return null;
+	return String(furniture.firstPageNumber + pageIndex - 1);
 }

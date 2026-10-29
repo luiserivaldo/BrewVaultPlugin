@@ -15,6 +15,7 @@ properties or your note.
 | [`bv_theme`](#bv_theme-theme-for-one-note) | Available | Picks the theme for one note. |
 | [`bv_footer`](#bv_footer-running-footer) | Available | Prints a running footer on every page. |
 | [`bv_page_numbers`](#bv_page_numbers-show-or-hide-page-numbers) | Available | Shows or hides page numbers. |
+| [`bv_page_start`](#bv_page_start-first-page-number) | Available | Sets the number printed on the first page. |
 | [`bv_book`](#bv_book-combine-notes-into-one-pdf-planned) | Planned, not available yet | Turns a note into a book that combines many notes into one PDF. |
 
 ## `bv_theme`: theme for one note
@@ -105,6 +106,22 @@ bv_page_numbers: false
 
 - `false`, `no`, `off`, or `hide` hides them.
 - `true`, `yes`, `on`, or `show` shows them, which is the default.
+
+## `bv_page_start`: first page number
+
+Starts page numbering at a chosen number, so chapters exported as separate
+PDFs line up when printed together:
+
+```yaml
+---
+bv_page_start: 23
+---
+```
+
+- Any whole number from 1 to 9999. The default is 1.
+- PHB, DMG, and Blank put page numbers on the right of the first page and
+  alternate from there. Start chapters on odd numbers so every number lands
+  on the side a printed book would use.
 
 ## `bv_book`: combine notes into one PDF (planned)
 

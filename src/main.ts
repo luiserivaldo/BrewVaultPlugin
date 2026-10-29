@@ -277,7 +277,12 @@ export default class BrewVaultPlugin extends Plugin {
 	}
 
 	private getDefaultExportOptions(): ExportOptions {
-		return { theme: this.settings.theme, footer: "", showPageNumbers: true };
+		return {
+			theme: this.settings.theme,
+			footer: "",
+			showPageNumbers: true,
+			firstPageNumber: 1,
+		};
 	}
 
 	/**

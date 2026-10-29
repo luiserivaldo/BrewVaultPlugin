@@ -9,7 +9,12 @@ import type { ExportOptions } from "../src/exportOptions/options";
 import { buildStandaloneHtml } from "../src/export/buildStandaloneHtml";
 
 const context = { customStyles: [] };
-const defaults: ExportOptions = { theme: "phb", footer: "", showPageNumbers: true };
+const defaults: ExportOptions = {
+	theme: "phb",
+	footer: "",
+	showPageNumbers: true,
+	firstPageNumber: 1,
+};
 
 void test("notes without BrewVault properties set no options", () => {
 	assert.deepEqual(parseNoteExportOptions(undefined, context), { options: {}, invalid: [] });
@@ -55,11 +60,13 @@ void test("each option resolves separately: command, then note, then settings", 
 		theme: "blank",
 		footer: "Everfrost",
 		showPageNumbers: true,
+		firstPageNumber: 1,
 	});
 	assert.deepEqual(resolved.sources, {
 		theme: "command",
 		footer: "note",
 		showPageNumbers: "settings",
+		firstPageNumber: "settings",
 	});
 
 	const fallback = resolveExportOptions({ command: { theme: undefined }, note: {}, defaults });
@@ -68,6 +75,7 @@ void test("each option resolves separately: command, then note, then settings", 
 		theme: "settings",
 		footer: "settings",
 		showPageNumbers: "settings",
+		firstPageNumber: "settings",
 	});
 });
 
@@ -79,6 +87,7 @@ void test("standalone export adds an escaped footer to every page", () => {
 	const withFooter = buildStandaloneHtml(pages, "phb", "", "Doc", 816, 1056, {
 		footer: "Monsters <of> Llynwych",
 		showPageNumbers: true,
+		firstPageNumber: 1,
 	});
 	assert.equal(
 		withFooter.match(/<div class="footnote">Monsters &lt;of&gt; Llynwych<\/div>/g)?.length,
@@ -111,7 +120,33 @@ void test("hidden page numbers are omitted from standalone export", () => {
 	const html = buildStandaloneHtml(pages, "phb", "", "Doc", 816, 1056, {
 		footer: "",
 		showPageNumbers: false,
+		firstPageNumber: 1,
 	});
 	assert.doesNotMatch(html, /class="pageNumber/);
 	assert.match(buildStandaloneHtml(pages, "phb", "", "Doc", 816, 1056), /class="pageNumber brewPageNumber">1</);
+});
+
+void test("bv_page_start accepts whole numbers from 1 to 9999", () => {
+	const start = (value: unknown) => parseNoteExportOptions({ bv_page_start: value }, context);
+	assert.equal(start(7).options.firstPageNumber, 7);
+	assert.equal(start(" 12 ").options.firstPageNumber, 12);
+	for (const value of [0, -3, 2.5, "seven", 10000, true]) {
+		assert.equal(start(value).options.firstPageNumber, undefined);
+		assert.equal(start(value).invalid.length, 1);
+	}
+});
+
+void test("page numbers count up from the first page number", () => {
+	const pages = [
+		{ html: "<p>One</p>", index: 1 },
+		{ html: "<p>Two</p>", index: 2 },
+	];
+	const html = buildStandaloneHtml(pages, "phb", "", "Doc", 816, 1056, {
+		...defaults,
+		firstPageNumber: 7,
+	});
+	assert.deepEqual(
+		[...html.matchAll(/class="pageNumber brewPageNumber">(\d+)</g)].map((m) => m[1]),
+		["7", "8"]
+	);
 });

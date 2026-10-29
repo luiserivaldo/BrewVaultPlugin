@@ -13,23 +13,32 @@ export interface ExportOptions {
 	footer: string;
 	/** Whether page numbers are printed. */
 	showPageNumbers: boolean;
+	/** Number printed on the first page. */
+	firstPageNumber: number;
 }
 
 export type ExportOptionKey = keyof ExportOptions;
 export type PartialExportOptions = Partial<ExportOptions>;
 
-export const EXPORT_OPTION_KEYS: readonly ExportOptionKey[] = ["theme", "footer", "showPageNumbers"];
+export const EXPORT_OPTION_KEYS: readonly ExportOptionKey[] = [
+	"theme",
+	"footer",
+	"showPageNumbers",
+	"firstPageNumber",
+];
 
 export const EXPORT_OPTION_PROPERTIES: Readonly<Record<ExportOptionKey, string>> = {
 	theme: "bv_theme",
 	footer: "bv_footer",
 	showPageNumbers: "bv_page_numbers",
+	firstPageNumber: "bv_page_start",
 };
 
 export const EXPORT_OPTION_LABELS: Readonly<Record<ExportOptionKey, string>> = {
 	theme: "Theme",
 	footer: "Footer",
 	showPageNumbers: "Page numbers",
+	firstPageNumber: "First page number",
 };
 
 export type OptionParseResult<T> =
@@ -65,7 +74,22 @@ const EXPORT_OPTION_PARSERS: OptionParsers = {
 		return invalid(value);
 	},
 	showPageNumbers: parseBoolean,
+	firstPageNumber: (value) => {
+		if (value === undefined || value === null) return NONE;
+		const number = typeof value === "string" ? Number(value.trim()) : value;
+		const isPageNumber =
+			typeof number === "number" &&
+			Number.isInteger(number) &&
+			number >= 1 &&
+			number <= MAX_PAGE_NUMBER;
+		if (isPageNumber) {
+			return { kind: "value", value: number };
+		}
+		return invalid(value);
+	},
 };
+
+const MAX_PAGE_NUMBER = 9999;
 
 const BOOLEAN_WORDS: Readonly<Record<string, boolean>> = {
 	true: true,

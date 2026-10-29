@@ -22,7 +22,7 @@ void test("the generic BrewVault PDF command resolves the selected theme", () =>
 		mainSource,
 		/this\.renderExportDocument\(file, \{ theme: themeOverride \}\)/
 	);
-	assert.match(mainSource, /return \{ theme: this\.settings\.theme,/);
+	assert.match(mainSource, /theme: this\.settings\.theme,/);
 	assert.match(mainSource, /this\.getThemeCss\(options\.theme\)/);
 });
 
