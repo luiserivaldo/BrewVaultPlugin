@@ -1,0 +1,46 @@
+[BrewVault guide](./README.md) › Settings
+
+# Plugin settings
+
+Open **Settings → BrewVault** to configure the plugin.
+
+| Setting | Default | Effect |
+| --- | --- | --- |
+| Choose theme | Player's Handbook | Controls the live preview and normal HTML/PDF export appearance. |
+| Submit custom stylesheet | None | Validates and stores a selected local `.css` file as a selectable theme. |
+| Default edition | 2024 | Edition used by the block picker and by insert commands that do not name one. See [Commands](./commands.md#inserting-blocks). |
+| Export folder | `BrewVault-Exports` | Sets the vault-relative output folder. BrewVault creates it automatically. |
+| Page width (px) | `816px` | Controls rendered page width; the default represents 8.5 inches at 96 CSS dpi. |
+| Page height (px) | `1056px` | Controls rendered page height; the default represents 11 inches at 96 CSS dpi. |
+| Re-render debounce (ms) | `250ms` | Sets how long BrewVault waits after typing before refreshing the preview. |
+
+Custom export paths remain unchanged. Installations using the former exact
+default `BrewVault Exports` are automatically migrated to `BrewVault-Exports`.
+
+## Custom CSS styles
+
+Use **Submit custom stylesheet** to select a local `.css` file. Add this
+metadata tag inside a CSS comment to control the name shown under
+**Choose theme**:
+
+```css
+/* @brewvault-theme: Midnight Parchment */
+
+.brewvault-theme-custom .brewPage {
+	background: #171717;
+	color: #f3ead3;
+}
+```
+
+If the tag is absent, BrewVault assigns `Custom_Style_1`, then
+`Custom_Style_2`, and so on. Submitted CSS must contain valid rules, may use
+embedded `data:` resources, and cannot import stylesheets or load other resource
+URLs. Every style selector must include `.brewvault-theme-custom` so that user
+CSS cannot affect the surrounding Obsidian interface. Custom styles are stored
+locally in the plugin settings. Removing the currently selected custom style
+returns **Choose theme** to the default Player's Handbook theme.
+
+The generic **Export current file as BrewVault PDF** command always uses the
+theme currently selected under **Choose theme**. The PHB, DMG, SRD, and Blank
+export commands remain explicit one-off overrides and do not change that
+selection.

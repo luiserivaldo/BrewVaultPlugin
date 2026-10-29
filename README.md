@@ -26,14 +26,10 @@ PDF using preconfigured themes, or export as HTML and apply custom CSS styles.
 
 ## Mobile support
 
-Mobile preview scales each fixed-size page to the available screen space
-without changing page count, columns, wrapping, tables, or explicit page
-boundaries. Mobile PDF commands save a self-contained `.brew.html` file first,
-then open it through a browser. Use **Share → Print → Save as PDF**. The HTML
-file remains available if the handoff is cancelled or fails.
-
-**Note:** Current releases are tested on Android devices only. Behavior on iOS
-may vary.
+Mobile preview scales each page to fit the screen. Mobile PDF commands save a
+self-contained `.brew.html` file and hand it to a browser, where you use
+**Share → Print → Save as PDF**. Current releases are tested on Android only;
+see [Mobile support](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/mobile.md).
 
 ## Installation
 
@@ -51,225 +47,31 @@ BrewVault 0.5.0 supports desktop and mobile Obsidian `1.7.2` or newer.
 4. Restart Obsidian, or reload the app without saving.
 5. Open **Settings → Community plugins** and enable **BrewVault**.
 
-## Functions
+## Quick start
 
-Open the Command Palette with `Ctrl/Cmd + P` to run these functions. The preview
-can also be opened using BrewVault's scroll icon in the ribbon.
+1. Open a Markdown note and run **BrewVault: Open preview** from the Command
+   Palette (`Ctrl/Cmd + P`), or click the scroll icon in the ribbon.
+2. Add a Homebrewery-style block, either by typing it or with
+   **BrewVault: Insert block…**:
 
-| Function | Effect |
+   ```markdown
+   {{note
+   ##### Rules Note
+   This text is displayed as a Homebrewery note.
+   }}
+   ```
+
+3. Run **BrewVault: Export current file as BrewVault PDF**. The PDF is saved to
+   `BrewVault-Exports/` in your vault.
+
+## Documentation
+
+| Guide | Covers |
 | --- | --- |
-| **Open preview** | Opens or reveals a live BrewVault preview of the active Markdown note. |
-| **Export current file as HTML** | Creates a self-contained `.brew.html` file using the selected theme. |
-| **Export current file as BrewVault PDF** | Creates a direct PDF on desktop or starts the browser-assisted mobile workflow using the selected theme. |
-| **Export current file as BrewVault PDF in PHB style** | Uses the Player's Handbook parchment theme for direct desktop PDF or mobile browser handoff. |
-| **Export current file as BrewVault PDF in DMG style** | Uses the Dungeon Master's Guide theme for direct desktop PDF or mobile browser handoff. |
-| **Export current file as BrewVault PDF in SRD style** | Uses the SRD / Unearthed Arcana theme for direct desktop PDF or mobile browser handoff. |
-| **Export current file as BrewVault PDF in Blank style** | Uses the plain Blank theme for direct desktop PDF or mobile browser handoff. |
-
-| **Insert block…** | Opens a searchable picker of Homebrewery-style blocks in the default edition. |
-| **Insert 2014 block…** / **Insert 2024 block…** | Opens the picker for one edition, regardless of the default. |
-| **Insert *Group*: *Block*** | Inserts one block directly. Edition-sensitive blocks, such as **Insert PHB: Monster stat block**, follow the default edition. |
-| **Insert *Group* 2014: *Block*** / **Insert *Group* 2024: *Block*** | Inserts that edition's variant, for example **Insert Tables 2014: Full caster class table**. Each block is its own command, so it can be given a hotkey. |
-
-Theme-specific PDF functions do not change the saved preview theme.
-
-The insert commands cover the Homebrewery V3 snippets that BrewVault renders
-today: column and page breaks, vertical spacing, wide blocks, spells, class
-features, quotes, notes, descriptive boxes, monster stat blocks, magic items,
-and standard, wide, and class tables. They need a note open in editing mode
-and work even when a sidebar has focus.
-
-Edition-sensitive blocks ship in 2014 and 2024 variants: monster stat blocks,
-spells, class features, martial and full-caster class tables, feats,
-backgrounds, species, and magic items. **Default edition** in BrewVault
-settings (2024 unless changed) decides which variant the picker and the
-non-edition commands insert. The 2024 layouts follow the SRD 5.2.1 (Initiative,
-MOD/SAVE ability table, CR with XP and PB, core class traits); every name and
-sentence in either edition is an original placeholder.
-
-On mobile, the existing styled PDF commands first save a collision-safe
-`.brew.html` artifact in the configured export folder. BrewVault then opens a
-dialog where **Open in Browser** asks Android to open the saved file with its
-default application. In the browser, use **Share → Print → Save as PDF**.
-
-Desktop exports are written directly to the configured folder without opening
-a print or save dialog. For a note named `Alchemist.md`, BrewVault creates:
-
-```text
-BrewVault-Exports/Alchemist.pdf
-```
-
-If that file already exists, the next exports are named:
-
-```text
-BrewVault-Exports/Alchemist_1.pdf
-BrewVault-Exports/Alchemist_2.pdf
-```
-
-HTML exports use the same policy with names such as `Alchemist.brew.html` and
-`Alchemist_1.brew.html`.
-
-## Custom Markdown syntax
-
-BrewVault supports normal Markdown headings, emphasis, links, blockquotes,
-lists, and tables. It also recognizes Homebrewery-style syntax.
-
-### Blocks
-
-Open a block with `{{className` and close it with `}}`. Content inside a block
-continues to use normal Markdown.
-
-```markdown
-{{note
-##### Rules Note
-This text is displayed as a Homebrewery note.
-}}
-```
-
-Common semantic block classes include `note`, `descriptive`, `monster`, and
-`classTable`.
-
-### Multiple classes and wide elements
-
-Separate classes with commas or spaces. Add `wide` when a component should span
-both columns.
-
-```markdown
-{{monster,wide,frame
-## Elder Drake
-*Huge dragon, neutral*
-
-Monster statistics go here.
-}}
-```
-
-### Inline tags
-
-Use a class followed by its content inside a single pair of braces:
-
-```markdown
-The attack deals {{damage 2d6 piercing}} damage.
-```
-
-Inline tag content supports Markdown formatting. For example, an attribution
-can italicize its source title:
-
-```markdown
-{{quote
-The thief crept through the shadows, watching for danger.
-
-{{attribution Unknown, *Darkness Rising*}}
-}}
-```
-
-### Stat fields and vertical spacing
-
-Use `::` between a stat label and its value. Each source line becomes a
-separate rendered row and the delimiter itself is hidden:
-
-```markdown
-**Armor Class** :: 14 (chain mail, shield)
-**Hit Points**  :: 136 (1d4 + 5)
-**Speed**       :: 18 ft.
-```
-
-Place `:` on its own line to add one line of vertical space between template
-sections. Use `::` on its own line for two lines of space.
-
-### Page and column breaks
-
-Place break directives on their own lines:
-
-```markdown
-First page content.
-
-\page
-
-Second page, first column.
-
-\column
-
-Second page, second column.
-```
-
-An explicit `\page` appears in the Markdown editor as a numbered horizontal
-separator such as **Page 2**. Select the separator to reveal the source
-directive.
-
-### Obsidian links
-
-Obsidian wikilinks render as readable text without their brackets:
-
-```markdown
-See [[Classes/Alchemist|Alchemist]].
-```
-
-The rendered document displays `See Alchemist.`
-
-Vault-local raster images use the same embed syntax as an Obsidian note:
-
-```markdown
-![[Images/imp.png]]
-![[Images/imp.png|Infernal scout]]
-![[Images/imp.png|320]]
-![[Images/imp.png|320x180]]
-![[Images/imp.png|392]]{width:200px}
-```
-
-BrewVault resolves these through Obsidian, embeds their image data in preview,
-HTML, and PDF output, and leaves the Markdown source unchanged. PNG, JPEG, GIF,
-WebP, AVIF, and BMP files are supported. A numeric alias sets width; `WIDTHxHEIGHT`
-sets both dimensions. Unresolved or unsupported embeds are omitted instead of
-exposing vault paths.
-
-Homebrewery-style size attributes may follow a local or standard Markdown
-image, with or without a separating space. Supported properties are `width`,
-`height`, `min-width`, `min-height`, `max-width`, and `max-height`. When both an
-Obsidian numeric size and a Homebrewery width are present, the Homebrewery
-attribute takes visual precedence.
-
-## Plugin settings
-
-Open **Settings → BrewVault** to configure the plugin.
-
-| Setting | Default | Effect |
-| --- | --- | --- |
-| Choose theme | Player's Handbook | Controls the live preview and normal HTML/PDF export appearance. |
-| Submit custom stylesheet | None | Validates and stores a selected local `.css` file as a selectable theme. |
-| Export folder | `BrewVault-Exports` | Sets the vault-relative output folder. BrewVault creates it automatically. |
-| Page width | `816px` | Controls rendered page width; the default represents 8.5 inches at 96 CSS dpi. |
-| Page height | `1056px` | Controls rendered page height; the default represents 11 inches at 96 CSS dpi. |
-| Re-render debounce | `250ms` | Sets how long BrewVault waits after typing before refreshing the preview. |
-
-Custom export paths remain unchanged. Installations using the former exact
-default `BrewVault Exports` are automatically migrated to `BrewVault-Exports`.
-
-### Custom CSS styles
-
-Use **Submit custom stylesheet** to select a local `.css` file. Add this
-metadata tag inside a CSS comment to control the name shown under
-**Choose theme**:
-
-```css
-/* @brewvault-theme: Midnight Parchment */
-
-.brewvault-theme-custom .brewPage {
-	background: #171717;
-	color: #f3ead3;
-}
-```
-
-If the tag is absent, BrewVault assigns `Custom_Style_1`, then
-`Custom_Style_2`, and so on. Submitted CSS must contain valid rules, may use
-embedded `data:` resources, and cannot import stylesheets or load other resource
-URLs. Every style selector must include `.brewvault-theme-custom` so that user
-CSS cannot affect the surrounding Obsidian interface. Custom styles are stored
-locally in the plugin settings. Removing the currently selected custom style
-returns **Choose theme** to the default Player's Handbook theme.
-
-The generic **Export current file as BrewVault PDF** function always uses the
-theme currently selected under **Choose theme**. The PHB, SRD, and Blank export
-functions remain explicit one-off overrides and do not change that selection.
+| [Commands](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/commands.md) | Every preview, export, and insert command, plus export file naming. |
+| [Markdown syntax](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/syntax.md) | Blocks, inline tags, stat fields, spacing, page and column breaks, links, and images. |
+| [Settings](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/settings.md) | Plugin settings and custom CSS themes. |
+| [Mobile support](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/mobile.md) | Mobile preview and the browser-assisted PDF workflow. |
 
 ## Accreditation and licensing
 

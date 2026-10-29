@@ -7,7 +7,7 @@ src/generated/
 dist/
 
 # Local development and agent handoff documentation. Public installation,
-# usage, build, limitations, and acknowledgements are consolidated in README.
+# usage, build, limitations, and acknowledgements live in README and docs/guide/.
 /AGENTS.md
 /ARCHITECTURE.md
 /BUILD_FROM_SOURCE.md
@@ -15,5 +15,6 @@ dist/
 /PROGRESS.md
 /THIRD_PARTY_NOTICES.md
 /USAGE.md
-/docs/
+/docs/*
+!/docs/guide/
 /examples/
