@@ -19,6 +19,7 @@ export const TOC_HEADER = "# Table of Contents";
 const TAG = /<(\/?)([a-zA-Z][a-zA-Z0-9]*)([^>]*)>/g;
 const VOID_TAGS = new Set(["area", "br", "col", "embed", "hr", "img", "input", "source", "track", "wbr"]);
 const TOC_CLASS = /\bclass="[^"]*\btoc\b/;
+const BLOCK_CLASS = /\bclass="[^"]*\bbrewBlock\b/;
 const SOURCE_ATTRIBUTE = /\bdata-brewvault-source="([^"]*)"/;
 /** A row's link: `](#p12)` or `](#p12 "Note#Heading")`. */
 const ROW_LINK = /\]\(#p(\d+)(?:\s+"((?:[^"\\]|\\.)*)")?\)/;
@@ -26,25 +27,40 @@ const LIST_ITEM = /^\s*(?:[-*+]|\d+[.)])\s/;
 /** Markdown before each row's link, by depth: Homebrewery's toc snippet layout. */
 const ROW_PREFIX = ["### ", "#### ", ""];
 
+/** What an open element is inside of, while scanning a page. */
+interface OpenElement {
+	readonly inToc: boolean;
+	/** The outermost `{{block` around the element, shared by everything in it. */
+	readonly block: { titled: boolean } | null;
+}
+
 /**
  * Finds the headings on rendered pages, in reading order. Headings inside a
  * `{{toc}}` block are skipped, so the contents never list themselves.
+ *
+ * A `{{block` is one item on the page, so it lists at most its first heading:
+ * a monster's name, not its Traits or Actions. Headings after that, and in
+ * blocks nested inside it, are skipped. The title nests under the section
+ * it sits in: a `## Imp` stat block under `## Monsters` is listed one level
+ * deeper, as `###`.
+ *
  * The HTML comes from markdown-it with raw HTML disabled, so its tags are
  * well formed and a tag scanner is enough.
  */
 export function detectHeadings(pages: readonly BrewPage[], maxLevel = TOC_MAX_LEVEL): TocHeading[] {
 	const headings: TocHeading[] = [];
+	/** Level of the last heading outside any block: the section blocks sit in. */
+	let sectionLevel = 0;
 	for (const page of pages) {
-		/** For each open element: whether it is inside a `{{toc}}` block. */
-		const open: boolean[] = [];
-		let heading: { level: number; start: number; sourcePath?: string } | null = null;
+		const open: OpenElement[] = [];
+		let heading: { tag: string; level: number; start: number; sourcePath?: string } | null = null;
 
 		for (const match of page.html.matchAll(TAG)) {
 			const [raw, closing, tagName, attributes] = match;
 			const name = tagName.toLowerCase();
 			if (closing) {
 				open.pop();
-				if (heading !== null && name === `h${heading.level}`) {
+				if (heading !== null && name === heading.tag) {
 					const text = htmlToText(page.html.slice(heading.start, match.index));
 					if (text) {
 						headings.push({
@@ -60,13 +76,23 @@ export function detectHeadings(pages: readonly BrewPage[], maxLevel = TOC_MAX_LE
 			}
 			if (VOID_TAGS.has(name) || raw.endsWith("/>")) continue;
 
-			const inToc = (open.length > 0 && open[open.length - 1]) || TOC_CLASS.test(attributes);
-			open.push(inToc);
+			const parent = open.length > 0 ? open[open.length - 1] : null;
+			const element: OpenElement = {
+				inToc: (parent?.inToc ?? false) || TOC_CLASS.test(attributes),
+				block: parent?.block ?? (BLOCK_CLASS.test(attributes) ? { titled: false } : null),
+			};
+			open.push(element);
 			const level = /^h([1-6])$/.exec(name);
-			if (level && heading === null && !inToc && Number(level[1]) <= maxLevel) {
+			if (!level || heading !== null || element.inToc) continue;
+			// A block's first heading is its title, even when too deep to list.
+			const isBlockTitle = element.block !== null && !element.block.titled;
+			if (element.block) element.block.titled = true;
+			if ((element.block === null || isBlockTitle) && Number(level[1]) <= maxLevel) {
 				const source = SOURCE_ATTRIBUTE.exec(attributes)?.[1];
+				if (element.block === null) sectionLevel = Number(level[1]);
 				heading = {
-					level: Number(level[1]),
+					tag: name,
+					level: isBlockTitle ? Math.max(Number(level[1]), sectionLevel + 1) : Number(level[1]),
 					start: match.index + raw.length,
 					...(source ? { sourcePath: decodeEntities(source) } : {}),
 				};
@@ -74,6 +100,34 @@ export function detectHeadings(pages: readonly BrewPage[], maxLevel = TOC_MAX_LE
 		}
 	}
 	return headings;
+}
+
+/**
+ * Nests headings from included notes under the compiling note's section.
+ * Each run of headings from one included note is shifted as a whole, keeping
+ * its own shape, so that its shallowest heading sits one level below the
+ * compiling note's last heading: a note's `## Druid Spell List` included under
+ * `## Everything else` is listed as `###`. Headings are never moved up.
+ */
+export function nestIncludedHeadings(headings: readonly TocHeading[], hostPath: string): TocHeading[] {
+	const nested: TocHeading[] = [];
+	let sectionLevel = 0;
+	for (let start = 0; start < headings.length; ) {
+		const source = headings[start].sourcePath;
+		if (source === undefined || source === hostPath) {
+			sectionLevel = headings[start].level;
+			nested.push(headings[start]);
+			start++;
+			continue;
+		}
+		let end = start;
+		while (end < headings.length && headings[end].sourcePath === source) end++;
+		const run = headings.slice(start, end);
+		const shift = Math.max(0, sectionLevel + 1 - Math.min(...run.map((heading) => heading.level)));
+		for (const heading of run) nested.push({ ...heading, level: heading.level + shift });
+		start = end;
+	}
+	return nested;
 }
 
 /**

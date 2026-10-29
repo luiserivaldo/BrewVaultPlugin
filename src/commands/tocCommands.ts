@@ -7,6 +7,7 @@ import {
 	detectHeadings,
 	findTocBlock,
 	formatTocRows,
+	nestIncludedHeadings,
 	TOC_HEADER,
 	TOC_OPENER,
 	type TocHeading,
@@ -83,7 +84,7 @@ async function generateTableOfContents(
 				source: candidate,
 				paginate: layout.paginate,
 			});
-			const headings = detectHeadings(rendered.pages);
+			const headings = nestIncludedHeadings(detectHeadings(rendered.pages), file.path);
 			headingCount = headings.length;
 			const next = buildTocBlock(
 				formatTocRows(headings, layout.firstPageNumber, (heading) => rowTarget(plugin, file, heading)),

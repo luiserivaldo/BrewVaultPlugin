@@ -8,6 +8,7 @@ import {
 	findHeadingLine,
 	findTocBlock,
 	formatTocRows,
+	nestIncludedHeadings,
 	parseTocRowLink,
 	splitTocTarget,
 	type TocHeading,
@@ -36,7 +37,7 @@ void test("headings are found per page, skipping the contents block and deeper l
 	assert.deepEqual(detectHeadings(pages), [
 		{ level: 1, text: "Spells & Charms", pageIndex: 1 },
 		{ level: 2, text: "Shield", pageIndex: 1 },
-		{ level: 2, text: "Imp", pageIndex: 2 },
+		{ level: 3, text: "Imp", pageIndex: 2 },
 		{ level: 3, text: "Lair <actions>", pageIndex: 2 },
 	]);
 	assert.deepEqual(detectHeadings([{ index: 1, html: render("# A\n## B") }], 1), [
@@ -183,4 +184,99 @@ void test("exports keep vault paths out of the page HTML", () => {
 	const html = buildStandaloneHtml(pages, "phb", "", "Doc", 816, 1056);
 	assert.doesNotMatch(html, /Secret\/Note/);
 	assert.match(html, /<h1>Title<\/h1>/);
+});
+
+void test("a block lists only its title: a monster's name, not its sections", () => {
+	const html = render(
+		[
+			"# Bestiary",
+			"{{monster,frame",
+			"## Cave Lurker",
+			"### Traits",
+			"{{note",
+			"## Inside a nested note",
+			"}}",
+			"### Actions",
+			"}}",
+			"{{monster",
+			"## Imp",
+			"### Actions",
+			"}}",
+			// A note's ##### title is too deep to list, and it still uses up the
+			// block's one heading, so a later ## inside it is skipped.
+			"{{note",
+			"##### Rules Note",
+			"## Not a section",
+			"}}",
+			"## Lairs",
+			"### Cave lair",
+		].join("\n")
+	);
+	assert.deepEqual(
+		detectHeadings([{ index: 1, html }]).map((heading) => `${heading.level} ${heading.text}`),
+		["1 Bestiary", "2 Cave Lurker", "2 Imp", "2 Lairs", "3 Cave lair"]
+	);
+});
+
+void test("a block's title nests under the section heading above it", () => {
+	const html = render(
+		["# Book", "## Monsters", "{{monster", "## Imp", "### Actions", "}}", "## Places", "### Cove", "{{monster", "## Crab", "}}"].join("\n")
+	);
+	const headings = detectHeadings([{ index: 1, html }]);
+	assert.deepEqual(
+		headings.map((heading) => `${heading.level} ${heading.text}`),
+		["1 Book", "2 Monsters", "3 Imp", "2 Places", "3 Cove", "4 Crab"]
+	);
+	// Rows never nest deeper than three levels, so Crab sits beside Cove.
+	assert.deepEqual(
+		formatTocRows(headings, 1).map((row) => row.replace(/\]\(.*$/, "")),
+		[
+			"- ### [{{ Book}}{{ 1}}",
+			"  - #### [{{ Monsters}}{{ 1}}",
+			"    - [{{ Imp}}{{ 1}}",
+			"  - #### [{{ Places}}{{ 1}}",
+			"    - [{{ Cove}}{{ 1}}",
+			"    - [{{ Crab}}{{ 1}}",
+		]
+	);
+});
+
+void test("an included note's headings nest under the section it is included in", () => {
+	const heading = (level: number, text: string, sourcePath?: string): TocHeading => ({
+		level,
+		text,
+		pageIndex: 1,
+		...(sourcePath ? { sourcePath } : {}),
+	});
+	const nested = nestIncludedHeadings(
+		[
+			heading(1, "Book", "Book.md"),
+			heading(2, "Everything else", "Book.md"),
+			heading(2, "Druid Spell List", "Druid.md"),
+			heading(3, "Cantrips", "Druid.md"),
+			heading(1, "Fighter", "Fighter.md"),
+			heading(2, "Spells", "Book.md"),
+			heading(3, "Shield", "Spells.md"),
+			heading(1, "Loose note", "Loose.md"),
+		],
+		"Book.md"
+	);
+	assert.deepEqual(
+		nested.map((item) => `${item.level} ${item.text}`),
+		[
+			"1 Book",
+			"2 Everything else",
+			"3 Druid Spell List",
+			"4 Cantrips",
+			// A different note is its own run, shifted on its own.
+			"3 Fighter",
+			"2 Spells",
+			// Already deep enough: never moved up.
+			"3 Shield",
+			"3 Loose note",
+		]
+	);
+	// A note without included notes is unchanged.
+	const plain = [heading(2, "A", "Book.md"), heading(2, "B")];
+	assert.deepEqual(nestIncludedHeadings(plain, "Book.md"), plain);
 });

@@ -20,9 +20,21 @@ page numbers, in the same `{{toc` markup Homebrewery uses:
   `{{toc,wide`) and any lines above the list, such as the heading, are kept.
 - **What it lists:** every `#`, `##`, and `###` heading, on the page where it
   appears in the PDF, including headings from notes compiled into the note
-  (see [Compiling notes](./books.md)). Headings inside stat blocks count, so
-  a monster's name is listed. Headings inside the contents block itself are
-  not.
+  (see [Compiling notes](./books.md)). Headings inside the contents block
+  itself are not listed.
+- **Blocks:** a `{{block` is one item, so it lists at most its first heading,
+  its title. A monster stat block lists its name, not its Traits, Actions, or
+  other sections, and headings in blocks nested inside it are skipped. The
+  title nests under the section it sits in, so a `## Imp` stat block under
+  `## Monsters` is listed one level below Monsters. Notes,
+  descriptive boxes, and class tables use `#####` titles, which are deeper
+  than `###`, so they aren't listed.
+- **Included notes:** headings from a compiled note nest under the section
+  heading above the place it is included. The note's headings move down
+  together, keeping their shape, so its top heading sits one level below that
+  section: a note's `## Druid Spell List` included under
+  `## Everything else` is listed one level below it. Headings already deep
+  enough stay where they are.
 - **Levels:** the shallowest heading level found becomes the top row. A
   heading never nests more than one step below the row above it, so notes that
   skip from `#` to `###` still make a tidy list.
