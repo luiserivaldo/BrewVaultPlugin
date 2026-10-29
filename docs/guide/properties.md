@@ -18,6 +18,7 @@ properties or your note.
 | [`bv_page_start`](#bv_page_start-first-page-number) | Available | Sets the number printed on the first page. |
 | [`bv_page_size`](#bv_page_size-letter-or-a4) | Available | Uses US Letter or A4 paper. |
 | [`bv_title`](#bv_title-document-title-and-file-name) | Available | Sets the document title and export file name. |
+| [`bv_export_folder`](#bv_export_folder-export-subfolder) | Available | Saves exports in a subfolder of the export folder. |
 | [`bv_book`](#bv_book-combine-notes-into-one-pdf-planned) | Planned, not available yet | Turns a note into a book that combines many notes into one PDF. |
 
 ## `bv_theme`: theme for one note
@@ -162,6 +163,24 @@ bv_title: "Llynwych: Monsters of the Everwoods"
 - Quote titles that contain a colon, as in the example, or YAML reads them
   incorrectly.
 - If a file with that name exists, BrewVault adds `_1`, `_2`, and so on.
+
+## `bv_export_folder`: export subfolder
+
+Saves this note's exports in a subfolder of the export folder from
+[settings](./settings.md), creating it if needed:
+
+```yaml
+---
+bv_export_folder: Llynwych/Monsters
+---
+```
+
+This saves to `BrewVault-Exports/Llynwych/Monsters/`.
+
+- Use `/` between folders. Backslashes are converted.
+- The path is always inside the export folder. Values containing `..` or
+  `.`, drive letters such as `C:`, or the characters `: * ? " < > |` are
+  ignored with a notice.
 
 ## `bv_book`: combine notes into one PDF (planned)
 

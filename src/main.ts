@@ -202,9 +202,9 @@ export default class BrewVaultPlugin extends Plugin {
 	 */
 	async exportFileAsHtml(file: TFile): Promise<void> {
 		try {
-			const { html, basename } = await this.renderExportDocument(file);
+			const { html, basename, options } = await this.renderExportDocument(file);
 
-			const exportFolder = await this.ensureExportFolder();
+			const exportFolder = await this.ensureExportFolder(options.exportSubfolder);
 			const outPath = this.allocateExportPath(exportFolder, basename, ".brew.html");
 			await this.app.vault.create(outPath, html);
 
@@ -225,10 +225,9 @@ export default class BrewVaultPlugin extends Plugin {
 	): Promise<void> {
 		try {
 			const backend = await this.getExportBackendProvider().getBackend();
-			const { html, basename, pageWidthPx, pageHeightPx } = await this.renderExportDocument(file, {
-				theme: themeOverride,
-			});
-			const exportFolder = await this.ensureExportFolder();
+			const rendered = await this.renderExportDocument(file, { theme: themeOverride });
+			const { html, basename, pageWidthPx, pageHeightPx } = rendered;
+			const exportFolder = await this.ensureExportFolder(rendered.options.exportSubfolder);
 
 			const progress = new ExportProgressNotice();
 			let result;
@@ -295,6 +294,7 @@ export default class BrewVaultPlugin extends Plugin {
 			firstPageNumber: 1,
 			pageSize: "settings",
 			title: file.basename,
+			exportSubfolder: "",
 		};
 	}
 
@@ -364,7 +364,12 @@ export default class BrewVaultPlugin extends Plugin {
 		}
 	}
 
-	private async ensureExportFolder(): Promise<string> {
+	/**
+	 * Creates the export folder, plus an optional `bv_export_folder`
+	 * subfolder inside it, and returns the folder to write into. The
+	 * subfolder was already validated by normalizeExportSubfolder().
+	 */
+	private async ensureExportFolder(subfolder = ""): Promise<string> {
 		const configured = this.settings.exportFolder.trim() || DEFAULT_SETTINGS.exportFolder;
 		const normalized = normalizePath(configured)
 			.replace(/^\/+/, "")
@@ -374,8 +379,9 @@ export default class BrewVaultPlugin extends Plugin {
 			throw new Error("BrewVault export folder must be a vault-relative folder path.");
 		}
 
+		const target = subfolder ? `${normalized}/${subfolder}` : normalized;
 		let current = "";
-		for (const segment of normalized.split("/").filter(Boolean)) {
+		for (const segment of target.split("/").filter(Boolean)) {
 			current = current ? `${current}/${segment}` : segment;
 			const existing = this.app.vault.getAbstractFileByPath(current);
 			if (!existing) {
@@ -390,7 +396,7 @@ export default class BrewVaultPlugin extends Plugin {
 			await this.saveSettings();
 		}
 
-		return normalized;
+		return target;
 	}
 
 	private allocateExportPath(folder: string, basename: string, suffix: string): string {

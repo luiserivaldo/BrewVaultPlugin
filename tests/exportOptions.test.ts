@@ -5,7 +5,11 @@ import {
 	parseNoteExportOptions,
 } from "../src/exportOptions/noteProperties";
 import { resolveExportOptions } from "../src/exportOptions/resolve";
-import { pageDimensions, type ExportOptions } from "../src/exportOptions/options";
+import {
+	normalizeExportSubfolder,
+	pageDimensions,
+	type ExportOptions,
+} from "../src/exportOptions/options";
 import { buildStandaloneHtml } from "../src/export/buildStandaloneHtml";
 import { toExportBasename } from "../src/export/allocateExportPath";
 
@@ -17,6 +21,7 @@ const defaults: ExportOptions = {
 	firstPageNumber: 1,
 	pageSize: "settings",
 	title: "Note",
+	exportSubfolder: "",
 };
 
 void test("notes without BrewVault properties set no options", () => {
@@ -66,6 +71,7 @@ void test("each option resolves separately: command, then note, then settings", 
 		firstPageNumber: 1,
 		pageSize: "settings",
 		title: "Note",
+		exportSubfolder: "",
 	});
 	assert.deepEqual(resolved.sources, {
 		theme: "command",
@@ -74,6 +80,7 @@ void test("each option resolves separately: command, then note, then settings", 
 		firstPageNumber: "settings",
 		pageSize: "settings",
 		title: "settings",
+		exportSubfolder: "settings",
 	});
 
 	const fallback = resolveExportOptions({ command: { theme: undefined }, note: {}, defaults });
@@ -85,6 +92,7 @@ void test("each option resolves separately: command, then note, then settings", 
 		firstPageNumber: "settings",
 		pageSize: "settings",
 		title: "settings",
+		exportSubfolder: "settings",
 	});
 });
 
@@ -194,4 +202,23 @@ void test("titles become safe export file names", () => {
 	assert.equal(toExportBasename("What? #1 [draft]...", "Note"), "What- -1 -draft-");
 	assert.equal(toExportBasename("  ...  ", "Note"), "Note");
 	assert.equal(toExportBasename("Plain Title", "Note"), "Plain Title");
+});
+
+void test("bv_export_folder normalizes relative subfolders", () => {
+	assert.equal(normalizeExportSubfolder(" Llynwych / Monsters/ "), "Llynwych/Monsters");
+	assert.equal(normalizeExportSubfolder("\\Everfrost\\Items"), "Everfrost/Items");
+	assert.equal(normalizeExportSubfolder("///"), "");
+	assert.equal(
+		parseNoteExportOptions({ bv_export_folder: "Llynwych/Monsters" }, context).options
+			.exportSubfolder,
+		"Llynwych/Monsters"
+	);
+});
+
+void test("bv_export_folder rejects paths that could leave the export folder", () => {
+	for (const value of ["../Secrets", "Llynwych/../..", "./here", "C:/Windows", "a*b", 5]) {
+		const parsed = parseNoteExportOptions({ bv_export_folder: value }, context);
+		assert.equal(parsed.options.exportSubfolder, undefined, String(value));
+		assert.equal(parsed.invalid.length, 1, String(value));
+	}
 });

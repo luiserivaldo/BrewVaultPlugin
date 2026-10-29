@@ -19,6 +19,8 @@ export interface ExportOptions {
 	pageSize: PageSizeChoice;
 	/** Document title and export file name; defaults to the note name. */
 	title: string;
+	/** Subfolder of the export folder; empty means the export folder itself. */
+	exportSubfolder: string;
 }
 
 export type PageSizePreset = "letter" | "a4";
@@ -54,6 +56,7 @@ export const EXPORT_OPTION_KEYS: readonly ExportOptionKey[] = [
 	"firstPageNumber",
 	"pageSize",
 	"title",
+	"exportSubfolder",
 ];
 
 export const EXPORT_OPTION_PROPERTIES: Readonly<Record<ExportOptionKey, string>> = {
@@ -63,6 +66,7 @@ export const EXPORT_OPTION_PROPERTIES: Readonly<Record<ExportOptionKey, string>>
 	firstPageNumber: "bv_page_start",
 	pageSize: "bv_page_size",
 	title: "bv_title",
+	exportSubfolder: "bv_export_folder",
 };
 
 export const EXPORT_OPTION_LABELS: Readonly<Record<ExportOptionKey, string>> = {
@@ -72,6 +76,7 @@ export const EXPORT_OPTION_LABELS: Readonly<Record<ExportOptionKey, string>> = {
 	firstPageNumber: "First page number",
 	pageSize: "Page size",
 	title: "Title",
+	exportSubfolder: "Export subfolder",
 };
 
 export type OptionParseResult<T> =
@@ -137,7 +142,31 @@ const EXPORT_OPTION_PARSERS: OptionParsers = {
 		}
 		return invalid(value);
 	},
+	exportSubfolder: (value) => {
+		if (value === undefined || value === null) return NONE;
+		if (typeof value !== "string") return invalid(value);
+		const subfolder = normalizeExportSubfolder(value);
+		return subfolder === null ? invalid(value) : { kind: "value", value: subfolder };
+	},
 };
+
+/**
+ * Normalizes a relative subfolder such as "Llynwych/Monsters". Returns null
+ * for paths that could leave the export folder (`..`, `.`, drive letters) or
+ * that contain characters file systems reject.
+ */
+export function normalizeExportSubfolder(value: string): string | null {
+	const segments = value
+		.replace(/\\/g, "/")
+		.split("/")
+		.map((segment) => segment.trim())
+		.filter((segment) => segment.length > 0);
+	const isSafe = segments.every(
+		// eslint-disable-next-line no-control-regex -- control characters are invalid in folder names
+		(segment) => segment !== "." && segment !== ".." && !/[\u0000-\u001f:*?"<>|]/.test(segment)
+	);
+	return isSafe ? segments.join("/") : null;
+}
 
 const MAX_TITLE_LENGTH = 200;
 const MAX_PAGE_NUMBER = 9999;
