@@ -8,7 +8,7 @@ PDF using preconfigured themes, or export as HTML and apply custom CSS styles.
 
 - Live rendered preview that follows the active Markdown note as its source.
 - Preconfigured Player's Handbook, Dungeon Master's Guide, and SRD / Unearthed
-  Arcana themes.
+  Arcana themes, selectable per note with a `bv_theme` frontmatter property.
 - Styling inspired by Homebrewery fonts, page measurements, headings, tables,
   notes, descriptive boxes, monster blocks, and page furniture.
 - Standard Obsidian Markdown plus Homebrewery-style blocks, inline tags, page
@@ -82,6 +82,7 @@ BrewVault 0.5.2 supports desktop and mobile Obsidian `1.7.2` or newer.
 | --- | --- |
 | [Commands](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/commands.md) | Every preview, export, and insert command, plus export file naming. |
 | [Markdown syntax](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/syntax.md) | Blocks, inline tags, stat fields, spacing, page and column breaks, links, and images. |
+| [Note properties](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/properties.md) | `bv_theme` for a theme per note, and the planned `bv_book` for combining notes. |
 | [Settings](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/settings.md) | Plugin settings and custom CSS themes. |
 | [Mobile support](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/mobile.md) | Mobile preview and the two mobile PDF methods: browser handoff and direct PDF. |
 

@@ -34,6 +34,12 @@ import {
 	type CustomStyleDefinition,
 } from "./themes/customStyles";
 import { registerInsertSnippetCommands } from "./commands/insertSnippet";
+import { readNoteTheme } from "./obsidian/readNoteTheme";
+import {
+	chooseExportTheme,
+	formatInvalidNoteThemeMessage,
+	type NoteThemeResolution,
+} from "./themes/noteTheme";
 
 /** Persistent notice shown only while a backend renders pages one by one. */
 class ExportProgressNotice {
@@ -64,6 +70,7 @@ export default class BrewVaultPlugin extends Plugin {
 	settings: BrewVaultSettings = DEFAULT_SETTINGS;
 	private exportBackendProvider: ExportBackendProvider | null = null;
 	private customStyleSheet: CSSStyleSheet | null = null;
+	private customStyleSheetTheme: BrewTheme = DEFAULT_SETTINGS.theme;
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
@@ -190,12 +197,13 @@ export default class BrewVaultPlugin extends Plugin {
 			const renderedPages = renderBrewMarkdown(source, {
 				imageEmbeds: resolvedImages.imageEmbeds,
 			});
-			const pages = await this.paginateWithTheme(renderedPages, this.settings.theme);
+			const theme = this.resolveExportTheme(file);
+			const pages = await this.paginateWithTheme(renderedPages, theme);
 
 			const html = buildStandaloneHtml(
 				pages,
-				this.settings.theme,
-				this.getThemeCss(this.settings.theme),
+				theme,
+				this.getThemeCss(theme),
 				file.basename,
 				this.settings.pageWidthPx,
 				this.settings.pageHeightPx
@@ -222,7 +230,7 @@ export default class BrewVaultPlugin extends Plugin {
 	): Promise<void> {
 		try {
 			const backend = await this.getExportBackendProvider().getBackend();
-			const theme = themeOverride ?? this.settings.theme;
+			const theme = this.resolveExportTheme(file, themeOverride);
 			const exportFolder = await this.ensureExportFolder();
 			const source = await this.app.vault.cachedRead(file);
 			const resolvedImages = await resolveVaultImageEmbeds(
@@ -284,6 +292,24 @@ export default class BrewVaultPlugin extends Plugin {
 			console.error("BrewVault PDF export failed", err);
 			new Notice("BrewVault PDF export failed — see console for details.");
 		}
+	}
+
+	/** Reads and validates a note's `bv_theme` frontmatter property. */
+	readNoteTheme(file: TFile): NoteThemeResolution {
+		return readNoteTheme(file, this.app.metadataCache, this.settings.customStyles);
+	}
+
+	/**
+	 * Chooses the export theme: an explicit command theme, then the note's
+	 * `bv_theme`, then the settings theme. An unrecognized `bv_theme` is
+	 * reported once per export and falls back to the settings theme.
+	 */
+	private resolveExportTheme(file: TFile, commandTheme?: BrewTheme): BrewTheme {
+		const noteTheme = this.readNoteTheme(file);
+		if (!commandTheme && noteTheme.kind === "invalid") {
+			new Notice(formatInvalidNoteThemeMessage(file.basename, noteTheme.value));
+		}
+		return chooseExportTheme(commandTheme, noteTheme, this.settings.theme);
 	}
 
 	onunload(): void {
@@ -401,12 +427,17 @@ export default class BrewVaultPlugin extends Plugin {
 		});
 	}
 
-	private syncCustomStyleSheet(theme: BrewTheme): void {
+	/**
+	 * Loads `theme`'s custom CSS into the shared document stylesheet. The
+	 * preview calls this so a note's custom `bv_theme` styles what it shows.
+	 */
+	syncCustomStyleSheet(theme: BrewTheme): void {
+		this.customStyleSheetTheme = theme;
 		this.customStyleSheet?.replaceSync(this.getCustomCssForTheme(theme));
 	}
 
 	private async paginateWithTheme(pages: BrewPage[], theme: BrewTheme): Promise<BrewPage[]> {
-		const selectedTheme = this.settings.theme;
+		const selectedTheme = this.customStyleSheetTheme;
 		this.syncCustomStyleSheet(theme);
 		try {
 			return await paginateBrewPages(pages, {

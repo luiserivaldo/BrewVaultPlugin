@@ -10,8 +10,8 @@ can also be opened using BrewVault's scroll icon in the ribbon.
 | Command | Effect |
 | --- | --- |
 | **Open preview** | Opens or reveals a live BrewVault preview of the active Markdown note. |
-| **Export current file as HTML** | Creates a self-contained `.brew.html` file using the selected theme. |
-| **Export current file as BrewVault PDF** | Creates a direct PDF on desktop, or uses the mobile PDF method from settings, with the selected theme. |
+| **Export current file as HTML** | Creates a self-contained `.brew.html` file using the note's [`bv_theme`](./properties.md) or else the selected theme. |
+| **Export current file as BrewVault PDF** | Creates a direct PDF on desktop, or uses the mobile PDF method from settings, with the note's [`bv_theme`](./properties.md) or else the selected theme. |
 | **Export current file as BrewVault PDF in PHB style** | Uses the Player's Handbook parchment theme. |
 | **Export current file as BrewVault PDF in DMG style** | Uses the Dungeon Master's Guide theme. |
 | **Export current file as BrewVault PDF in SRD style** | Uses the SRD / Unearthed Arcana theme. |
