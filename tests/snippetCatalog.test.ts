@@ -66,3 +66,33 @@ void test("the new-page snippet starts a second page", () => {
 	assert.ok(snippet);
 	assert.equal(renderBrewMarkdown(`Before\n\n${snippet.body}\nAfter`).length, 2);
 });
+
+void test("2024 templates carry their SRD 5.2.1 edition markers", () => {
+	const byId = new Map(SNIPPET_CATALOG.map((snippet) => [snippet.id, snippet]));
+	const expectations: Array<[string, RegExp[]]> = [
+		["monster-2024", [/\*\*AC\*\*/, /\*\*Initiative\*\* \+2 \(12\)/, /\| MOD \| SAVE \|/, /\(XP 200; PB \+2\)/, /### Bonus Actions/, /\*Melee Attack Roll:\*/]],
+		["spell-2024", [/\*Level 2 Abjuration \(Cleric, Wizard\)\*/, /:: Action\n/, /Using a Higher-Level Spell Slot/]],
+		["class-table-2024", [/\| {3}1 {3}\|/, /Epic Boon/, /Weapon Mastery \|/]],
+		["caster-class-table-2024", [/Prepared Spells/, /\| 20 \| \+6 \|/]],
+		["core-class-traits-2024", [/Hit Point Die/, /Armor Training/]],
+		["feat-2024", [/\*General Feat \(Prerequisite: Level 4\+\)\*/]],
+		["background-2024", [/\*\*Ability Scores:\*\*/, /\*\*Feat:\*\*/]],
+		["species-2024", [/\*\*Creature Type:\*\*/]],
+		["magic-item-2024", [/\*Wondrous Item, Uncommon \(Requires Attunement\)\*/]],
+	];
+	for (const [id, patterns] of expectations) {
+		const snippet = byId.get(id);
+		assert.ok(snippet, `missing snippet ${id}`);
+		assert.equal(snippet.group, "dnd2024", `${id} is not in the 2024 group`);
+		for (const pattern of patterns) assert.match(snippet.body, pattern, `${id} lacks ${pattern}`);
+	}
+});
+
+void test("2024 ability table renders inside the stat block", () => {
+	const snippet = SNIPPET_CATALOG.find((entry) => entry.id === "monster-2024");
+	assert.ok(snippet);
+	const html = render(snippet.body);
+	assert.match(html, /class="brewBlock monster brew-monster frame brew-frame"/);
+	assert.match(html, /<th[^>]*>MOD<\/th>/);
+	assert.match(html, /class="bonus brew-bonus"/);
+});

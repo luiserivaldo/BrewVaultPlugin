@@ -8,9 +8,13 @@
  * syntax that BrewVault's renderer and bundled theme CSS already support.
  * Snippets that need unsupported renderer features or remote assets are
  * tracked in MILESTONES.md (P7a) rather than shipped half-working.
+ *
+ * The "dnd2024" group holds 2024-edition variants. Their field order and
+ * labels follow the SRD 5.2.1 layouts recorded in docs/DND_BLOCK_FORMATS.md;
+ * names and prose are original placeholders, never copied rules text.
  */
 
-export type SnippetGroup = "text" | "phb" | "tables";
+export type SnippetGroup = "text" | "phb" | "tables" | "dnd2024";
 
 export interface BrewSnippet {
 	/** Stable identifier; never reuse an id for different content. */
@@ -28,6 +32,7 @@ export const SNIPPET_GROUP_LABELS: Readonly<Record<SnippetGroup, string>> = {
 	text: "Text editor",
 	phb: "PHB",
 	tables: "Tables",
+	dnd2024: "D&D 2024",
 };
 
 const MONSTER_BODY = (classes: string): string => `{{${classes}
@@ -81,6 +86,62 @@ const MARTIAL_CLASS_TABLE_BODY = (classes: string): string => `{{${classes}
 | 20th  |  +6  | Endless Road           | unlimited |
 }}
 `;
+
+const MONSTER_2024_BODY = (classes: string): string => `{{${classes}
+## Cave Lurker
+*Medium Monstrosity, Unaligned*
+___
+**AC**    :: 13 {{bonus **Initiative** +2 (12)}}
+**HP**    :: 27 (5d8 + 5)
+**Speed** :: 30 ft., Climb 30 ft.
+___
+|     |    | MOD | SAVE |     |    | MOD | SAVE |     |    | MOD | SAVE |
+|:----|:--:|:---:|:----:|:----|:--:|:---:|:----:|:----|:--:|:---:|:----:|
+| Str | 14 | +2  |  +2  | Dex | 15 | +2  |  +4  | Con | 12 | +1  |  +1  |
+| Int |  3 | −4  |  −4  | Wis | 12 | +1  |  +1  | Cha |  6 | −2  |  −2  |
+___
+**Skills**    :: Stealth +6
+**Senses**    :: Darkvision 60 ft.; Passive Perception 11
+**Languages** :: None
+**CR**        :: 1 (XP 200; PB +2)
+___
+### Traits
+***Spider Climb.*** The lurker can climb difficult surfaces, including along ceilings, without needing to make an ability check.
+:
+***Ambusher.*** The lurker has Advantage on attack rolls against any creature that hasn't taken a turn yet in the current combat.
+### Actions
+***Multiattack.*** The lurker makes two Bite attacks.
+:
+***Bite.*** *Melee Attack Roll:* +4, reach 5 ft. *Hit:* 6 (1d8 + 2) Piercing damage.
+:
+***Web Spray (Recharge 5–6).*** *Dexterity Saving Throw:* DC 12, one creature the lurker can see within 30 feet. *Failure:* The target has the Restrained condition until it escapes (escape DC 12). *Success:* Nothing happens.
+### Bonus Actions
+***Skitter.*** The lurker takes the Disengage action.
+}}
+`;
+
+const CASTER_SLOT_ROWS_2024 = [
+	"| 1  | +2 | Spellcasting, Arcane Focus     | 3 | 4  | 2 | — | — | — | — | — | — | — | — |",
+	"| 2  | +2 | Mystic Insight                 | 3 | 5  | 3 | — | — | — | — | — | — | — | — |",
+	"| 3  | +2 | Mystic Subclass                | 3 | 6  | 4 | 2 | — | — | — | — | — | — | — |",
+	"| 4  | +2 | Ability Score Improvement      | 4 | 7  | 4 | 3 | — | — | — | — | — | — | — |",
+	"| 5  | +3 | Recollection                   | 4 | 9  | 4 | 3 | 2 | — | — | — | — | — | — |",
+	"| 6  | +3 | Subclass Feature               | 4 | 10 | 4 | 3 | 3 | — | — | — | — | — | — |",
+	"| 7  | +3 | —                              | 4 | 11 | 4 | 3 | 3 | 1 | — | — | — | — | — |",
+	"| 8  | +3 | Ability Score Improvement      | 4 | 12 | 4 | 3 | 3 | 2 | — | — | — | — | — |",
+	"| 9  | +4 | —                              | 4 | 14 | 4 | 3 | 3 | 3 | 1 | — | — | — | — |",
+	"| 10 | +4 | Subclass Feature               | 5 | 15 | 4 | 3 | 3 | 3 | 2 | — | — | — | — |",
+	"| 11 | +4 | —                              | 5 | 16 | 4 | 3 | 3 | 3 | 2 | 1 | — | — | — |",
+	"| 12 | +4 | Ability Score Improvement      | 5 | 16 | 4 | 3 | 3 | 3 | 2 | 1 | — | — | — |",
+	"| 13 | +5 | —                              | 5 | 17 | 4 | 3 | 3 | 3 | 2 | 1 | 1 | — | — |",
+	"| 14 | +5 | Subclass Feature               | 5 | 18 | 4 | 3 | 3 | 3 | 2 | 1 | 1 | — | — |",
+	"| 15 | +5 | —                              | 5 | 19 | 4 | 3 | 3 | 3 | 2 | 1 | 1 | 1 | — |",
+	"| 16 | +5 | Ability Score Improvement      | 5 | 21 | 4 | 3 | 3 | 3 | 2 | 1 | 1 | 1 | — |",
+	"| 17 | +6 | —                              | 5 | 22 | 4 | 3 | 3 | 3 | 2 | 1 | 1 | 1 | 1 |",
+	"| 18 | +6 | Mind Unbound                   | 5 | 23 | 4 | 3 | 3 | 3 | 3 | 1 | 1 | 1 | 1 |",
+	"| 19 | +6 | Epic Boon                      | 5 | 24 | 4 | 3 | 3 | 3 | 3 | 2 | 1 | 1 | 1 |",
+	"| 20 | +6 | Mystic Apotheosis              | 5 | 25 | 4 | 3 | 3 | 3 | 3 | 2 | 2 | 1 | 1 |",
+].join("\n");
 
 export const SNIPPET_CATALOG: readonly BrewSnippet[] = [
 	// --- Text editor ---
@@ -270,5 +331,167 @@ of the last place you rested. Replace this text with the item's properties.
 		name: "Martial class table (unframed)",
 		icon: "table-2",
 		body: MARTIAL_CLASS_TABLE_BODY("classTable"),
+	},
+
+	// --- D&D 2024 (SRD 5.2.1 layouts; see docs/DND_BLOCK_FORMATS.md) ---
+	{
+		id: "monster-2024",
+		group: "dnd2024",
+		name: "Monster stat block",
+		icon: "bug",
+		body: MONSTER_2024_BODY("monster,frame"),
+	},
+	{
+		id: "monster-2024-wide",
+		group: "dnd2024",
+		name: "Wide monster stat block",
+		icon: "rectangle-horizontal",
+		body: MONSTER_2024_BODY("monster,frame,wide"),
+	},
+	{
+		id: "spell-2024",
+		group: "dnd2024",
+		name: "Spell",
+		icon: "wand-sparkles",
+		body: `#### Lantern Ward
+*Level 2 Abjuration (Cleric, Wizard)*
+
+**Casting Time:** :: Action
+**Range:**        :: Touch
+**Components:**   :: V, S, M (a pinch of candle ash)
+**Duration:**     :: Concentration, up to 10 minutes
+
+A pale lantern-light surrounds a willing creature you touch. Replace this
+text with the spell's effect, including any saving throw and its outcome.
+
+***Using a Higher-Level Spell Slot.*** The duration increases by 10 minutes
+for each spell slot level above 2.
+`,
+	},
+	{
+		id: "core-class-traits-2024",
+		group: "dnd2024",
+		name: "Core class traits",
+		icon: "shield",
+		body: `| Core Wayfarer Traits           |                                                   |
+|:-------------------------------|:--------------------------------------------------|
+| **Primary Ability**            | Dexterity and Wisdom                              |
+| **Hit Point Die**              | D10 per Wayfarer level                            |
+| **Saving Throw Proficiencies** | Strength and Dexterity                            |
+| **Skill Proficiencies**        | *Choose 2:* Athletics, Insight, Nature, Perception, Stealth, or Survival |
+| **Weapon Proficiencies**       | Simple and Martial weapons                        |
+| **Tool Proficiencies**         | Cartographer's Tools                              |
+| **Armor Training**             | Light and Medium armor and Shields                |
+| **Starting Equipment**         | *Choose A or B:* (A) Scale Mail, Longsword, Shield, 4 Javelins, Explorer's Pack, and 10 GP; or (B) 150 GP |
+`,
+	},
+	{
+		id: "class-table-2024",
+		group: "dnd2024",
+		name: "Martial class table",
+		icon: "table-properties",
+		body: `{{classTable,frame,decoration
+##### Wayfarer Features
+| Level | Proficiency Bonus | Class Features             | Trail Dice | Weapon Mastery |
+|:-----:|:-----------------:|:---------------------------|:----------:|:--------------:|
+|   1   |        +2         | Trailcraft, Weapon Mastery |     2      |       2        |
+|   2   |        +2         | Keen Eye, Quick Step       |     2      |       2        |
+|   3   |        +2         | Wayfarer Subclass          |     3      |       2        |
+|   4   |        +2         | Ability Score Improvement  |     3      |       3        |
+|   5   |        +3         | Extra Attack               |     3      |       3        |
+|   6   |        +3         | Subclass Feature           |     4      |       3        |
+|   7   |        +3         | Evasion                    |     4      |       3        |
+|   8   |        +3         | Ability Score Improvement  |     4      |       3        |
+|   9   |        +4         | Long Stride                |     4      |       3        |
+|  10   |        +4         | Subclass Feature           |     4      |       4        |
+|  11   |        +4         | Relentless                 |     4      |       4        |
+|  12   |        +4         | Ability Score Improvement  |     5      |       4        |
+|  13   |        +5         | Unerring Path              |     5      |       4        |
+|  14   |        +5         | Subclass Feature           |     5      |       4        |
+|  15   |        +5         | Tireless                   |     5      |       4        |
+|  16   |        +5         | Ability Score Improvement  |     5      |       4        |
+|  17   |        +6         | Master Wayfarer            |     6      |       4        |
+|  18   |        +6         | Subclass Feature           |     6      |       4        |
+|  19   |        +6         | Epic Boon                  |     6      |       4        |
+|  20   |        +6         | Endless Road               | unlimited  |       4        |
+}}
+`,
+	},
+	{
+		id: "caster-class-table-2024",
+		group: "dnd2024",
+		name: "Full caster class table",
+		icon: "sparkles",
+		body: `{{classTable,frame,decoration,wide
+##### Mystic Features
+| Level | Proficiency Bonus | Class Features | Cantrips | Prepared Spells | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+|:-----:|:-----------------:|:---------------|:--------:|:---------------:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+${CASTER_SLOT_ROWS_2024}
+}}
+`,
+	},
+	{
+		id: "feat-2024",
+		group: "dnd2024",
+		name: "Feat",
+		icon: "award",
+		body: `#### Trailblazer
+*General Feat (Prerequisite: Level 4+)*
+
+You gain the following benefits.
+
+***Ability Score Increase.*** Increase your Dexterity or Wisdom score by 1,
+to a maximum of 20.
+:
+***Pathfinder.*** Replace this text with the feat's first benefit.
+:
+***Quick Camp.*** Replace this text with the feat's second benefit.
+`,
+	},
+	{
+		id: "background-2024",
+		group: "dnd2024",
+		name: "Background",
+		icon: "scroll-text",
+		body: `#### Wayfinder
+**Ability Scores:**       :: Dexterity, Constitution, Wisdom
+**Feat:**                 :: Alert (see "Feats")
+**Skill Proficiencies:**  :: Nature and Survival
+**Tool Proficiency:**     :: Cartographer's Tools
+**Equipment:**            :: *Choose A or B:* (A) Cartographer's Tools, Traveler's Clothes, Bedroll, Lantern, 2 Pouches, and 16 GP; or (B) 50 GP
+
+Replace this text with a short description of the life this background
+represents.
+`,
+	},
+	{
+		id: "species-2024",
+		group: "dnd2024",
+		name: "Species",
+		icon: "users",
+		body: `#### Thornkin Traits
+**Creature Type:** :: Humanoid
+**Size:**          :: Small (about 3–4 feet tall) or Medium (about 4–6 feet tall), chosen when you select this species
+**Speed:**         :: 30 feet
+
+As a Thornkin, you have these special traits.
+
+***Barbed Hide.*** Replace this text with the species' first trait.
+:
+***Rooted.*** Replace this text with the species' second trait.
+`,
+	},
+	{
+		id: "magic-item-2024",
+		group: "dnd2024",
+		name: "Magic item",
+		icon: "gem",
+		body: `#### Compass of Second Chances
+*Wondrous Item, Uncommon (Requires Attunement)*
+:
+While attuned to this compass, you can take a Magic action to learn the
+direction of the last place you finished a Long Rest. Replace this text with
+the item's properties.
+`,
 	},
 ];

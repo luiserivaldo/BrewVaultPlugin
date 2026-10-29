@@ -78,6 +78,12 @@ features, quotes, notes, descriptive boxes, monster stat blocks, magic items,
 and standard, wide, and class tables. They need a note open in editing mode
 and work even when a sidebar has focus.
 
+The **D&D 2024** group adds 2024-edition layouts: monster stat blocks
+(Initiative, MOD/SAVE ability table, CR with XP and PB), spells, core class
+traits, martial and full-caster class tables, feats, backgrounds, species, and
+magic items. Their structure follows the SRD 5.2.1; every name and sentence in
+them is an original placeholder.
+
 The experimental plain-PDF command is separate from the existing styled desktop
 exporter and mobile browser handoff. Its layout is intentionally an
 approximation rather than CSS-identical Homebrewery output; the SRD-inspired
