@@ -43,8 +43,15 @@
 	--BV_DMG_Bar: #231f20;
 	--BV_DMG_Sidebar: #e2dae6;
 	--BV_DMG_TableStripe: #efe3cb;
+	--BV_DMG_TableRow: #f8f4ec;
 	--BV_DMG_BarTip: 7px;
 	--BV_DMG_BarStroke: 1.5px;
+}
+
+/* Every body row gets a fill so tables stand off the grey page, as in print;
+   the header row stays on the page background. */
+.brewvault-theme-dmg .page table tbody tr {
+	background-color: var(--BV_DMG_TableRow);
 }
 
 .brewvault-theme-dmg .page table tbody tr:nth-child(odd) {
