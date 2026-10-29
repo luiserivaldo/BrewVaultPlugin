@@ -21,7 +21,7 @@ const defaults: ExportOptions = {
 	showPageNumbers: true,
 	firstPageNumber: 1,
 	pageSize: "settings",
-	title: "Note",
+	fileName: "Note",
 	exportSubfolder: "",
 };
 
@@ -71,7 +71,7 @@ void test("each option resolves separately: command, then note, then settings", 
 		showPageNumbers: true,
 		firstPageNumber: 1,
 		pageSize: "settings",
-		title: "Note",
+		fileName: "Note",
 		exportSubfolder: "",
 	});
 	assert.deepEqual(resolved.sources, {
@@ -80,7 +80,7 @@ void test("each option resolves separately: command, then note, then settings", 
 		showPageNumbers: "settings",
 		firstPageNumber: "settings",
 		pageSize: "settings",
-		title: "settings",
+		fileName: "settings",
 		exportSubfolder: "settings",
 	});
 
@@ -92,7 +92,7 @@ void test("each option resolves separately: command, then note, then settings", 
 		showPageNumbers: "settings",
 		firstPageNumber: "settings",
 		pageSize: "settings",
-		title: "settings",
+		fileName: "settings",
 		exportSubfolder: "settings",
 	});
 });
@@ -190,10 +190,10 @@ void test("the printed page size follows the export page size", () => {
 	assert.match(html, /--brew-page-width: 794px;/);
 });
 
-void test("bv_title accepts text up to 200 characters; blank uses the note name", () => {
-	const title = (value: unknown) => parseNoteExportOptions({ bv_title: value }, context);
-	assert.equal(title("  Monsters of Llynwych ").options.title, "Monsters of Llynwych");
-	assert.equal(title("   ").options.title, undefined);
+void test("bv_file_name accepts text up to 200 characters; blank uses the note name", () => {
+	const title = (value: unknown) => parseNoteExportOptions({ bv_file_name: value }, context);
+	assert.equal(title("  Monsters of Llynwych ").options.fileName, "Monsters of Llynwych");
+	assert.equal(title("   ").options.fileName, undefined);
 	assert.equal(title("   ").invalid.length, 0);
 	assert.equal(title("x".repeat(201)).invalid.length, 1);
 });
@@ -248,7 +248,7 @@ void test("export options are described with readable values and sources", () =>
 			["bv_page_numbers", "Hidden", "Note property bv_page_numbers"],
 			["bv_page_start", "1", "Settings"],
 			["bv_page_size", "A4 (794 × 1123 px)", "Note property bv_page_size"],
-			["bv_title", "Note", "Settings"],
+			["bv_file_name", "Note", "Settings"],
 			["bv_export_folder", "BrewVault-Exports/Llynwych/Monsters", "Note property bv_export_folder"],
 		]
 	);

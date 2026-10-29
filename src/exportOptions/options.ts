@@ -17,8 +17,11 @@ export interface ExportOptions {
 	firstPageNumber: number;
 	/** Paper size; "settings" uses the page width and height from settings. */
 	pageSize: PageSizeChoice;
-	/** Document title and export file name; defaults to the note name. */
-	title: string;
+	/**
+	 * Export file name, also stored as the PDF/HTML document title metadata
+	 * (never printed on the page). Defaults to the note name.
+	 */
+	fileName: string;
 	/** Subfolder of the export folder; empty means the export folder itself. */
 	exportSubfolder: string;
 }
@@ -55,7 +58,7 @@ export const EXPORT_OPTION_KEYS: readonly ExportOptionKey[] = [
 	"showPageNumbers",
 	"firstPageNumber",
 	"pageSize",
-	"title",
+	"fileName",
 	"exportSubfolder",
 ];
 
@@ -65,7 +68,7 @@ export const EXPORT_OPTION_PROPERTIES: Readonly<Record<ExportOptionKey, string>>
 	showPageNumbers: "bv_page_numbers",
 	firstPageNumber: "bv_page_start",
 	pageSize: "bv_page_size",
-	title: "bv_title",
+	fileName: "bv_file_name",
 	exportSubfolder: "bv_export_folder",
 };
 
@@ -75,7 +78,7 @@ export const EXPORT_OPTION_LABELS: Readonly<Record<ExportOptionKey, string>> = {
 	showPageNumbers: "Page numbers",
 	firstPageNumber: "First page number",
 	pageSize: "Page size",
-	title: "Title",
+	fileName: "File name",
 	exportSubfolder: "Export subfolder",
 };
 
@@ -133,12 +136,12 @@ const EXPORT_OPTION_PARSERS: OptionParsers = {
 		}
 		return invalid(value);
 	},
-	title: (value) => {
+	fileName: (value) => {
 		if (value === undefined || value === null) return NONE;
 		if (typeof value === "string" || typeof value === "number") {
-			const title = String(value).trim();
-			if (!title) return NONE;
-			if (title.length <= MAX_TITLE_LENGTH) return { kind: "value", value: title };
+			const fileName = String(value).trim();
+			if (!fileName) return NONE;
+			if (fileName.length <= MAX_FILE_NAME_LENGTH) return { kind: "value", value: fileName };
 		}
 		return invalid(value);
 	},
@@ -168,7 +171,7 @@ export function normalizeExportSubfolder(value: string): string | null {
 	return isSafe ? segments.join("/") : null;
 }
 
-const MAX_TITLE_LENGTH = 200;
+const MAX_FILE_NAME_LENGTH = 200;
 const MAX_PAGE_NUMBER = 9999;
 
 const PAGE_SIZE_ALIASES: Readonly<Record<string, PageSizePreset>> = {

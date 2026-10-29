@@ -54,7 +54,7 @@ import { ExportOptionsModal } from "./ui/ExportOptionsModal";
 interface RenderedExportDocument {
 	readonly html: string;
 	readonly options: ExportOptions;
-	/** Safe export file name derived from the title. */
+	/** Safe export file name derived from `bv_file_name` or the note name. */
 	readonly basename: string;
 	readonly pageWidthPx: number;
 	readonly pageHeightPx: number;
@@ -363,7 +363,7 @@ export default class BrewVaultPlugin extends Plugin {
 			showPageNumbers: true,
 			firstPageNumber: 1,
 			pageSize: "settings",
-			title: file.basename,
+			fileName: file.basename,
 			exportSubfolder: "",
 		};
 	}
@@ -401,12 +401,12 @@ export default class BrewVaultPlugin extends Plugin {
 			pages,
 			options.theme,
 			this.getThemeCss(options.theme),
-			options.title,
+			options.fileName,
 			pageWidthPx,
 			pageHeightPx,
 			options
 		);
-		const basename = toExportBasename(options.title, file.basename);
+		const basename = toExportBasename(options.fileName, file.basename);
 		return { html, options, basename, pageWidthPx, pageHeightPx };
 	}
 

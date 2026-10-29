@@ -17,7 +17,7 @@ properties or your note.
 | [`bv_page_numbers`](#bv_page_numbers-show-or-hide-page-numbers) | Shows or hides page numbers. |
 | [`bv_page_start`](#bv_page_start-first-page-number) | Sets the number printed on the first page. |
 | [`bv_page_size`](#bv_page_size-letter-or-a4) | Uses US Letter or A4 paper. |
-| [`bv_title`](#bv_title-document-title-and-file-name) | Sets the document title and export file name. |
+| [`bv_file_name`](#bv_file_name-export-file-name) | Sets the export file name. |
 | [`bv_export_folder`](#bv_export_folder-export-subfolder) | Saves exports in a subfolder of the export folder. |
 | [`bv_edition`](#bv_edition-rules-edition-for-inserted-blocks) | Picks 2014 or 2024 blocks for **Insert block…** in this note. |
 
@@ -153,22 +153,24 @@ Without `bv_page_size`, notes use **Page width** and **Page height** from
 [settings](./settings.md). Homebrewery themes are designed for Letter, so A4
 pages are slightly narrower and taller and may break in different places.
 
-## `bv_title`: document title and file name
+## `bv_file_name`: export file name
 
-By default an export is named after the note. `bv_title` sets a different
-title for the PDF or HTML document and its file name:
+By default an export is named after the note. `bv_file_name` names it
+something else:
 
 ```yaml
 ---
-bv_title: "Llynwych: Monsters of the Everwoods"
+bv_file_name: "Llynwych: Monsters of the Everwoods"
 ---
 ```
 
 - Up to 200 characters. An empty value uses the note name.
+- Nothing is printed on the page. The name is also stored as the PDF's
+  document title, which PDF viewers show in their title bar.
 - Characters that file systems reject (`\ / : * ? " < > |`, plus `# ^ [ ]`)
-  become hyphens in the file name only. The document title keeps them, so
-  the example above saves as `Llynwych- Monsters of the Everwoods.pdf`.
-- Quote titles that contain a colon, as in the example, or YAML reads them
+  become hyphens in the file name. The document title keeps them, so the
+  example above saves as `Llynwych- Monsters of the Everwoods.pdf`.
+- Quote names that contain a colon, as in the example, or YAML reads them
   incorrectly.
 - If a file with that name exists, BrewVault adds `_1`, `_2`, and so on.
 

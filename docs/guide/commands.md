@@ -73,5 +73,5 @@ HTML exports use the same policy with names such as `Alchemist.brew.html` and
 Mobile direct PDFs use the same names. Mobile browser handoff saves a
 `.brew.html` file instead; see [Mobile support](./mobile.md).
 
-A note's [`bv_title`](./properties.md#bv_title-document-title-and-file-name)
+A note's [`bv_file_name`](./properties.md#bv_file_name-export-file-name)
 property replaces the note name in these file names.

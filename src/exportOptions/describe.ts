@@ -78,8 +78,8 @@ function describeValue(
 			const name = PAGE_SIZE_NAMES[values.pageSize];
 			return `${name} (${pageWidthPx} × ${pageHeightPx} px)`;
 		}
-		case "title":
-			return values.title;
+		case "fileName":
+			return values.fileName;
 		case "exportSubfolder":
 			return values.exportSubfolder
 				? `${context.exportFolder}/${values.exportSubfolder}`

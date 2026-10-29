@@ -18,7 +18,7 @@ export function allocateExportPath(
 }
 
 /**
- * Turns a document title into a safe export file name. Characters that
+ * Turns a `bv_file_name` value into a safe export file name. Characters that
  * Windows, macOS, Android, or Obsidian links reject become hyphens; the
  * fallback is used when nothing printable remains.
  */
