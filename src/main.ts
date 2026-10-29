@@ -32,9 +32,7 @@ import {
 	findCustomStyle,
 	type CustomStyleDefinition,
 } from "./themes/customStyles";
-import { exportBasicPdf } from "./commands/exportBasicPdf";
 import { registerInsertSnippetCommands } from "./commands/insertSnippet";
-import type { BasicPdfExporterContract } from "./export/basicPdf/types";
 
 // The community reviewer analyzes source without running BrewVault's esbuild
 // virtual-module loader. Narrow through `unknown` so both that environment and
@@ -48,10 +46,7 @@ const BUNDLED_THEME_CSS: string = uncheckedThemeCss;
 export default class BrewVaultPlugin extends Plugin {
 	settings: BrewVaultSettings = DEFAULT_SETTINGS;
 	private exportBackendProvider: ExportBackendProvider | null = null;
-	private basicPdfExporter: BasicPdfExporterContract | null = null;
-	private basicPdfExporterLoad: Promise<BasicPdfExporterContract> | null = null;
 	private customStyleSheet: CSSStyleSheet | null = null;
-	private unloaded = false;
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
@@ -119,19 +114,6 @@ export default class BrewVaultPlugin extends Plugin {
 			"Export current file as BrewVault PDF in Blank style",
 			"blank"
 		);
-
-		this.addCommand({
-			id: "export-current-file-as-plain-pdf-experimental",
-			name: "Export current file as plain PDF (experimental)",
-			checkCallback: (checking) => {
-				const file = this.app.workspace.getActiveFile();
-				const canRun = file instanceof TFile && file.extension === "md";
-				if (canRun && !checking) {
-					void this.exportFileAsPlainPdf(file);
-				}
-				return canRun;
-			},
-		});
 	}
 
 	private addPdfExportCommand(id: string, name: string, theme?: BrewTheme): void {
@@ -245,43 +227,9 @@ export default class BrewVaultPlugin extends Plugin {
 		}
 	}
 
-	async exportFileAsPlainPdf(file: TFile): Promise<void> {
-		await this.exportExperimentalPdf(file, "srd", "plain", "plain");
-	}
-
-	private async exportExperimentalPdf(
-		file: TFile,
-		profile: "basic" | "srd",
-		profileLabel: string,
-		fileSuffix: string
-	): Promise<void> {
-		try {
-			const report = await exportBasicPdf(file, {
-				vault: this.app.vault,
-				metadataCache: this.app.metadataCache,
-				ensureExportFolder: () => this.ensureExportFolder(),
-				allocateExportPath: (folder, basename, suffix) =>
-					this.allocateExportPath(folder, basename, suffix),
-				loadExporter: () => this.getBasicPdfExporter(),
-				canWriteResult: () => !this.unloaded,
-			}, profile, fileSuffix);
-			new Notice(
-				`Exported experimental ${profileLabel} PDF to ${report.outPath} ` +
-					`(${formatMegabytes(report.byteLength)} MB in ${formatSeconds(report.elapsedMs)} s)`
-			);
-		} catch (err) {
-			console.error("BrewVault experimental PDF export failed", err);
-			new Notice("BrewVault experimental PDF export failed — see console for details.");
-		}
-	}
-
 	onunload(): void {
-		this.unloaded = true;
 		this.exportBackendProvider?.dispose();
 		this.exportBackendProvider = null;
-		this.basicPdfExporter?.dispose();
-		this.basicPdfExporter = null;
-		this.basicPdfExporterLoad = null;
 	}
 
 	private getExportBackendProvider(): ExportBackendProvider {
@@ -289,25 +237,6 @@ export default class BrewVaultPlugin extends Plugin {
 			throw new Error("BrewVault export backends have not been initialized.");
 		}
 		return this.exportBackendProvider;
-	}
-
-	private async getBasicPdfExporter(): Promise<BasicPdfExporterContract> {
-		if (this.unloaded) {
-			throw new Error("BrewVault is unavailable after plugin unload.");
-		}
-		if (this.basicPdfExporter) return this.basicPdfExporter;
-
-		this.basicPdfExporterLoad ??= import(
-			"./export/basicPdf/BasicPdfExporter"
-		).then(({ createBasicPdfExporter }) => createBasicPdfExporter());
-
-		const exporter = await this.basicPdfExporterLoad;
-		if (this.unloaded) {
-			exporter.dispose();
-			throw new Error("BrewVault unloaded while loading the basic PDF exporter.");
-		}
-		this.basicPdfExporter = exporter;
-		return exporter;
 	}
 
 	async loadSettings(): Promise<void> {
@@ -456,12 +385,4 @@ export default class BrewVaultPlugin extends Plugin {
 		await this.app.workspace.revealLeaf(leaf);
 		return leaf.view as HomebreweryView;
 	}
-}
-
-function formatMegabytes(byteLength: number): string {
-	return (byteLength / (1024 * 1024)).toFixed(1);
-}
-
-function formatSeconds(elapsedMs: number): string {
-	return (elapsedMs / 1000).toFixed(1);
 }

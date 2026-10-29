@@ -65,7 +65,6 @@ can also be opened using BrewVault's scroll icon in the ribbon.
 | **Export current file as BrewVault PDF in DMG style** | Uses the Dungeon Master's Guide theme for direct desktop PDF or mobile browser handoff. |
 | **Export current file as BrewVault PDF in SRD style** | Uses the SRD / Unearthed Arcana theme for direct desktop PDF or mobile browser handoff. |
 | **Export current file as BrewVault PDF in Blank style** | Uses the plain Blank theme for direct desktop PDF or mobile browser handoff. |
-| **Export current file as plain PDF (experimental)** | Creates a direct, searchable, two-column SRD / Unearthed Arcana-inspired Letter PDF through BrewVault's plugin-only PDF backend. |
 
 | **Insert block…** | Opens a searchable picker of Homebrewery-style blocks in the default edition. |
 | **Insert 2014 block…** / **Insert 2024 block…** | Opens the picker for one edition, regardless of the default. |
@@ -88,23 +87,10 @@ non-edition commands insert. The 2024 layouts follow the SRD 5.2.1 (Initiative,
 MOD/SAVE ability table, CR with XP and PB, core class traits); every name and
 sentence in either edition is an original placeholder.
 
-The experimental plain-PDF command is separate from the existing styled desktop
-exporter and mobile browser handoff. Its layout is intentionally an
-approximation rather than CSS-identical Homebrewery output; the SRD-inspired
-profile is the current multicolumn styling proof of concept.
-
-The experimental plain-PDF exporter is a proof of concept for direct mobile PDF
-generation. It preserves standard Markdown headings, emphasis, lists,
-blockquotes, links, tables, and supported embedded PNG/JPEG images, but it does
-not reproduce Homebrewery themes, page furniture, or explicit layout
-directives. Its files use names such as `Alchemist.plain.pdf` so they cannot be
-confused with styled BrewVault PDFs.
-
 On mobile, the existing styled PDF commands first save a collision-safe
 `.brew.html` artifact in the configured export folder. BrewVault then opens a
 dialog where **Open in Browser** asks Android to open the saved file with its
-default application. In the browser, use **Share → Print → Save as PDF**. The
-experimental plain-PDF command writes its PDF directly instead.
+default application. In the browser, use **Share → Print → Save as PDF**.
 
 Desktop exports are written directly to the configured folder without opening
 a print or save dialog. For a note named `Alchemist.md`, BrewVault creates:

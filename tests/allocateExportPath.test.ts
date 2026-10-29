@@ -33,7 +33,7 @@ void test("places the copy number before the complete HTML export suffix", () =>
 	);
 });
 
-void test("keeps experimental basic PDFs distinct from styled PDFs", () => {
+void test("numbers collisions after a dotted basename", () => {
 	const existing = new Set(["Exports/Introduction.basic.pdf"]);
 	assert.equal(
 		allocateExportPath("Exports", "Introduction.basic", ".pdf", (path) =>
