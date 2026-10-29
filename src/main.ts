@@ -35,13 +35,24 @@ import {
 } from "./themes/customStyles";
 import { registerInsertSnippetCommands } from "./commands/insertSnippet";
 import { readNoteFrontmatter } from "./obsidian/readNoteFrontmatter";
-import type { ExportOptions, PartialExportOptions } from "./exportOptions/options";
+import {
+	pageDimensions,
+	type ExportOptions,
+	type PartialExportOptions,
+} from "./exportOptions/options";
 import {
 	formatInvalidPropertiesMessage,
 	parseNoteExportOptions,
 	type InvalidNoteProperty,
 } from "./exportOptions/noteProperties";
 import { resolveExportOptions, type ResolvedExportOptions } from "./exportOptions/resolve";
+
+interface RenderedExportDocument {
+	readonly html: string;
+	readonly options: ExportOptions;
+	readonly pageWidthPx: number;
+	readonly pageHeightPx: number;
+}
 
 /** Persistent notice shown only while a backend renders pages one by one. */
 class ExportProgressNotice {
@@ -212,7 +223,9 @@ export default class BrewVaultPlugin extends Plugin {
 	): Promise<void> {
 		try {
 			const backend = await this.getExportBackendProvider().getBackend();
-			const { html } = await this.renderExportDocument(file, { theme: themeOverride });
+			const { html, pageWidthPx, pageHeightPx } = await this.renderExportDocument(file, {
+				theme: themeOverride,
+			});
 			const exportFolder = await this.ensureExportFolder();
 
 			const progress = new ExportProgressNotice();
@@ -221,8 +234,8 @@ export default class BrewVaultPlugin extends Plugin {
 				result = await backend.export({
 					html,
 					basename: file.basename,
-					pageWidthPx: this.settings.pageWidthPx,
-					pageHeightPx: this.settings.pageHeightPx,
+					pageWidthPx,
+					pageHeightPx,
 					mobilePdfMethod,
 					onProgress: (rendered, total) => progress.update(rendered, total),
 				});
@@ -282,6 +295,7 @@ export default class BrewVaultPlugin extends Plugin {
 			footer: "",
 			showPageNumbers: true,
 			firstPageNumber: 1,
+			pageSize: "settings",
 		};
 	}
 
@@ -293,7 +307,7 @@ export default class BrewVaultPlugin extends Plugin {
 	private async renderExportDocument(
 		file: TFile,
 		command?: PartialExportOptions
-	): Promise<{ html: string; options: ExportOptions }> {
+	): Promise<RenderedExportDocument> {
 		const { resolved, invalid } = this.resolveNoteExportOptions(file, command);
 		if (invalid.length > 0) new Notice(formatInvalidPropertiesMessage(file.basename, invalid));
 		const options = resolved.values;
@@ -308,18 +322,22 @@ export default class BrewVaultPlugin extends Plugin {
 		const renderedPages = renderBrewMarkdown(source, {
 			imageEmbeds: resolvedImages.imageEmbeds,
 		});
-		const pages = await this.paginateWithTheme(renderedPages, options.theme);
+		const { pageWidthPx, pageHeightPx } = pageDimensions(options.pageSize, this.settings);
+		const pages = await this.paginateWithTheme(renderedPages, options.theme, {
+			pageWidthPx,
+			pageHeightPx,
+		});
 
 		const html = buildStandaloneHtml(
 			pages,
 			options.theme,
 			this.getThemeCss(options.theme),
 			file.basename,
-			this.settings.pageWidthPx,
-			this.settings.pageHeightPx,
+			pageWidthPx,
+			pageHeightPx,
 			options
 		);
-		return { html, options };
+		return { html, options, pageWidthPx, pageHeightPx };
 	}
 
 	onunload(): void {
@@ -446,14 +464,18 @@ export default class BrewVaultPlugin extends Plugin {
 		this.customStyleSheet?.replaceSync(this.getCustomCssForTheme(theme));
 	}
 
-	private async paginateWithTheme(pages: BrewPage[], theme: BrewTheme): Promise<BrewPage[]> {
+	private async paginateWithTheme(
+		pages: BrewPage[],
+		theme: BrewTheme,
+		size: { pageWidthPx: number; pageHeightPx: number }
+	): Promise<BrewPage[]> {
 		const selectedTheme = this.customStyleSheetTheme;
 		this.syncCustomStyleSheet(theme);
 		try {
 			return await paginateBrewPages(pages, {
 				theme,
-				pageWidthPx: this.settings.pageWidthPx,
-				pageHeightPx: this.settings.pageHeightPx,
+				pageWidthPx: size.pageWidthPx,
+				pageHeightPx: size.pageHeightPx,
 			});
 		} finally {
 			this.syncCustomStyleSheet(selectedTheme);

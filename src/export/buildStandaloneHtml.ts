@@ -93,12 +93,12 @@ body {
 	cursor: pointer;
 }
 ${themeCss}
-/* .brewPage is a complete Letter sheet. Its own padding is the document
-   margin, so printer margins must remain zero or the browser scales and
-   repaginates the fixed-size sheet. */
-@page { size: Letter portrait; margin: 0; }
+/* .brewPage is one complete sheet. Its own padding is the document margin,
+   so printer margins must remain zero or the browser scales and repaginates
+   the fixed-size sheet. */
+@page { size: ${pageWidthPx}px ${pageHeightPx}px; margin: 0; }
 @media print {
-	html, body { width: 8.5in; margin: 0; padding: 0; }
+	html, body { width: ${pageWidthPx}px; margin: 0; padding: 0; }
 	body { display: block; background: none; padding: 0; gap: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 	.brewvault-export-controls { display: none !important; }
 	.brewvault-pages { display: block; }

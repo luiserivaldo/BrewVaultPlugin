@@ -5,7 +5,7 @@ import {
 	parseNoteExportOptions,
 } from "../src/exportOptions/noteProperties";
 import { resolveExportOptions } from "../src/exportOptions/resolve";
-import type { ExportOptions } from "../src/exportOptions/options";
+import { pageDimensions, type ExportOptions } from "../src/exportOptions/options";
 import { buildStandaloneHtml } from "../src/export/buildStandaloneHtml";
 
 const context = { customStyles: [] };
@@ -14,6 +14,7 @@ const defaults: ExportOptions = {
 	footer: "",
 	showPageNumbers: true,
 	firstPageNumber: 1,
+	pageSize: "settings",
 };
 
 void test("notes without BrewVault properties set no options", () => {
@@ -61,12 +62,14 @@ void test("each option resolves separately: command, then note, then settings", 
 		footer: "Everfrost",
 		showPageNumbers: true,
 		firstPageNumber: 1,
+		pageSize: "settings",
 	});
 	assert.deepEqual(resolved.sources, {
 		theme: "command",
 		footer: "note",
 		showPageNumbers: "settings",
 		firstPageNumber: "settings",
+		pageSize: "settings",
 	});
 
 	const fallback = resolveExportOptions({ command: { theme: undefined }, note: {}, defaults });
@@ -76,6 +79,7 @@ void test("each option resolves separately: command, then note, then settings", 
 		footer: "settings",
 		showPageNumbers: "settings",
 		firstPageNumber: "settings",
+		pageSize: "settings",
 	});
 });
 
@@ -149,4 +153,25 @@ void test("page numbers count up from the first page number", () => {
 		[...html.matchAll(/class="pageNumber brewPageNumber">(\d+)</g)].map((m) => m[1]),
 		["7", "8"]
 	);
+});
+
+void test("bv_page_size accepts letter and a4, ignoring case", () => {
+	const size = (value: unknown) => parseNoteExportOptions({ bv_page_size: value }, context);
+	assert.equal(size("A4").options.pageSize, "a4");
+	assert.equal(size("US Letter").options.pageSize, "letter");
+	assert.deepEqual(size("legal").invalid, [{ property: "bv_page_size", value: "legal" }]);
+});
+
+void test("page size presets override the settings size", () => {
+	const settings = { pageWidthPx: 900, pageHeightPx: 1200 };
+	assert.deepEqual(pageDimensions("settings", settings), settings);
+	assert.deepEqual(pageDimensions("letter", settings), { pageWidthPx: 816, pageHeightPx: 1056 });
+	assert.deepEqual(pageDimensions("a4", settings), { pageWidthPx: 794, pageHeightPx: 1123 });
+});
+
+void test("the printed page size follows the export page size", () => {
+	const html = buildStandaloneHtml([{ html: "<p>A4</p>", index: 1 }], "phb", "", "Doc", 794, 1123);
+	assert.match(html, /@page \{ size: 794px 1123px; margin: 0; \}/);
+	assert.match(html, /html, body \{ width: 794px;/);
+	assert.match(html, /--brew-page-width: 794px;/);
 });

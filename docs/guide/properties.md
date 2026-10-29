@@ -16,6 +16,7 @@ properties or your note.
 | [`bv_footer`](#bv_footer-running-footer) | Available | Prints a running footer on every page. |
 | [`bv_page_numbers`](#bv_page_numbers-show-or-hide-page-numbers) | Available | Shows or hides page numbers. |
 | [`bv_page_start`](#bv_page_start-first-page-number) | Available | Sets the number printed on the first page. |
+| [`bv_page_size`](#bv_page_size-letter-or-a4) | Available | Uses US Letter or A4 paper. |
 | [`bv_book`](#bv_book-combine-notes-into-one-pdf-planned) | Planned, not available yet | Turns a note into a book that combines many notes into one PDF. |
 
 ## `bv_theme`: theme for one note
@@ -122,6 +123,25 @@ bv_page_start: 23
 - PHB, DMG, and Blank put page numbers on the right of the first page and
   alternate from there. Start chapters on odd numbers so every number lands
   on the side a printed book would use.
+
+## `bv_page_size`: Letter or A4
+
+Uses a standard paper size for this note, in the preview and in exports:
+
+```yaml
+---
+bv_page_size: a4
+---
+```
+
+| Value | Size |
+| --- | --- |
+| `letter` or `US Letter` | 8.5 × 11 in (816 × 1056 px) |
+| `a4` | 210 × 297 mm (794 × 1123 px) |
+
+Without `bv_page_size`, notes use **Page width** and **Page height** from
+[settings](./settings.md). Homebrewery themes are designed for Letter, so A4
+pages are slightly narrower and taller and may break in different places.
 
 ## `bv_book`: combine notes into one PDF (planned)
 

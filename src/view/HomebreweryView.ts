@@ -1,5 +1,5 @@
 import { ItemView, Notice, TFile, WorkspaceLeaf } from "obsidian";
-import type { ExportOptions } from "../exportOptions/options";
+import { pageDimensions, type ExportOptions } from "../exportOptions/options";
 import { formatInvalidPropertiesMessage } from "../exportOptions/noteProperties";
 import { pageFooterText, pageNumberText } from "../export/pageFurniture";
 import { renderBrewMarkdown } from "../renderer";
@@ -21,10 +21,13 @@ export class HomebreweryView extends ItemView {
 	private viewportObserver: ResizeObserver | null = null;
 	private imageDependencyPaths = new Set<string>();
 	private lastOptionWarningKey: string | null = null;
+	/** Page size of the note currently shown; set on every render. */
+	private pageSize: { pageWidthPx: number; pageHeightPx: number };
 
 	constructor(leaf: WorkspaceLeaf, plugin: BrewVaultPlugin) {
 		super(leaf);
 		this.plugin = plugin;
+		this.pageSize = pageDimensions("settings", plugin.settings);
 	}
 
 	getViewType(): string {
@@ -133,8 +136,9 @@ export class HomebreweryView extends ItemView {
 		const renderedPages = renderBrewMarkdown(source, {
 			imageEmbeds: resolvedImages.imageEmbeds,
 		});
-		const { pageWidthPx, pageHeightPx } = this.plugin.settings;
 		const options = this.resolvePreviewOptions(this.trackedFile);
+		this.pageSize = pageDimensions(options.pageSize, this.plugin.settings);
+		const { pageWidthPx, pageHeightPx } = this.pageSize;
 		const { theme } = options;
 		this.plugin.syncCustomStyleSheet(theme);
 		const pages = await paginateBrewPages(renderedPages, {
@@ -195,7 +199,7 @@ export class HomebreweryView extends ItemView {
 
 	private updateViewportLayout(): void {
 		if (!this.rootEl || !this.pagesContainer) return;
-		const { pageWidthPx } = this.plugin.settings;
+		const { pageWidthPx } = this.pageSize;
 		const isPortrait = this.rootEl.clientWidth <= this.rootEl.clientHeight;
 		const isCompact = this.rootEl.clientWidth < pageWidthPx + 48;
 		this.rootEl.toggleClass("brewvault-preview-is-compact", isCompact);
@@ -215,7 +219,7 @@ export class HomebreweryView extends ItemView {
 	}
 
 	private applyViewportLayout(availableWidth: number, availableHeight: number): void {
-		const { pageWidthPx, pageHeightPx } = this.plugin.settings;
+		const { pageWidthPx, pageHeightPx } = this.pageSize;
 		const layout = calculatePreviewViewportLayout(
 			availableWidth,
 			availableHeight,

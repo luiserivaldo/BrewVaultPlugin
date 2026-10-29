@@ -15,6 +15,31 @@ export interface ExportOptions {
 	showPageNumbers: boolean;
 	/** Number printed on the first page. */
 	firstPageNumber: number;
+	/** Paper size; "settings" uses the page width and height from settings. */
+	pageSize: PageSizeChoice;
+}
+
+export type PageSizePreset = "letter" | "a4";
+export type PageSizeChoice = PageSizePreset | "settings";
+
+/** Page sizes in CSS pixels at 96 dpi. */
+export const PAGE_SIZE_PRESETS: Readonly<
+	Record<PageSizePreset, { readonly widthPx: number; readonly heightPx: number }>
+> = {
+	letter: { widthPx: 816, heightPx: 1056 },
+	a4: { widthPx: 794, heightPx: 1123 },
+};
+
+/** Page dimensions for a size choice, falling back to the settings size. */
+export function pageDimensions(
+	choice: PageSizeChoice,
+	settingsSize: { readonly pageWidthPx: number; readonly pageHeightPx: number }
+): { pageWidthPx: number; pageHeightPx: number } {
+	if (choice === "settings") {
+		return { pageWidthPx: settingsSize.pageWidthPx, pageHeightPx: settingsSize.pageHeightPx };
+	}
+	const preset = PAGE_SIZE_PRESETS[choice];
+	return { pageWidthPx: preset.widthPx, pageHeightPx: preset.heightPx };
 }
 
 export type ExportOptionKey = keyof ExportOptions;
@@ -25,6 +50,7 @@ export const EXPORT_OPTION_KEYS: readonly ExportOptionKey[] = [
 	"footer",
 	"showPageNumbers",
 	"firstPageNumber",
+	"pageSize",
 ];
 
 export const EXPORT_OPTION_PROPERTIES: Readonly<Record<ExportOptionKey, string>> = {
@@ -32,6 +58,7 @@ export const EXPORT_OPTION_PROPERTIES: Readonly<Record<ExportOptionKey, string>>
 	footer: "bv_footer",
 	showPageNumbers: "bv_page_numbers",
 	firstPageNumber: "bv_page_start",
+	pageSize: "bv_page_size",
 };
 
 export const EXPORT_OPTION_LABELS: Readonly<Record<ExportOptionKey, string>> = {
@@ -39,6 +66,7 @@ export const EXPORT_OPTION_LABELS: Readonly<Record<ExportOptionKey, string>> = {
 	footer: "Footer",
 	showPageNumbers: "Page numbers",
 	firstPageNumber: "First page number",
+	pageSize: "Page size",
 };
 
 export type OptionParseResult<T> =
@@ -87,9 +115,23 @@ const EXPORT_OPTION_PARSERS: OptionParsers = {
 		}
 		return invalid(value);
 	},
+	pageSize: (value) => {
+		if (value === undefined || value === null) return NONE;
+		if (typeof value === "string") {
+			const size = PAGE_SIZE_ALIASES[value.trim().toLowerCase()];
+			if (size) return { kind: "value", value: size };
+		}
+		return invalid(value);
+	},
 };
 
 const MAX_PAGE_NUMBER = 9999;
+
+const PAGE_SIZE_ALIASES: Readonly<Record<string, PageSizePreset>> = {
+	letter: "letter",
+	"us letter": "letter",
+	a4: "a4",
+};
 
 const BOOLEAN_WORDS: Readonly<Record<string, boolean>> = {
 	true: true,
