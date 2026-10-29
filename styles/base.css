@@ -146,6 +146,21 @@
 .brewBlank-3 { height: 3em; }
 .brewBlank-4 { height: 4em; }
 
+/* Obsidian's app stylesheet restyles every <hr> with large margins and a
+   thick theme-coloured rule. The preview lives inside Obsidian, and so does
+   page-break measurement for every export, so those margins made SRD and
+   Blank stat blocks gappy in the preview and threw off pagination in
+   exports. Pin dividers to the browser default that Homebrewery's themes
+   assume; PHB and DMG stat-block dividers have more specific rules and
+   still win. */
+.brewvault-pages .brewPage hr {
+	height: 0;
+	margin: .5em 0;
+	border: 0;
+	border-top: 1px solid #9c9c9c;
+	background: none;
+}
+
 /* Generic {{block}} container: themes may further style specific
    brew-<className> classes (e.g. brew-note, brew-classTable). */
 .brewBlock {
