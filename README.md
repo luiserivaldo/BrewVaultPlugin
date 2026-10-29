@@ -37,7 +37,7 @@ may vary.
 
 ## Installation
 
-BrewVault 0.4.3 supports desktop and mobile Obsidian `1.7.2` or newer.
+BrewVault 0.5.0 supports desktop and mobile Obsidian `1.7.2` or newer.
 
 1. Download or obtain `manifest.json`, `main.js`, and `styles.css` from the
    BrewVault release package.
@@ -68,7 +68,7 @@ can also be opened using BrewVault's scroll icon in the ribbon.
 | **Export current file as plain PDF (experimental)** | Creates a direct, searchable, two-column SRD / Unearthed Arcana-inspired Letter PDF through BrewVault's plugin-only PDF backend. |
 
 | **Insert block…** | Opens a searchable picker of Homebrewery-style blocks to insert at the cursor. |
-| **Insert *Group*: *Block*** | Inserts one block directly, for example **Insert PHB: Monster (framed)**. Each block is its own command, so it can be given a hotkey. |
+| **Insert *Group*: *Block*** | Inserts one block directly, for example **Insert PHB: Monster stat block**. Each block is its own command, so it can be given a hotkey. |
 
 Theme-specific PDF functions do not change the saved preview theme.
 
