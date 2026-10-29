@@ -1,4 +1,6 @@
-import { ItemView, TFile, WorkspaceLeaf } from "obsidian";
+import { ItemView, Notice, TFile, WorkspaceLeaf } from "obsidian";
+import type { BrewTheme } from "../settings/types";
+import { chooseExportTheme, formatInvalidNoteThemeMessage } from "../themes/noteTheme";
 import { renderBrewMarkdown } from "../renderer";
 import { paginateBrewPages } from "../renderer/paginateDom";
 import type BrewVaultPlugin from "../main";
@@ -17,6 +19,7 @@ export class HomebreweryView extends ItemView {
 	private debounceHandle: number | null = null;
 	private viewportObserver: ResizeObserver | null = null;
 	private imageDependencyPaths = new Set<string>();
+	private lastThemeWarningKey: string | null = null;
 
 	constructor(leaf: WorkspaceLeaf, plugin: BrewVaultPlugin) {
 		super(leaf);
@@ -53,6 +56,13 @@ export class HomebreweryView extends ItemView {
 				) {
 					this.scheduleRender();
 				}
+			})
+		);
+
+		// Frontmatter (and so `bv_theme`) is parsed after `modify` fires.
+		this.registerEvent(
+			this.app.metadataCache.on("changed", (file) => {
+				if (file === this.trackedFile) this.scheduleRender();
 			})
 		);
 
@@ -122,7 +132,9 @@ export class HomebreweryView extends ItemView {
 		const renderedPages = renderBrewMarkdown(source, {
 			imageEmbeds: resolvedImages.imageEmbeds,
 		});
-		const { theme, pageWidthPx, pageHeightPx } = this.plugin.settings;
+		const { pageWidthPx, pageHeightPx } = this.plugin.settings;
+		const theme = this.resolvePreviewTheme(this.trackedFile);
+		this.plugin.syncCustomStyleSheet(theme);
 		const pages = await paginateBrewPages(renderedPages, {
 			theme,
 			pageWidthPx,
@@ -145,6 +157,24 @@ export class HomebreweryView extends ItemView {
 		}
 
 		this.flagOverflowingPages();
+	}
+
+	/**
+	 * Uses the note's `bv_theme` when valid, else the settings theme. The
+	 * preview re-renders on every edit, so an invalid value is reported only
+	 * when it first appears rather than on each keystroke.
+	 */
+	private resolvePreviewTheme(file: TFile): BrewTheme {
+		const noteTheme = this.plugin.readNoteTheme(file);
+		let warningKey: string | null = null;
+		if (noteTheme.kind === "invalid") {
+			warningKey = `${file.path}\n${noteTheme.value}`;
+			if (warningKey !== this.lastThemeWarningKey) {
+				new Notice(formatInvalidNoteThemeMessage(file.basename, noteTheme.value));
+			}
+		}
+		this.lastThemeWarningKey = warningKey;
+		return chooseExportTheme(undefined, noteTheme, this.plugin.settings.theme);
 	}
 
 	private startViewportObservation(): void {

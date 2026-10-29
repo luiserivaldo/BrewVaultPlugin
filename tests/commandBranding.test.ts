@@ -18,7 +18,11 @@ void test("the generic BrewVault PDF command resolves the selected theme", () =>
 		mainSource,
 		/"export-current-file-as-pdf",\s*"Export current file as BrewVault PDF"\s*\)/
 	);
-	assert.match(mainSource, /const theme = themeOverride \?\? this\.settings\.theme;/);
+	assert.match(mainSource, /const theme = this\.resolveExportTheme\(file, themeOverride\);/);
+	assert.match(
+		mainSource,
+		/chooseExportTheme\(commandTheme, noteTheme, this\.settings\.theme\)/
+	);
 	assert.match(mainSource, /this\.getThemeCss\(theme\)/);
 });
 
