@@ -12,6 +12,16 @@ import { isEdition, type Edition } from "../snippets/catalog";
 
 export type BrewTheme = ThemeSelectionId;
 
+/**
+ * How mobile PDF commands finish: hand a `.brew.html` file to the system
+ * browser for printing, or rasterize the styled pages inside Obsidian.
+ */
+export type MobilePdfMethod = "browser" | "native";
+
+export function isMobilePdfMethod(value: unknown): value is MobilePdfMethod {
+	return value === "browser" || value === "native";
+}
+
 export interface BrewVaultSettings {
 	/** Which theme stylesheet variant to apply to the preview pages. */
 	theme: BrewTheme;
@@ -29,6 +39,8 @@ export interface BrewVaultSettings {
 	debounceMs: number;
 	/** Rules edition used by insert commands that do not name one. */
 	defaultEdition: Edition;
+	/** Mobile PDF strategy; desktop always prints directly through Electron. */
+	mobilePdfMethod: MobilePdfMethod;
 }
 
 export const LEGACY_DEFAULT_EXPORT_FOLDER = "BrewVault Exports";
@@ -42,6 +54,7 @@ export const DEFAULT_SETTINGS: BrewVaultSettings = {
 	pageHeightPx: 1056,
 	debounceMs: 250,
 	defaultEdition: "2024",
+	mobilePdfMethod: "browser",
 };
 
 export interface NormalizedSettings {
@@ -86,6 +99,11 @@ export function normalizeStoredSettings(
 		? rawDefaultEdition
 		: DEFAULT_SETTINGS.defaultEdition;
 
+	const rawMobilePdfMethod = stored?.mobilePdfMethod;
+	const mobilePdfMethod = isMobilePdfMethod(rawMobilePdfMethod)
+		? rawMobilePdfMethod
+		: DEFAULT_SETTINGS.mobilePdfMethod;
+
 	const settings = {
 		...DEFAULT_SETTINGS,
 		...(stored ?? {}),
@@ -94,6 +112,7 @@ export function normalizeStoredSettings(
 		nextCustomStyleNumber,
 		exportFolder,
 		defaultEdition,
+		mobilePdfMethod,
 	};
 
 	return {
@@ -103,6 +122,7 @@ export function normalizeStoredSettings(
 			rawTheme !== theme ||
 			rawExportFolder !== exportFolder ||
 			(rawDefaultEdition !== undefined && rawDefaultEdition !== defaultEdition) ||
+			(rawMobilePdfMethod !== undefined && rawMobilePdfMethod !== mobilePdfMethod) ||
 			rawNextCustomStyleNumber !== nextCustomStyleNumber ||
 			JSON.stringify(rawCustomStyles ?? []) !== JSON.stringify(customStyles),
 	};

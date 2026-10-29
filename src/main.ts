@@ -11,6 +11,7 @@ import {
 	BrewVaultSettings,
 	BrewTheme,
 	DEFAULT_SETTINGS,
+	type MobilePdfMethod,
 	normalizeStoredSettings,
 } from "./settings/types";
 import { BrewVaultSettingTab } from "./settings/SettingTab";
@@ -32,9 +33,23 @@ import {
 	findCustomStyle,
 	type CustomStyleDefinition,
 } from "./themes/customStyles";
-import { exportBasicPdf } from "./commands/exportBasicPdf";
 import { registerInsertSnippetCommands } from "./commands/insertSnippet";
-import type { BasicPdfExporterContract } from "./export/basicPdf/types";
+
+/** Persistent notice shown only while a backend renders pages one by one. */
+class ExportProgressNotice {
+	private notice: Notice | null = null;
+
+	update(rendered: number, total: number): void {
+		const message = `Rendering PDF page ${rendered} of ${total}…`;
+		if (this.notice) this.notice.setMessage(message);
+		else this.notice = new Notice(message, 0);
+	}
+
+	hide(): void {
+		this.notice?.hide();
+		this.notice = null;
+	}
+}
 
 // The community reviewer analyzes source without running BrewVault's esbuild
 // virtual-module loader. Narrow through `unknown` so both that environment and
@@ -48,15 +63,15 @@ const BUNDLED_THEME_CSS: string = uncheckedThemeCss;
 export default class BrewVaultPlugin extends Plugin {
 	settings: BrewVaultSettings = DEFAULT_SETTINGS;
 	private exportBackendProvider: ExportBackendProvider | null = null;
-	private basicPdfExporter: BasicPdfExporterContract | null = null;
-	private basicPdfExporterLoad: Promise<BasicPdfExporterContract> | null = null;
 	private customStyleSheet: CSSStyleSheet | null = null;
-	private unloaded = false;
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
 		this.installCustomStyleSheet();
-		this.exportBackendProvider = createBackendProvider(detectPlatform(Platform));
+		const platform = detectPlatform(Platform);
+		this.exportBackendProvider = createBackendProvider(platform, {
+			getMobilePdfMethod: () => this.settings.mobilePdfMethod,
+		});
 		this.registerEditorExtension(homebreweryTagPreviewExtension);
 
 		this.registerView(HOMEBREWERY_VIEW_TYPE, (leaf) => new HomebreweryView(leaf, this));
@@ -120,21 +135,30 @@ export default class BrewVaultPlugin extends Plugin {
 			"blank"
 		);
 
-		this.addCommand({
-			id: "export-current-file-as-plain-pdf-experimental",
-			name: "Export current file as plain PDF (experimental)",
-			checkCallback: (checking) => {
-				const file = this.app.workspace.getActiveFile();
-				const canRun = file instanceof TFile && file.extension === "md";
-				if (canRun && !checking) {
-					void this.exportFileAsPlainPdf(file);
-				}
-				return canRun;
-			},
-		});
+		// Mobile-only commands choose the PDF method for one export, so either
+		// method stays one command away regardless of the saved setting.
+		if (platform === "mobile") {
+			this.addPdfExportCommand(
+				"export-current-file-as-pdf-mobile-browser",
+				"Export current file as BrewVault PDF via browser",
+				undefined,
+				"browser"
+			);
+			this.addPdfExportCommand(
+				"export-current-file-as-pdf-mobile-direct",
+				"Export current file as BrewVault PDF directly (image pages)",
+				undefined,
+				"native"
+			);
+		}
 	}
 
-	private addPdfExportCommand(id: string, name: string, theme?: BrewTheme): void {
+	private addPdfExportCommand(
+		id: string,
+		name: string,
+		theme?: BrewTheme,
+		mobilePdfMethod?: MobilePdfMethod
+	): void {
 		this.addCommand({
 			id,
 			name,
@@ -142,7 +166,7 @@ export default class BrewVaultPlugin extends Plugin {
 				const file = this.app.workspace.getActiveFile();
 				const canRun = file instanceof TFile && file.extension === "md";
 				if (canRun && !checking) {
-					void this.exportFileAsPdf(file, theme);
+					void this.exportFileAsPdf(file, theme, mobilePdfMethod);
 				}
 				return canRun;
 			},
@@ -191,7 +215,11 @@ export default class BrewVaultPlugin extends Plugin {
 	}
 
 	/** Export directly on desktop or preserve and hand off HTML on mobile. */
-	async exportFileAsPdf(file: TFile, themeOverride?: BrewTheme): Promise<void> {
+	async exportFileAsPdf(
+		file: TFile,
+		themeOverride?: BrewTheme,
+		mobilePdfMethod?: MobilePdfMethod
+	): Promise<void> {
 		try {
 			const backend = await this.getExportBackendProvider().getBackend();
 			const theme = themeOverride ?? this.settings.theme;
@@ -217,7 +245,20 @@ export default class BrewVaultPlugin extends Plugin {
 				this.settings.pageHeightPx
 			);
 
-			const result = await backend.export({ html, basename: file.basename });
+			const progress = new ExportProgressNotice();
+			let result;
+			try {
+				result = await backend.export({
+					html,
+					basename: file.basename,
+					pageWidthPx: this.settings.pageWidthPx,
+					pageHeightPx: this.settings.pageHeightPx,
+					mobilePdfMethod,
+					onProgress: (rendered, total) => progress.update(rendered, total),
+				});
+			} finally {
+				progress.hide();
+			}
 			if (result.kind === "html-handoff") {
 				const outPath = this.allocateExportPath(
 					exportFolder,
@@ -245,43 +286,9 @@ export default class BrewVaultPlugin extends Plugin {
 		}
 	}
 
-	async exportFileAsPlainPdf(file: TFile): Promise<void> {
-		await this.exportExperimentalPdf(file, "srd", "plain", "plain");
-	}
-
-	private async exportExperimentalPdf(
-		file: TFile,
-		profile: "basic" | "srd",
-		profileLabel: string,
-		fileSuffix: string
-	): Promise<void> {
-		try {
-			const report = await exportBasicPdf(file, {
-				vault: this.app.vault,
-				metadataCache: this.app.metadataCache,
-				ensureExportFolder: () => this.ensureExportFolder(),
-				allocateExportPath: (folder, basename, suffix) =>
-					this.allocateExportPath(folder, basename, suffix),
-				loadExporter: () => this.getBasicPdfExporter(),
-				canWriteResult: () => !this.unloaded,
-			}, profile, fileSuffix);
-			new Notice(
-				`Exported experimental ${profileLabel} PDF to ${report.outPath} ` +
-					`(${formatMegabytes(report.byteLength)} MB in ${formatSeconds(report.elapsedMs)} s)`
-			);
-		} catch (err) {
-			console.error("BrewVault experimental PDF export failed", err);
-			new Notice("BrewVault experimental PDF export failed — see console for details.");
-		}
-	}
-
 	onunload(): void {
-		this.unloaded = true;
 		this.exportBackendProvider?.dispose();
 		this.exportBackendProvider = null;
-		this.basicPdfExporter?.dispose();
-		this.basicPdfExporter = null;
-		this.basicPdfExporterLoad = null;
 	}
 
 	private getExportBackendProvider(): ExportBackendProvider {
@@ -289,25 +296,6 @@ export default class BrewVaultPlugin extends Plugin {
 			throw new Error("BrewVault export backends have not been initialized.");
 		}
 		return this.exportBackendProvider;
-	}
-
-	private async getBasicPdfExporter(): Promise<BasicPdfExporterContract> {
-		if (this.unloaded) {
-			throw new Error("BrewVault is unavailable after plugin unload.");
-		}
-		if (this.basicPdfExporter) return this.basicPdfExporter;
-
-		this.basicPdfExporterLoad ??= import(
-			"./export/basicPdf/BasicPdfExporter"
-		).then(({ createBasicPdfExporter }) => createBasicPdfExporter());
-
-		const exporter = await this.basicPdfExporterLoad;
-		if (this.unloaded) {
-			exporter.dispose();
-			throw new Error("BrewVault unloaded while loading the basic PDF exporter.");
-		}
-		this.basicPdfExporter = exporter;
-		return exporter;
 	}
 
 	async loadSettings(): Promise<void> {
@@ -456,12 +444,4 @@ export default class BrewVaultPlugin extends Plugin {
 		await this.app.workspace.revealLeaf(leaf);
 		return leaf.view as HomebreweryView;
 	}
-}
-
-function formatMegabytes(byteLength: number): string {
-	return (byteLength / (1024 * 1024)).toFixed(1);
-}
-
-function formatSeconds(elapsedMs: number): string {
-	return (elapsedMs / 1000).toFixed(1);
 }

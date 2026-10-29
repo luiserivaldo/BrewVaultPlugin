@@ -1,8 +1,16 @@
+import type { MobilePdfMethod } from "../settings/types";
+
 export type BrewVaultPlatform = "desktop" | "mobile";
 
 export interface ExportRequest {
 	readonly html: string;
 	readonly basename: string;
+	readonly pageWidthPx: number;
+	readonly pageHeightPx: number;
+	/** Mobile method for this export only; the saved setting applies when omitted. */
+	readonly mobilePdfMethod?: MobilePdfMethod;
+	/** Called as pages finish when a backend renders them one at a time. */
+	readonly onProgress?: (renderedPages: number, totalPages: number) => void;
 }
 
 export type ExportResult =

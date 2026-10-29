@@ -107,3 +107,21 @@ void test("the default edition is 2024 and invalid stored editions are repaired"
 	assert.equal(repaired.settings.defaultEdition, "2024");
 	assert.equal(repaired.shouldPersist, true);
 });
+
+void test("mobile PDF export defaults to browser handoff and repairs unknown methods", () => {
+	assert.equal(normalizeStoredSettings(null).settings.mobilePdfMethod, "browser");
+
+	const base = {
+		theme: "phb",
+		customStyles: [],
+		nextCustomStyleNumber: 1,
+		exportFolder: "BrewVault-Exports",
+	};
+	const kept = normalizeStoredSettings({ ...base, mobilePdfMethod: "native" });
+	assert.equal(kept.settings.mobilePdfMethod, "native");
+	assert.equal(kept.shouldPersist, false);
+
+	const repaired = normalizeStoredSettings({ ...base, mobilePdfMethod: "print" });
+	assert.equal(repaired.settings.mobilePdfMethod, "browser");
+	assert.equal(repaired.shouldPersist, true);
+});
