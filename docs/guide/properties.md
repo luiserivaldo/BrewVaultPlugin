@@ -22,6 +22,16 @@ properties or your note.
 | [`bv_edition`](#bv_edition-rules-edition-for-inserted-blocks) | Available | Picks 2014 or 2024 blocks for **Insert block…** in this note. |
 | [`bv_book`](#bv_book-combine-notes-into-one-pdf-planned) | Planned, not available yet | Turns a note into a book that combines many notes into one PDF. |
 
+## Checking a note's options
+
+Run **Show export options** from the Command Palette, or click the caption
+above the pages in the preview. A table lists every option for the active
+note, its value, and whether it came from a note property or from settings.
+Invalid properties are listed underneath.
+
+The caption itself shows the theme and its source, for example
+`5e DMG · Note property bv_theme · 2 more note properties`.
+
 ## `bv_theme`: theme for one note
 
 ### Add it

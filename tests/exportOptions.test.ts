@@ -5,6 +5,7 @@ import {
 	parseNoteExportOptions,
 } from "../src/exportOptions/noteProperties";
 import { resolveExportOptions } from "../src/exportOptions/resolve";
+import { describeExportOptions } from "../src/exportOptions/describe";
 import {
 	normalizeExportSubfolder,
 	pageDimensions,
@@ -221,4 +222,34 @@ void test("bv_export_folder rejects paths that could leave the export folder", (
 		assert.equal(parsed.options.exportSubfolder, undefined, String(value));
 		assert.equal(parsed.invalid.length, 1, String(value));
 	}
+});
+
+void test("export options are described with readable values and sources", () => {
+	const resolved = resolveExportOptions({
+		note: {
+			theme: "dmg",
+			showPageNumbers: false,
+			pageSize: "a4",
+			exportSubfolder: "Llynwych/Monsters",
+		},
+		defaults,
+	});
+	const rows = describeExportOptions(resolved, {
+		customStyles: [],
+		pageWidthPx: 816,
+		pageHeightPx: 1056,
+		exportFolder: "BrewVault-Exports",
+	});
+	assert.deepEqual(
+		rows.map((row) => [row.property, row.value, row.source]),
+		[
+			["bv_theme", "5e DMG", "Note property bv_theme"],
+			["bv_footer", "None", "Settings"],
+			["bv_page_numbers", "Hidden", "Note property bv_page_numbers"],
+			["bv_page_start", "1", "Settings"],
+			["bv_page_size", "A4 (794 × 1123 px)", "Note property bv_page_size"],
+			["bv_title", "Note", "Settings"],
+			["bv_export_folder", "BrewVault-Exports/Llynwych/Monsters", "Note property bv_export_folder"],
+		]
+	);
 });

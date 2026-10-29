@@ -1,5 +1,11 @@
 import { ItemView, Notice, TFile, WorkspaceLeaf } from "obsidian";
-import { pageDimensions, type ExportOptions } from "../exportOptions/options";
+import {
+	EXPORT_OPTION_KEYS,
+	pageDimensions,
+	type ExportOptions,
+} from "../exportOptions/options";
+import type { ResolvedExportOptions } from "../exportOptions/resolve";
+import { describeSource, themeDisplayName } from "../exportOptions/describe";
 import { formatInvalidPropertiesMessage } from "../exportOptions/noteProperties";
 import { pageFooterText, pageNumberText } from "../export/pageFurniture";
 import { renderBrewMarkdown } from "../renderer";
@@ -17,6 +23,7 @@ export class HomebreweryView extends ItemView {
 	private trackedFile: TFile | null = null;
 	private rootEl!: HTMLElement;
 	private pagesContainer!: HTMLElement;
+	private captionEl!: HTMLElement;
 	private debounceHandle: number | null = null;
 	private viewportObserver: ResizeObserver | null = null;
 	private imageDependencyPaths = new Set<string>();
@@ -46,6 +53,21 @@ export class HomebreweryView extends ItemView {
 		this.rootEl = this.containerEl.children[1] as HTMLElement;
 		this.rootEl.empty();
 		this.rootEl.addClass("brewvault-root");
+
+		this.captionEl = this.rootEl.createDiv({ cls: "brewvault-preview-caption" });
+		this.captionEl.setAttr("role", "button");
+		this.captionEl.setAttr("tabindex", "0");
+		this.captionEl.setAttr("aria-label", "Show export options");
+		const openOptions = () => {
+			if (this.trackedFile) this.plugin.openExportOptions(this.trackedFile);
+		};
+		this.registerDomEvent(this.captionEl, "click", openOptions);
+		this.registerDomEvent(this.captionEl, "keydown", (event) => {
+			if (event.key === "Enter" || event.key === " ") {
+				event.preventDefault();
+				openOptions();
+			}
+		});
 
 		this.pagesContainer = this.rootEl.createDiv({
 			cls: "brewvault-pages brewvault-preview-pages",
@@ -177,6 +199,7 @@ export class HomebreweryView extends ItemView {
 	 */
 	private resolvePreviewOptions(file: TFile): ExportOptions {
 		const { resolved, invalid } = this.plugin.resolveNoteExportOptions(file);
+		this.captionEl.setText(previewCaption(resolved, this.plugin.settings.customStyles));
 		const warningKey =
 			invalid.length > 0 ? `${file.path}\n${JSON.stringify(invalid)}` : null;
 		if (warningKey && warningKey !== this.lastOptionWarningKey) {
@@ -265,4 +288,21 @@ export class HomebreweryView extends ItemView {
 function parseCssPixels(value: string): number {
 	const parsed = Number.parseFloat(value);
 	return Number.isFinite(parsed) ? parsed : 0;
+}
+
+/** Short caption above the pages: the theme, its source, and other properties. */
+function previewCaption(
+	resolved: ResolvedExportOptions,
+	customStyles: Parameters<typeof themeDisplayName>[1]
+): string {
+	const theme = themeDisplayName(resolved.values.theme, customStyles);
+	const themeSource = describeSource(resolved.sources.theme, "theme");
+	const otherNoteOptions = EXPORT_OPTION_KEYS.filter(
+		(key) => key !== "theme" && resolved.sources[key] === "note"
+	).length;
+	const extra =
+		otherNoteOptions === 0
+			? ""
+			: ` · ${otherNoteOptions} more note ${otherNoteOptions === 1 ? "property" : "properties"}`;
+	return `${theme} · ${themeSource}${extra}`;
 }

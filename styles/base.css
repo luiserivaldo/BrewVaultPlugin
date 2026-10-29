@@ -227,3 +227,32 @@
 	font-size: .8em;
 	text-align: right;
 }
+
+/* Clickable caption above the preview pages; opens Show export options. */
+.brewvault-preview-caption {
+	max-width: var(--brew-page-width, 816px);
+	margin: 0 auto 12px;
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	text-align: center;
+	cursor: pointer;
+}
+
+.brewvault-preview-caption:hover,
+.brewvault-preview-caption:focus-visible {
+	color: var(--text-normal);
+	text-decoration: underline;
+}
+
+.brewvault-export-options table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.brewvault-export-options th,
+.brewvault-export-options td {
+	padding: 4px 8px;
+	border-bottom: 1px solid var(--background-modifier-border);
+	text-align: left;
+	vertical-align: top;
+}

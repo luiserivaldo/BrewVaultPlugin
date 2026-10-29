@@ -48,6 +48,8 @@ import {
 	type InvalidNoteProperty,
 } from "./exportOptions/noteProperties";
 import { resolveExportOptions, type ResolvedExportOptions } from "./exportOptions/resolve";
+import { describeExportOptions } from "./exportOptions/describe";
+import { ExportOptionsModal } from "./ui/ExportOptionsModal";
 
 interface RenderedExportDocument {
 	readonly html: string;
@@ -114,6 +116,17 @@ export default class BrewVaultPlugin extends Plugin {
 
 		this.addSettingTab(new BrewVaultSettingTab(this.app, this));
 		registerInsertSnippetCommands(this, () => this.getActiveNoteEdition());
+
+		this.addCommand({
+			id: "show-export-options",
+			name: "Show export options",
+			checkCallback: (checking) => {
+				const file = this.app.workspace.getActiveFile();
+				const canRun = file instanceof TFile && file.extension === "md";
+				if (canRun && !checking) this.openExportOptions(file);
+				return canRun;
+			},
+		});
 
 		// --- Milestone 4: export ---
 		this.addCommand({
@@ -295,14 +308,52 @@ export default class BrewVaultPlugin extends Plugin {
 	private getActiveNoteEdition(): Edition {
 		const file = this.app.workspace.getActiveFile();
 		if (!file) return this.settings.defaultEdition;
-		const note = resolveNoteEdition(readNoteFrontmatter(file, this.app.metadataCache));
-		if (note.kind === "edition") return note.edition;
-		if (note.kind === "invalid") {
+		const { edition, invalidValue } = this.resolveNoteEditionFor(file);
+		if (invalidValue !== null) {
 			new Notice(
-				`BrewVault ignored invalid ${NOTE_EDITION_PROPERTY} "${note.value}" in "${file.basename}" and used the default edition.`
+				`BrewVault ignored invalid ${NOTE_EDITION_PROPERTY} "${invalidValue}" in "${file.basename}" and used the default edition.`
 			);
 		}
-		return this.settings.defaultEdition;
+		return edition;
+	}
+
+	private resolveNoteEditionFor(file: TFile): {
+		edition: Edition;
+		fromNote: boolean;
+		invalidValue: string | null;
+	} {
+		const note = resolveNoteEdition(readNoteFrontmatter(file, this.app.metadataCache));
+		if (note.kind === "edition") {
+			return { edition: note.edition, fromNote: true, invalidValue: null };
+		}
+		return {
+			edition: this.settings.defaultEdition,
+			fromNote: false,
+			invalidValue: note.kind === "invalid" ? note.value : null,
+		};
+	}
+
+	/** Opens a table of the note's export options and where each came from. */
+	openExportOptions(file: TFile): void {
+		const { resolved, invalid } = this.resolveNoteExportOptions(file);
+		const edition = this.resolveNoteEditionFor(file);
+		const invalidProperties = edition.invalidValue === null
+			? invalid
+			: [...invalid, { property: NOTE_EDITION_PROPERTY, value: edition.invalidValue }];
+		new ExportOptionsModal(this.app, {
+			noteName: file.basename,
+			rows: describeExportOptions(resolved, {
+				customStyles: this.settings.customStyles,
+				pageWidthPx: this.settings.pageWidthPx,
+				pageHeightPx: this.settings.pageHeightPx,
+				exportFolder: this.settings.exportFolder,
+			}),
+			edition: {
+				value: edition.edition,
+				source: edition.fromNote ? `Note property ${NOTE_EDITION_PROPERTY}` : "Settings",
+			},
+			invalid: invalidProperties,
+		}).open();
 	}
 
 	private getDefaultExportOptions(file: TFile): ExportOptions {

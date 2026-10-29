@@ -10,6 +10,7 @@ can also be opened using BrewVault's scroll icon in the ribbon.
 | Command | Effect |
 | --- | --- |
 | **Open preview** | Opens or reveals a live BrewVault preview of the active Markdown note. |
+| **Show export options** | Lists the active note's export options, such as theme, footer, and page size, and where each one comes from. See [Note properties](./properties.md#checking-a-notes-options). |
 | **Export current file as HTML** | Creates a self-contained `.brew.html` file using the note's [`bv_theme`](./properties.md) or else the selected theme. |
 | **Export current file as BrewVault PDF** | Creates a direct PDF on desktop, or uses the mobile PDF method from settings, with the note's [`bv_theme`](./properties.md) or else the selected theme. |
 | **Export current file as BrewVault PDF in PHB style** | Uses the Player's Handbook parchment theme. |
