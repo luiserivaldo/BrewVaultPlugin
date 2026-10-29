@@ -10,8 +10,9 @@ can also be opened using BrewVault's scroll icon in the ribbon.
 | Command | Effect |
 | --- | --- |
 | **Open preview** | Opens or reveals a live BrewVault preview of the active Markdown note. |
-| **Export current file as HTML** | Creates a self-contained `.brew.html` file using the selected theme. |
-| **Export current file as BrewVault PDF** | Creates a direct PDF on desktop, or uses the mobile PDF method from settings, with the selected theme. |
+| **Show export options** | Lists the active note's export options, such as theme, footer, and page size, and where each one comes from. See [Note properties](./properties.md#checking-a-notes-options). |
+| **Export current file as HTML** | Creates a self-contained `.brew.html` file using the note's [`bv_theme`](./properties.md) or else the selected theme. |
+| **Export current file as BrewVault PDF** | Creates a direct PDF on desktop, or uses the mobile PDF method from settings, with the note's [`bv_theme`](./properties.md) or else the selected theme. |
 | **Export current file as BrewVault PDF in PHB style** | Uses the Player's Handbook parchment theme. |
 | **Export current file as BrewVault PDF in DMG style** | Uses the Dungeon Master's Guide theme. |
 | **Export current file as BrewVault PDF in SRD style** | Uses the SRD / Unearthed Arcana theme. |
@@ -42,7 +43,9 @@ Edition-sensitive blocks ship in 2014 and 2024 variants: monster stat blocks,
 spells, class features, martial and full-caster class tables, feats,
 backgrounds, species, and magic items. **Default edition** in BrewVault
 settings (2024 unless changed) decides which variant the picker and the
-non-edition commands insert. The 2024 layouts follow the SRD 5.2.1 (Initiative,
+non-edition commands insert. A note's
+[`bv_edition`](./properties.md#bv_edition-rules-edition-for-inserted-blocks)
+property overrides it for that note. The 2024 layouts follow the SRD 5.2.1 (Initiative,
 MOD/SAVE ability table, CR with XP and PB, core class traits); every name and
 sentence in either edition is an original placeholder.
 
@@ -69,3 +72,6 @@ HTML exports use the same policy with names such as `Alchemist.brew.html` and
 
 Mobile direct PDFs use the same names. Mobile browser handoff saves a
 `.brew.html` file instead; see [Mobile support](./mobile.md).
+
+A note's [`bv_file_name`](./properties.md#bv_file_name-export-file-name)
+property replaces the note name in these file names.

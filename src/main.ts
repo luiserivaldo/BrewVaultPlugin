@@ -19,7 +19,7 @@ import { HomebreweryView, HOMEBREWERY_VIEW_TYPE } from "./view/HomebreweryView";
 import { renderBrewMarkdown } from "./renderer";
 import { paginateBrewPages } from "./renderer/paginateDom";
 import { buildStandaloneHtml } from "./export/buildStandaloneHtml";
-import { allocateExportPath } from "./export/allocateExportPath";
+import { allocateExportPath, toExportBasename } from "./export/allocateExportPath";
 import { BUNDLED_THEME_CSS as UNCHECKED_THEME_CSS } from "virtual:brewvault-theme-css";
 import { homebreweryTagPreviewExtension } from "./editor/homebreweryTagPreview";
 import { detectPlatform } from "./platform/detectPlatform";
@@ -34,6 +34,31 @@ import {
 	type CustomStyleDefinition,
 } from "./themes/customStyles";
 import { registerInsertSnippetCommands } from "./commands/insertSnippet";
+import type { Edition } from "./snippets/catalog";
+import { NOTE_EDITION_PROPERTY, resolveNoteEdition } from "./snippets/noteEdition";
+import { readNoteFrontmatter } from "./obsidian/readNoteFrontmatter";
+import {
+	pageDimensions,
+	type ExportOptions,
+	type PartialExportOptions,
+} from "./exportOptions/options";
+import {
+	formatInvalidPropertiesMessage,
+	parseNoteExportOptions,
+	type InvalidNoteProperty,
+} from "./exportOptions/noteProperties";
+import { resolveExportOptions, type ResolvedExportOptions } from "./exportOptions/resolve";
+import { describeExportOptions } from "./exportOptions/describe";
+import { ExportOptionsModal } from "./ui/ExportOptionsModal";
+
+interface RenderedExportDocument {
+	readonly html: string;
+	readonly options: ExportOptions;
+	/** Safe export file name derived from `bv_file_name` or the note name. */
+	readonly basename: string;
+	readonly pageWidthPx: number;
+	readonly pageHeightPx: number;
+}
 
 /** Persistent notice shown only while a backend renders pages one by one. */
 class ExportProgressNotice {
@@ -64,6 +89,7 @@ export default class BrewVaultPlugin extends Plugin {
 	settings: BrewVaultSettings = DEFAULT_SETTINGS;
 	private exportBackendProvider: ExportBackendProvider | null = null;
 	private customStyleSheet: CSSStyleSheet | null = null;
+	private customStyleSheetTheme: BrewTheme = DEFAULT_SETTINGS.theme;
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
@@ -89,7 +115,18 @@ export default class BrewVaultPlugin extends Plugin {
 		});
 
 		this.addSettingTab(new BrewVaultSettingTab(this.app, this));
-		registerInsertSnippetCommands(this, () => this.settings.defaultEdition);
+		registerInsertSnippetCommands(this, () => this.getActiveNoteEdition());
+
+		this.addCommand({
+			id: "show-export-options",
+			name: "Show export options",
+			checkCallback: (checking) => {
+				const file = this.app.workspace.getActiveFile();
+				const canRun = file instanceof TFile && file.extension === "md";
+				if (canRun && !checking) this.openExportOptions(file);
+				return canRun;
+			},
+		});
 
 		// --- Milestone 4: export ---
 		this.addCommand({
@@ -180,29 +217,10 @@ export default class BrewVaultPlugin extends Plugin {
 	 */
 	async exportFileAsHtml(file: TFile): Promise<void> {
 		try {
-			const source = await this.app.vault.cachedRead(file);
-			const resolvedImages = await resolveVaultImageEmbeds(
-				source,
-				file,
-				this.app.vault,
-				this.app.metadataCache
-			);
-			const renderedPages = renderBrewMarkdown(source, {
-				imageEmbeds: resolvedImages.imageEmbeds,
-			});
-			const pages = await this.paginateWithTheme(renderedPages, this.settings.theme);
+			const { html, basename, options } = await this.renderExportDocument(file);
 
-			const html = buildStandaloneHtml(
-				pages,
-				this.settings.theme,
-				this.getThemeCss(this.settings.theme),
-				file.basename,
-				this.settings.pageWidthPx,
-				this.settings.pageHeightPx
-			);
-
-			const exportFolder = await this.ensureExportFolder();
-			const outPath = this.allocateExportPath(exportFolder, file.basename, ".brew.html");
+			const exportFolder = await this.ensureExportFolder(options.exportSubfolder);
+			const outPath = this.allocateExportPath(exportFolder, basename, ".brew.html");
 			await this.app.vault.create(outPath, html);
 
 			new Notice(
@@ -222,37 +240,18 @@ export default class BrewVaultPlugin extends Plugin {
 	): Promise<void> {
 		try {
 			const backend = await this.getExportBackendProvider().getBackend();
-			const theme = themeOverride ?? this.settings.theme;
-			const exportFolder = await this.ensureExportFolder();
-			const source = await this.app.vault.cachedRead(file);
-			const resolvedImages = await resolveVaultImageEmbeds(
-				source,
-				file,
-				this.app.vault,
-				this.app.metadataCache
-			);
-			const renderedPages = renderBrewMarkdown(source, {
-				imageEmbeds: resolvedImages.imageEmbeds,
-			});
-			const pages = await this.paginateWithTheme(renderedPages, theme);
-
-			const html = buildStandaloneHtml(
-				pages,
-				theme,
-				this.getThemeCss(theme),
-				file.basename,
-				this.settings.pageWidthPx,
-				this.settings.pageHeightPx
-			);
+			const rendered = await this.renderExportDocument(file, { theme: themeOverride });
+			const { html, basename, pageWidthPx, pageHeightPx } = rendered;
+			const exportFolder = await this.ensureExportFolder(rendered.options.exportSubfolder);
 
 			const progress = new ExportProgressNotice();
 			let result;
 			try {
 				result = await backend.export({
 					html,
-					basename: file.basename,
-					pageWidthPx: this.settings.pageWidthPx,
-					pageHeightPx: this.settings.pageHeightPx,
+					basename,
+					pageWidthPx,
+					pageHeightPx,
 					mobilePdfMethod,
 					onProgress: (rendered, total) => progress.update(rendered, total),
 				});
@@ -260,11 +259,7 @@ export default class BrewVaultPlugin extends Plugin {
 				progress.hide();
 			}
 			if (result.kind === "html-handoff") {
-				const outPath = this.allocateExportPath(
-					exportFolder,
-					file.basename,
-					".brew.html"
-				);
+				const outPath = this.allocateExportPath(exportFolder, basename, ".brew.html");
 				await this.app.vault.create(outPath, result.html);
 
 				new MobilePdfHandoffModal(this.app, outPath).open();
@@ -276,7 +271,7 @@ export default class BrewVaultPlugin extends Plugin {
 				return;
 			}
 
-			const outPath = this.allocateExportPath(exportFolder, file.basename, ".pdf");
+			const outPath = this.allocateExportPath(exportFolder, basename, ".pdf");
 			await this.app.vault.createBinary(outPath, result.bytes);
 
 			new Notice(`Exported to ${outPath}`);
@@ -284,6 +279,135 @@ export default class BrewVaultPlugin extends Plugin {
 			console.error("BrewVault PDF export failed", err);
 			new Notice("BrewVault PDF export failed — see console for details.");
 		}
+	}
+
+	/**
+	 * Resolves a note's export options from the command, the note's `bv_*`
+	 * properties, and settings, in that order. Invalid properties are listed
+	 * so the caller can tell the user.
+	 */
+	resolveNoteExportOptions(
+		file: TFile,
+		command?: PartialExportOptions
+	): { resolved: ResolvedExportOptions; invalid: readonly InvalidNoteProperty[] } {
+		const note = parseNoteExportOptions(readNoteFrontmatter(file, this.app.metadataCache), {
+			customStyles: this.settings.customStyles,
+		});
+		const resolved = resolveExportOptions({
+			command,
+			note: note.options,
+			defaults: this.getDefaultExportOptions(file),
+		});
+		return { resolved, invalid: note.invalid };
+	}
+
+	/**
+	 * Edition for insert commands that don't name one: the active note's
+	 * `bv_edition`, else the default edition from settings.
+	 */
+	private getActiveNoteEdition(): Edition {
+		const file = this.app.workspace.getActiveFile();
+		if (!file) return this.settings.defaultEdition;
+		const { edition, invalidValue } = this.resolveNoteEditionFor(file);
+		if (invalidValue !== null) {
+			new Notice(
+				`BrewVault ignored invalid ${NOTE_EDITION_PROPERTY} "${invalidValue}" in "${file.basename}" and used the default edition.`
+			);
+		}
+		return edition;
+	}
+
+	private resolveNoteEditionFor(file: TFile): {
+		edition: Edition;
+		fromNote: boolean;
+		invalidValue: string | null;
+	} {
+		const note = resolveNoteEdition(readNoteFrontmatter(file, this.app.metadataCache));
+		if (note.kind === "edition") {
+			return { edition: note.edition, fromNote: true, invalidValue: null };
+		}
+		return {
+			edition: this.settings.defaultEdition,
+			fromNote: false,
+			invalidValue: note.kind === "invalid" ? note.value : null,
+		};
+	}
+
+	/** Opens a table of the note's export options and where each came from. */
+	openExportOptions(file: TFile): void {
+		const { resolved, invalid } = this.resolveNoteExportOptions(file);
+		const edition = this.resolveNoteEditionFor(file);
+		const invalidProperties = edition.invalidValue === null
+			? invalid
+			: [...invalid, { property: NOTE_EDITION_PROPERTY, value: edition.invalidValue }];
+		new ExportOptionsModal(this.app, {
+			noteName: file.basename,
+			rows: describeExportOptions(resolved, {
+				customStyles: this.settings.customStyles,
+				pageWidthPx: this.settings.pageWidthPx,
+				pageHeightPx: this.settings.pageHeightPx,
+				exportFolder: this.settings.exportFolder,
+			}),
+			edition: {
+				value: edition.edition,
+				source: edition.fromNote ? `Note property ${NOTE_EDITION_PROPERTY}` : "Settings",
+			},
+			invalid: invalidProperties,
+		}).open();
+	}
+
+	private getDefaultExportOptions(file: TFile): ExportOptions {
+		return {
+			theme: this.settings.theme,
+			footer: "",
+			showPageNumbers: true,
+			firstPageNumber: 1,
+			pageSize: "settings",
+			fileName: file.basename,
+			exportSubfolder: "",
+		};
+	}
+
+	/**
+	 * Renders `file` into one self-contained HTML document with its resolved
+	 * export options. Both HTML and PDF export start here, so they always
+	 * agree with each other.
+	 */
+	private async renderExportDocument(
+		file: TFile,
+		command?: PartialExportOptions
+	): Promise<RenderedExportDocument> {
+		const { resolved, invalid } = this.resolveNoteExportOptions(file, command);
+		if (invalid.length > 0) new Notice(formatInvalidPropertiesMessage(file.basename, invalid));
+		const options = resolved.values;
+
+		const source = await this.app.vault.cachedRead(file);
+		const resolvedImages = await resolveVaultImageEmbeds(
+			source,
+			file,
+			this.app.vault,
+			this.app.metadataCache
+		);
+		const renderedPages = renderBrewMarkdown(source, {
+			imageEmbeds: resolvedImages.imageEmbeds,
+		});
+		const { pageWidthPx, pageHeightPx } = pageDimensions(options.pageSize, this.settings);
+		const pages = await this.paginateWithTheme(renderedPages, options.theme, {
+			pageWidthPx,
+			pageHeightPx,
+		});
+
+		const html = buildStandaloneHtml(
+			pages,
+			options.theme,
+			this.getThemeCss(options.theme),
+			options.fileName,
+			pageWidthPx,
+			pageHeightPx,
+			options
+		);
+		const basename = toExportBasename(options.fileName, file.basename);
+		return { html, options, basename, pageWidthPx, pageHeightPx };
 	}
 
 	onunload(): void {
@@ -310,7 +434,12 @@ export default class BrewVaultPlugin extends Plugin {
 		}
 	}
 
-	private async ensureExportFolder(): Promise<string> {
+	/**
+	 * Creates the export folder, plus an optional `bv_export_folder`
+	 * subfolder inside it, and returns the folder to write into. The
+	 * subfolder was already validated by normalizeExportSubfolder().
+	 */
+	private async ensureExportFolder(subfolder = ""): Promise<string> {
 		const configured = this.settings.exportFolder.trim() || DEFAULT_SETTINGS.exportFolder;
 		const normalized = normalizePath(configured)
 			.replace(/^\/+/, "")
@@ -320,8 +449,9 @@ export default class BrewVaultPlugin extends Plugin {
 			throw new Error("BrewVault export folder must be a vault-relative folder path.");
 		}
 
+		const target = subfolder ? `${normalized}/${subfolder}` : normalized;
 		let current = "";
-		for (const segment of normalized.split("/").filter(Boolean)) {
+		for (const segment of target.split("/").filter(Boolean)) {
 			current = current ? `${current}/${segment}` : segment;
 			const existing = this.app.vault.getAbstractFileByPath(current);
 			if (!existing) {
@@ -336,7 +466,7 @@ export default class BrewVaultPlugin extends Plugin {
 			await this.saveSettings();
 		}
 
-		return normalized;
+		return target;
 	}
 
 	private allocateExportPath(folder: string, basename: string, suffix: string): string {
@@ -401,18 +531,27 @@ export default class BrewVaultPlugin extends Plugin {
 		});
 	}
 
-	private syncCustomStyleSheet(theme: BrewTheme): void {
+	/**
+	 * Loads `theme`'s custom CSS into the shared document stylesheet. The
+	 * preview calls this so a note's custom `bv_theme` styles what it shows.
+	 */
+	syncCustomStyleSheet(theme: BrewTheme): void {
+		this.customStyleSheetTheme = theme;
 		this.customStyleSheet?.replaceSync(this.getCustomCssForTheme(theme));
 	}
 
-	private async paginateWithTheme(pages: BrewPage[], theme: BrewTheme): Promise<BrewPage[]> {
-		const selectedTheme = this.settings.theme;
+	private async paginateWithTheme(
+		pages: BrewPage[],
+		theme: BrewTheme,
+		size: { pageWidthPx: number; pageHeightPx: number }
+	): Promise<BrewPage[]> {
+		const selectedTheme = this.customStyleSheetTheme;
 		this.syncCustomStyleSheet(theme);
 		try {
 			return await paginateBrewPages(pages, {
 				theme,
-				pageWidthPx: this.settings.pageWidthPx,
-				pageHeightPx: this.settings.pageHeightPx,
+				pageWidthPx: size.pageWidthPx,
+				pageHeightPx: size.pageHeightPx,
 			});
 		} finally {
 			this.syncCustomStyleSheet(selectedTheme);

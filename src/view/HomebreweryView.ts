@@ -1,4 +1,12 @@
 import { ItemView, TFile, WorkspaceLeaf } from "obsidian";
+import {
+	EXPORT_OPTION_KEYS,
+	pageDimensions,
+	type ExportOptions,
+} from "../exportOptions/options";
+import type { ResolvedExportOptions } from "../exportOptions/resolve";
+import { describeSource, themeDisplayName } from "../exportOptions/describe";
+import { PAGE_FOOTER_CLASS, pageFooterText, pageNumberText } from "../export/pageFurniture";
 import { renderBrewMarkdown } from "../renderer";
 import { paginateBrewPages } from "../renderer/paginateDom";
 import type BrewVaultPlugin from "../main";
@@ -14,13 +22,17 @@ export class HomebreweryView extends ItemView {
 	private trackedFile: TFile | null = null;
 	private rootEl!: HTMLElement;
 	private pagesContainer!: HTMLElement;
+	private captionEl!: HTMLElement;
 	private debounceHandle: number | null = null;
 	private viewportObserver: ResizeObserver | null = null;
 	private imageDependencyPaths = new Set<string>();
+	/** Page size of the note currently shown; set on every render. */
+	private pageSize: { pageWidthPx: number; pageHeightPx: number };
 
 	constructor(leaf: WorkspaceLeaf, plugin: BrewVaultPlugin) {
 		super(leaf);
 		this.plugin = plugin;
+		this.pageSize = pageDimensions("settings", plugin.settings);
 	}
 
 	getViewType(): string {
@@ -40,6 +52,21 @@ export class HomebreweryView extends ItemView {
 		this.rootEl.empty();
 		this.rootEl.addClass("brewvault-root");
 
+		this.captionEl = this.rootEl.createDiv({ cls: "brewvault-preview-caption" });
+		this.captionEl.setAttr("role", "button");
+		this.captionEl.setAttr("tabindex", "0");
+		this.captionEl.setAttr("aria-label", "Show export options");
+		const openOptions = () => {
+			if (this.trackedFile) this.plugin.openExportOptions(this.trackedFile);
+		};
+		this.registerDomEvent(this.captionEl, "click", openOptions);
+		this.registerDomEvent(this.captionEl, "keydown", (event) => {
+			if (event.key === "Enter" || event.key === " ") {
+				event.preventDefault();
+				openOptions();
+			}
+		});
+
 		this.pagesContainer = this.rootEl.createDiv({
 			cls: "brewvault-pages brewvault-preview-pages",
 		});
@@ -53,6 +80,13 @@ export class HomebreweryView extends ItemView {
 				) {
 					this.scheduleRender();
 				}
+			})
+		);
+
+		// Frontmatter (and so `bv_theme`) is parsed after `modify` fires.
+		this.registerEvent(
+			this.app.metadataCache.on("changed", (file) => {
+				if (file === this.trackedFile) this.scheduleRender();
 			})
 		);
 
@@ -122,7 +156,11 @@ export class HomebreweryView extends ItemView {
 		const renderedPages = renderBrewMarkdown(source, {
 			imageEmbeds: resolvedImages.imageEmbeds,
 		});
-		const { theme, pageWidthPx, pageHeightPx } = this.plugin.settings;
+		const options = this.resolvePreviewOptions(this.trackedFile);
+		this.pageSize = pageDimensions(options.pageSize, this.plugin.settings);
+		const { pageWidthPx, pageHeightPx } = this.pageSize;
+		const { theme } = options;
+		this.plugin.syncCustomStyleSheet(theme);
 		const pages = await paginateBrewPages(renderedPages, {
 			theme,
 			pageWidthPx,
@@ -141,10 +179,30 @@ export class HomebreweryView extends ItemView {
 		for (const page of pages) {
 			const pageEl = this.pagesContainer.createDiv({ cls: "page brewPage" });
 			appendRenderedHtml(pageEl, page.html);
-			pageEl.createDiv({ cls: "pageNumber brewPageNumber", text: String(page.index) });
+			const footer = pageFooterText(options);
+			if (footer) pageEl.createDiv({ cls: PAGE_FOOTER_CLASS, text: footer });
+			const pageNumber = pageNumberText(page.index, options);
+			if (pageNumber !== null) {
+				pageEl.createDiv({ cls: "pageNumber brewPageNumber", text: pageNumber });
+			}
 		}
 
 		this.flagOverflowingPages();
+	}
+
+	/**
+	 * Resolves the note's export options for the preview. Invalid properties
+	 * are flagged in the caption rather than with a notice: the Properties
+	 * panel saves on every keystroke, so a half-typed value would otherwise
+	 * raise a notice per letter. Exports still show a notice.
+	 */
+	private resolvePreviewOptions(file: TFile): ExportOptions {
+		const { resolved, invalid } = this.plugin.resolveNoteExportOptions(file);
+		this.captionEl.setText(
+			previewCaption(resolved, invalid.length, this.plugin.settings.customStyles)
+		);
+		this.captionEl.toggleClass("brewvault-preview-caption-warning", invalid.length > 0);
+		return resolved.values;
 	}
 
 	private startViewportObservation(): void {
@@ -160,7 +218,7 @@ export class HomebreweryView extends ItemView {
 
 	private updateViewportLayout(): void {
 		if (!this.rootEl || !this.pagesContainer) return;
-		const { pageWidthPx } = this.plugin.settings;
+		const { pageWidthPx } = this.pageSize;
 		const isPortrait = this.rootEl.clientWidth <= this.rootEl.clientHeight;
 		const isCompact = this.rootEl.clientWidth < pageWidthPx + 48;
 		this.rootEl.toggleClass("brewvault-preview-is-compact", isCompact);
@@ -180,7 +238,7 @@ export class HomebreweryView extends ItemView {
 	}
 
 	private applyViewportLayout(availableWidth: number, availableHeight: number): void {
-		const { pageWidthPx, pageHeightPx } = this.plugin.settings;
+		const { pageWidthPx, pageHeightPx } = this.pageSize;
 		const layout = calculatePreviewViewportLayout(
 			availableWidth,
 			availableHeight,
@@ -226,4 +284,26 @@ export class HomebreweryView extends ItemView {
 function parseCssPixels(value: string): number {
 	const parsed = Number.parseFloat(value);
 	return Number.isFinite(parsed) ? parsed : 0;
+}
+
+/** Short caption above the pages: the theme, its source, and other properties. */
+function previewCaption(
+	resolved: ResolvedExportOptions,
+	invalidCount: number,
+	customStyles: Parameters<typeof themeDisplayName>[1]
+): string {
+	const theme = themeDisplayName(resolved.values.theme, customStyles);
+	const themeSource = describeSource(resolved.sources.theme, "theme");
+	const otherNoteOptions = EXPORT_OPTION_KEYS.filter(
+		(key) => key !== "theme" && resolved.sources[key] === "note"
+	).length;
+	const extra =
+		otherNoteOptions === 0
+			? ""
+			: ` · ${otherNoteOptions} more note ${otherNoteOptions === 1 ? "property" : "properties"}`;
+	const warning =
+		invalidCount === 0
+			? ""
+			: ` · ⚠ ${invalidCount} invalid ${invalidCount === 1 ? "property" : "properties"}`;
+	return `${theme} · ${themeSource}${extra}${warning}`;
 }

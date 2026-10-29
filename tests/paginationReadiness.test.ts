@@ -28,6 +28,32 @@ void test("detects horizontal column overflow on the measured wrapper", () => {
 	);
 });
 
+void test("ignores decorative bleed from a framed block in the right column", () => {
+	// Measured in Chromium: a PHB monster frame in column 2 widens the
+	// wrapper's scroll area from 672px to 678px.
+	assert.equal(
+		dimensionsOverflow({
+			scrollWidth: 678,
+			clientWidth: 672,
+			scrollHeight: 928,
+			clientHeight: 928,
+		}),
+		false
+	);
+});
+
+void test("still detects vertical overflow of a single pixel or more", () => {
+	assert.equal(
+		dimensionsOverflow({
+			scrollWidth: 672,
+			clientWidth: 672,
+			scrollHeight: 930,
+			clientHeight: 928,
+		}),
+		true
+	);
+});
+
 void test("waits for an embedded image to decode before measuring", async () => {
 	let decoded = false;
 	await waitForImageReadiness({

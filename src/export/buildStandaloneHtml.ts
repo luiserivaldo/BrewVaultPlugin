@@ -1,6 +1,13 @@
 import type { BrewPage } from "../renderer/types";
 import type { BrewTheme } from "../settings/types";
 import { getThemeClassNames } from "../themes/registry";
+import {
+	DEFAULT_PAGE_FURNITURE,
+	PAGE_FOOTER_CLASS,
+	pageFooterText,
+	pageNumberText,
+	type PageFurniture,
+} from "./pageFurniture";
 
 /**
  * Wraps already-rendered pages into a complete, self-contained HTML
@@ -16,15 +23,17 @@ export function buildStandaloneHtml(
 	themeCss: string,
 	title: string,
 	pageWidthPx: number,
-	pageHeightPx: number
+	pageHeightPx: number,
+	furniture: PageFurniture = DEFAULT_PAGE_FURNITURE
 ): string {
 	const themeClassNames = getThemeClassNames(theme).join(" ");
+	const footer = pageFooterText(furniture);
+	const footerHtml = footer ? `\n\t\t<div class="${PAGE_FOOTER_CLASS}">${escapeHtml(footer)}</div>` : "";
 	const pagesHtml = pages
 		.map(
 			(page) => `
 	<div class="page brewPage">
-		${ensureColumnWrapper(page.html)}
-		<div class="pageNumber brewPageNumber">${page.index}</div>
+		${ensureColumnWrapper(page.html)}${footerHtml}${pageNumberHtml(page.index, furniture)}
 	</div>`
 		)
 		.join("\n");
@@ -85,12 +94,19 @@ body {
 	cursor: pointer;
 }
 ${themeCss}
-/* .brewPage is a complete Letter sheet. Its own padding is the document
-   margin, so printer margins must remain zero or the browser scales and
-   repaginates the fixed-size sheet. */
-@page { size: Letter portrait; margin: 0; }
+/* The bundled stylesheet gives .brewvault-pages a default Letter size, which
+   would override :root. Set the export size on the container itself, after
+   the theme CSS, so every page matches the printed sheet. */
+.brewvault-pages {
+	--brew-page-width: ${pageWidthPx}px;
+	--brew-page-height: ${pageHeightPx}px;
+}
+/* .brewPage is one complete sheet. Its own padding is the document margin,
+   so printer margins must remain zero or the browser scales and repaginates
+   the fixed-size sheet. */
+@page { size: ${pageWidthPx}px ${pageHeightPx}px; margin: 0; }
 @media print {
-	html, body { width: 8.5in; margin: 0; padding: 0; }
+	html, body { width: ${pageWidthPx}px; margin: 0; padding: 0; }
 	body { display: block; background: none; padding: 0; gap: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 	.brewvault-export-controls { display: none !important; }
 	.brewvault-pages { display: block; }
@@ -150,6 +166,13 @@ function ensureColumnWrapper(html: string): string {
 	return /^\s*<div class="columnWrapper">/.test(html)
 		? html
 		: `<div class="columnWrapper">${html}</div>`;
+}
+
+function pageNumberHtml(pageIndex: number, furniture: PageFurniture): string {
+	const text = pageNumberText(pageIndex, furniture);
+	return text === null
+		? ""
+		: `\n\t\t<div class="pageNumber brewPageNumber">${escapeHtml(text)}</div>`;
 }
 
 function escapeHtml(s: string): string {

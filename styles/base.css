@@ -146,6 +146,21 @@
 .brewBlank-3 { height: 3em; }
 .brewBlank-4 { height: 4em; }
 
+/* Obsidian's app stylesheet restyles every <hr> with large margins and a
+   thick theme-coloured rule. The preview lives inside Obsidian, and so does
+   page-break measurement for every export, so those margins made SRD and
+   Blank stat blocks gappy in the preview and threw off pagination in
+   exports. Pin dividers to the browser default that Homebrewery's themes
+   assume; PHB and DMG stat-block dividers have more specific rules and
+   still win. */
+.brewvault-pages .brewPage hr {
+	height: 0;
+	margin: .5em 0;
+	border: 0;
+	border-top: 1px solid #9c9c9c;
+	background: none;
+}
+
 /* Generic {{block}} container: themes may further style specific
    brew-<className> classes (e.g. brew-note, brew-classTable). */
 .brewBlock {
@@ -215,3 +230,60 @@
 }
 
 .brewvault-measure-pages .brewPageMeasurement { box-shadow: none; }
+
+/* BrewVault running footer (bv_footer). Themes such as PHB and DMG restyle
+   `.page .footnote` with higher specificity; this places it on themes that
+   have no footer style of their own. Only properties those themes override
+   are set here, so nothing leaks into their layout. */
+.brewPage > .footnote {
+	position: absolute;
+	right: 96px;
+	bottom: 30px;
+	font-size: .8em;
+	text-align: right;
+}
+
+/* A bv_footer is one line of running text. PHB's footnote box is a fixed
+   200px wide, which wraps longer footers; let BrewVault's footer size to its
+   text and grow leftward from the theme's right edge instead. Four classes
+   outrank the themes' `.brewvault-theme-* .page .footnote`. */
+.page.brewPage > .footnote.brewvault-running-footer {
+	width: auto;
+	max-width: 60%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Clickable caption above the preview pages; opens Show export options. */
+.brewvault-preview-caption {
+	max-width: var(--brew-page-width, 816px);
+	margin: 0 auto 12px;
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	text-align: center;
+	cursor: pointer;
+}
+
+.brewvault-preview-caption-warning {
+	color: var(--text-warning);
+}
+
+.brewvault-preview-caption:hover,
+.brewvault-preview-caption:focus-visible {
+	color: var(--text-normal);
+	text-decoration: underline;
+}
+
+.brewvault-export-options table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.brewvault-export-options th,
+.brewvault-export-options td {
+	padding: 4px 8px;
+	border-bottom: 1px solid var(--background-modifier-border);
+	text-align: left;
+	vertical-align: top;
+}
