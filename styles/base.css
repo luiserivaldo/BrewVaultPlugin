@@ -228,6 +228,18 @@
 	text-align: right;
 }
 
+/* A bv_footer is one line of running text. PHB's footnote box is a fixed
+   200px wide, which wraps longer footers; let BrewVault's footer size to its
+   text and grow leftward from the theme's right edge instead. Four classes
+   outrank the themes' `.brewvault-theme-* .page .footnote`. */
+.page.brewPage > .footnote.brewvault-running-footer {
+	width: auto;
+	max-width: 60%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
 /* Clickable caption above the preview pages; opens Show export options. */
 .brewvault-preview-caption {
 	max-width: var(--brew-page-width, 816px);

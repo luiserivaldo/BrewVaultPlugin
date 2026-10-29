@@ -108,7 +108,7 @@ void test("standalone export adds an escaped footer to every page", () => {
 		firstPageNumber: 1,
 	});
 	assert.equal(
-		withFooter.match(/<div class="footnote">Monsters &lt;of&gt; Llynwych<\/div>/g)?.length,
+		withFooter.match(/<div class="footnote brewvault-running-footer">Monsters &lt;of&gt; Llynwych<\/div>/g)?.length,
 		2
 	);
 	const withoutFooter = buildStandaloneHtml(pages, "phb", "", "Doc", 816, 1056);

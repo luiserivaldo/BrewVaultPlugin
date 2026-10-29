@@ -3,6 +3,7 @@ import type { BrewTheme } from "../settings/types";
 import { getThemeClassNames } from "../themes/registry";
 import {
 	DEFAULT_PAGE_FURNITURE,
+	PAGE_FOOTER_CLASS,
 	pageFooterText,
 	pageNumberText,
 	type PageFurniture,
@@ -27,7 +28,7 @@ export function buildStandaloneHtml(
 ): string {
 	const themeClassNames = getThemeClassNames(theme).join(" ");
 	const footer = pageFooterText(furniture);
-	const footerHtml = footer ? `\n\t\t<div class="footnote">${escapeHtml(footer)}</div>` : "";
+	const footerHtml = footer ? `\n\t\t<div class="${PAGE_FOOTER_CLASS}">${escapeHtml(footer)}</div>` : "";
 	const pagesHtml = pages
 		.map(
 			(page) => `

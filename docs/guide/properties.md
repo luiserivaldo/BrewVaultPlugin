@@ -102,6 +102,8 @@ bv_footer: Llynwych | Monsters
 ```
 
 - Any text works. Numbers are printed as written.
+- The footer stays on one line. Text longer than about 60% of the page
+  width is cut off with "…".
 - `bv_footer: false` turns the footer off.
 - An empty value, or no `bv_footer`, prints no footer.
 

@@ -7,7 +7,7 @@ import {
 import type { ResolvedExportOptions } from "../exportOptions/resolve";
 import { describeSource, themeDisplayName } from "../exportOptions/describe";
 import { formatInvalidPropertiesMessage } from "../exportOptions/noteProperties";
-import { pageFooterText, pageNumberText } from "../export/pageFurniture";
+import { PAGE_FOOTER_CLASS, pageFooterText, pageNumberText } from "../export/pageFurniture";
 import { renderBrewMarkdown } from "../renderer";
 import { paginateBrewPages } from "../renderer/paginateDom";
 import type BrewVaultPlugin from "../main";
@@ -182,7 +182,7 @@ export class HomebreweryView extends ItemView {
 			const pageEl = this.pagesContainer.createDiv({ cls: "page brewPage" });
 			appendRenderedHtml(pageEl, page.html);
 			const footer = pageFooterText(options);
-			if (footer) pageEl.createDiv({ cls: "footnote", text: footer });
+			if (footer) pageEl.createDiv({ cls: PAGE_FOOTER_CLASS, text: footer });
 			const pageNumber = pageNumberText(page.index, options);
 			if (pageNumber !== null) {
 				pageEl.createDiv({ cls: "pageNumber brewPageNumber", text: pageNumber });

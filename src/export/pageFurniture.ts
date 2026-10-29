@@ -8,6 +8,9 @@ export interface PageFurniture {
 	readonly firstPageNumber: number;
 }
 
+/** Classes on the footer element: Homebrewery's `footnote` plus BrewVault's own. */
+export const PAGE_FOOTER_CLASS = "footnote brewvault-running-footer";
+
 export const DEFAULT_PAGE_FURNITURE: PageFurniture = {
 	footer: "",
 	showPageNumbers: true,
