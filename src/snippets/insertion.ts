@@ -16,6 +16,10 @@ export function formatSnippetForCursor(
 	lineBefore: string,
 	lineAfter: string
 ): string {
-	// TODO(human): decide how much separation to add around `body`.
-	return body;
+	// Text before the cursor would become part of the block's first line.
+	const prefix = lineBefore.trim() ? "\n" : "";
+	// With nothing after the cursor, the body's own final newline would leave
+	// an extra blank line; otherwise it moves the rest of the line below.
+	const content = lineAfter ? body : body.replace(/\n$/, "");
+	return prefix + content;
 }

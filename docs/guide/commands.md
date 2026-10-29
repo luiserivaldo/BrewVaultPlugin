@@ -24,6 +24,17 @@ Theme-specific PDF commands do not change the saved preview theme. On mobile,
 the generic and theme-specific PDF commands follow the **Mobile PDF export**
 setting; see [Mobile support](./mobile.md#choosing-a-method).
 
+## Compiling notes
+
+| Command | Effect |
+| --- | --- |
+| **Insert book content block** | Inserts a `{{bookContent}}` block: links and includes inside it add notes to the active note's preview and PDF. |
+| **Insert folder include…** | Picks a folder and inserts an include line that adds all of its notes. |
+| **Expand include into links** | With the cursor on an include line, replaces it with the `- [[link]]` list it adds, ready to reorder by hand. |
+| **Show included notes** | Lists the notes a `{{bookContent}}` block includes, in order, with any problems and ignored properties. |
+
+See [Compiling notes](./books.md).
+
 ## Inserting blocks
 
 | Command | Effect |

@@ -217,7 +217,7 @@ bv_edition: 2014
 
 ## Combining notes into one PDF
 
-BrewVault exports one note at a time. Combining several notes into one book
-is not planned for now, but any PDF tool that merges files can join exported
-PDFs. Use `bv_page_start` so the page numbers
-continue across the merged files.
+A note with a `{{bookContent}}` block compiles other notes into its preview
+and PDF. Its own properties apply to the whole document, and the properties
+above are ignored in the notes it includes. See
+[Compiling notes](./books.md).

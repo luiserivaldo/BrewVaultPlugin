@@ -1,19 +1,14 @@
 import { ItemView, TFile, WorkspaceLeaf } from "obsidian";
-import {
-	EXPORT_OPTION_KEYS,
-	pageDimensions,
-	type ExportOptions,
-} from "../exportOptions/options";
+import { EXPORT_OPTION_KEYS, pageDimensions } from "../exportOptions/options";
 import type { ResolvedExportOptions } from "../exportOptions/resolve";
 import { describeSource, themeDisplayName } from "../exportOptions/describe";
 import { PAGE_FOOTER_CLASS, pageFooterText, pageNumberText } from "../export/pageFurniture";
-import { renderBrewMarkdown } from "../renderer";
 import { paginateBrewPages } from "../renderer/paginateDom";
 import type BrewVaultPlugin from "../main";
 import { ALL_THEME_CLASS_NAMES, getThemeClassNames } from "../themes/registry";
 import { appendRenderedHtml } from "../renderer/renderedHtml";
 import { calculatePreviewViewportLayout } from "../ui/previewViewport";
-import { resolveVaultImageEmbeds } from "../obsidian/resolveVaultImageEmbeds";
+import type { PlannedBook } from "../obsidian/renderNotePages";
 
 export const HOMEBREWERY_VIEW_TYPE = "brewvault-preview";
 
@@ -25,7 +20,9 @@ export class HomebreweryView extends ItemView {
 	private captionEl!: HTMLElement;
 	private debounceHandle: number | null = null;
 	private viewportObserver: ResizeObserver | null = null;
-	private imageDependencyPaths = new Set<string>();
+	/** Members and images of the shown note; their changes re-render it. */
+	private dependencyPaths = new Set<string>();
+	private isBook = false;
 	/** Page size of the note currently shown; set on every render. */
 	private pageSize: { pageWidthPx: number; pageHeightPx: number };
 
@@ -57,7 +54,9 @@ export class HomebreweryView extends ItemView {
 		this.captionEl.setAttr("tabindex", "0");
 		this.captionEl.setAttr("aria-label", "Show export options");
 		const openOptions = () => {
-			if (this.trackedFile) this.plugin.openExportOptions(this.trackedFile);
+			if (!this.trackedFile) return;
+			if (this.isBook) this.plugin.openBookContents(this.trackedFile);
+			else this.plugin.openExportOptions(this.trackedFile);
 		};
 		this.registerDomEvent(this.captionEl, "click", openOptions);
 		this.registerDomEvent(this.captionEl, "keydown", (event) => {
@@ -76,7 +75,7 @@ export class HomebreweryView extends ItemView {
 			this.app.vault.on("modify", (file) => {
 				if (
 					file instanceof TFile &&
-					(file === this.trackedFile || this.imageDependencyPaths.has(file.path))
+					(file === this.trackedFile || this.dependencyPaths.has(file.path))
 				) {
 					this.scheduleRender();
 				}
@@ -86,9 +85,19 @@ export class HomebreweryView extends ItemView {
 		// Frontmatter (and so `bv_theme`) is parsed after `modify` fires.
 		this.registerEvent(
 			this.app.metadataCache.on("changed", (file) => {
-				if (file === this.trackedFile) this.scheduleRender();
+				if (file === this.trackedFile || this.dependencyPaths.has(file.path)) {
+					this.scheduleRender();
+				}
 			})
 		);
+
+		// A book's folder includes change when notes are added, removed, or moved.
+		const rerenderBook = () => {
+			if (this.isBook) this.scheduleRender();
+		};
+		this.registerEvent(this.app.vault.on("create", rerenderBook));
+		this.registerEvent(this.app.vault.on("delete", rerenderBook));
+		this.registerEvent(this.app.vault.on("rename", rerenderBook));
 
 		this.registerEvent(
 			this.app.workspace.on("active-leaf-change", () => {
@@ -145,27 +154,22 @@ export class HomebreweryView extends ItemView {
 			return;
 		}
 
-		const source = await this.app.vault.cachedRead(this.trackedFile);
-		const resolvedImages = await resolveVaultImageEmbeds(
-			source,
-			this.trackedFile,
-			this.app.vault,
-			this.app.metadataCache
-		);
-		this.imageDependencyPaths = new Set(resolvedImages.dependencyPaths);
-		const renderedPages = renderBrewMarkdown(source, {
-			imageEmbeds: resolvedImages.imageEmbeds,
-		});
-		const options = this.resolvePreviewOptions(this.trackedFile);
-		this.pageSize = pageDimensions(options.pageSize, this.plugin.settings);
+		const file = this.trackedFile;
+		const options = this.plugin.resolveNoteExportOptions(file);
+		this.pageSize = pageDimensions(options.resolved.values.pageSize, this.plugin.settings);
 		const { pageWidthPx, pageHeightPx } = this.pageSize;
-		const { theme } = options;
+		const { theme } = options.resolved.values;
 		this.plugin.syncCustomStyleSheet(theme);
-		const pages = await paginateBrewPages(renderedPages, {
-			theme,
-			pageWidthPx,
-			pageHeightPx,
-		});
+		const rendered = await this.plugin.renderNotePages(file, (pages) =>
+			paginateBrewPages(pages, { theme, pageWidthPx, pageHeightPx })
+		);
+		// A newer render may have started while this one was paginating.
+		if (file !== this.trackedFile) return;
+		this.dependencyPaths = new Set(rendered.dependencyPaths);
+		this.isBook = rendered.book !== null;
+		this.updateCaption(options.resolved, options.invalid.length, rendered.book);
+		const furniture = options.resolved.values;
+		const pages = rendered.pages;
 
 		this.pagesContainer.empty();
 		this.pagesContainer.setCssProps({
@@ -179,9 +183,9 @@ export class HomebreweryView extends ItemView {
 		for (const page of pages) {
 			const pageEl = this.pagesContainer.createDiv({ cls: "page brewPage" });
 			appendRenderedHtml(pageEl, page.html);
-			const footer = pageFooterText(options);
+			const footer = pageFooterText(furniture);
 			if (footer) pageEl.createDiv({ cls: PAGE_FOOTER_CLASS, text: footer });
-			const pageNumber = pageNumberText(page.index, options);
+			const pageNumber = pageNumberText(page.index, furniture);
 			if (pageNumber !== null) {
 				pageEl.createDiv({ cls: "pageNumber brewPageNumber", text: pageNumber });
 			}
@@ -191,18 +195,27 @@ export class HomebreweryView extends ItemView {
 	}
 
 	/**
-	 * Resolves the note's export options for the preview. Invalid properties
-	 * are flagged in the caption rather than with a notice: the Properties
-	 * panel saves on every keystroke, so a half-typed value would otherwise
-	 * raise a notice per letter. Exports still show a notice.
+	 * Shows the theme and option sources above the pages. Invalid properties
+	 * are flagged here rather than with a notice: the Properties panel saves
+	 * on every keystroke, so a half-typed value would otherwise raise a notice
+	 * per letter. Exports still show a notice.
 	 */
-	private resolvePreviewOptions(file: TFile): ExportOptions {
-		const { resolved, invalid } = this.plugin.resolveNoteExportOptions(file);
+	private updateCaption(
+		resolved: ResolvedExportOptions,
+		invalidCount: number,
+		book: PlannedBook | null
+	): void {
+		const warnings =
+			invalidCount +
+			(book?.plan.diagnostics.filter((diagnostic) => diagnostic.severity === "warning").length ?? 0);
+		const bookText = book
+			? ` · ${book.plan.memberCount} included ${book.plan.memberCount === 1 ? "note" : "notes"}`
+			: "";
 		this.captionEl.setText(
-			previewCaption(resolved, invalid.length, this.plugin.settings.customStyles)
+			previewCaption(resolved, warnings, this.plugin.settings.customStyles, bookText)
 		);
-		this.captionEl.toggleClass("brewvault-preview-caption-warning", invalid.length > 0);
-		return resolved.values;
+		this.captionEl.toggleClass("brewvault-preview-caption-warning", warnings > 0);
+		this.captionEl.setAttr("aria-label", book ? "Show included notes" : "Show export options");
 	}
 
 	private startViewportObservation(): void {
@@ -289,8 +302,9 @@ function parseCssPixels(value: string): number {
 /** Short caption above the pages: the theme, its source, and other properties. */
 function previewCaption(
 	resolved: ResolvedExportOptions,
-	invalidCount: number,
-	customStyles: Parameters<typeof themeDisplayName>[1]
+	warningCount: number,
+	customStyles: Parameters<typeof themeDisplayName>[1],
+	bookText: string
 ): string {
 	const theme = themeDisplayName(resolved.values.theme, customStyles);
 	const themeSource = describeSource(resolved.sources.theme, "theme");
@@ -302,8 +316,8 @@ function previewCaption(
 			? ""
 			: ` · ${otherNoteOptions} more note ${otherNoteOptions === 1 ? "property" : "properties"}`;
 	const warning =
-		invalidCount === 0
+		warningCount === 0
 			? ""
-			: ` · ⚠ ${invalidCount} invalid ${invalidCount === 1 ? "property" : "properties"}`;
-	return `${theme} · ${themeSource}${extra}${warning}`;
+			: ` · ⚠ ${warningCount} ${warningCount === 1 ? "problem" : "problems"}`;
+	return `${theme} · ${themeSource}${bookText}${extra}${warning}`;
 }

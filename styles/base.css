@@ -287,3 +287,13 @@
 	text-align: left;
 	vertical-align: top;
 }
+
+/* Show included notes modal. */
+.brewvault-book-contents ol {
+	padding-left: 1.5em;
+}
+
+.brewvault-book-contents .brewvault-book-contents-source {
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+}

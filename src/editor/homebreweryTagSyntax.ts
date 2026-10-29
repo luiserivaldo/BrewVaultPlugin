@@ -105,12 +105,20 @@ export function selectionTouchesTag(
 	return selections.some((selection) => selection.from <= tag.to && selection.to >= tag.from);
 }
 
+/** Labels clearer than the class name, for blocks BrewVault reads itself. */
+const TAG_LABELS: Readonly<Record<string, string>> = {
+	bookcontent: "Book Content",
+	"book-content": "Book Content",
+	bv_book_content: "Book Content",
+};
+
 export function formatHomebreweryTagLabel(classSource: string): string {
 	return classSource
 		.split(/[,\s]+/)
 		.map((name) => name.trim())
 		.filter(Boolean)
 		.map((name) =>
+			TAG_LABELS[name.toLowerCase()] ??
 			name
 				.replace(/([a-z0-9])([A-Z])/g, "$1 $2")
 				.replace(/[-_]+/g, " ")
