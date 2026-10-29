@@ -9,9 +9,9 @@ page numbers, in the same `{{toc` markup Homebrewery uses:
 {{toc,wide
 # Table of Contents
 
-- ### [{{ Spells}}{{ 2}}](#p2)
-  - #### [{{ Shield}}{{ 3}}](#p3)
-    - [{{ Lair actions}}{{ 4}}](#p4)
+- ### [{{ Spells}}{{ 2}}](#p2 "Test Book#Spells")
+  - #### [{{ Shield}}{{ 3}}](#p3 "SRD/Spells list#Shield")
+    - [{{ Lair actions}}{{ 4}}](#p4 "SRD/Imp#Lair actions")
 }}
 ```
 
@@ -34,6 +34,23 @@ The result is ordinary Markdown. Delete rows, re-indent them, or rename them
 freely. Run the command again after editing the note to refresh the page
 numbers; this rewrites the list, so hand edits to the rows are replaced.
 
-Each row links to its page: clicking it in the preview scrolls there, and it
-works as a link in exported HTML and PDF files. `wide` spans the page and lists
-the rows in two columns; remove it for a one-column list.
+`wide` spans the page and lists the rows in two columns; remove it for a
+one-column list.
+
+## Jumping to a section
+
+Each row links to its page as `#p<page>`, and its title (the quoted part)
+names the note and heading it came from. Clicking a row opens that heading in
+the editor, switching notes if the heading is in a compiled note, like
+following a wikilink:
+
+- **Editor:** click a row in Live Preview, or Ctrl/Cmd-click in source mode.
+  Ctrl/Cmd-click in Live Preview opens a new tab.
+- **Reading view:** click a row.
+- **BrewVault preview:** click a row to scroll the preview to its page and open
+  the heading in the editor showing the note. Ctrl/Cmd-click opens a new tab.
+
+In exported HTML and PDF files, rows link to their page. The title is only a
+tooltip there, and in Homebrewery. Rows written before this feature, or
+without a title, only scroll the preview to their page; run the command again
+to add titles.

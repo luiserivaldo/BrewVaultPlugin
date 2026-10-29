@@ -1,4 +1,4 @@
-import { ItemView, TFile, WorkspaceLeaf } from "obsidian";
+import { ItemView, Keymap, MarkdownView, TFile, WorkspaceLeaf, type PaneType } from "obsidian";
 import { EXPORT_OPTION_KEYS, pageDimensions } from "../exportOptions/options";
 import type { ResolvedExportOptions } from "../exportOptions/resolve";
 import { describeSource, themeDisplayName } from "../exportOptions/describe";
@@ -9,6 +9,7 @@ import { ALL_THEME_CLASS_NAMES, getThemeClassNames } from "../themes/registry";
 import { appendRenderedHtml } from "../renderer/renderedHtml";
 import { calculatePreviewViewportLayout } from "../ui/previewViewport";
 import type { PlannedBook } from "../obsidian/renderNotePages";
+import { openTocTarget } from "../obsidian/tocNavigation";
 
 export const HOMEBREWERY_VIEW_TYPE = "brewvault-preview";
 /** Each preview page's 1-based index, the target of `#p<index>` links. */
@@ -72,13 +73,20 @@ export class HomebreweryView extends ItemView {
 			cls: "brewvault-pages brewvault-preview-pages",
 		});
 		this.startViewportObservation();
-		// Table of contents rows link to #p<page>, like Homebrewery and the export.
+		// Table of contents rows link to #p<page>, like Homebrewery and the
+		// export, and name their heading in the title: scroll to the page, then
+		// open the heading in the editor like a wikilink.
 		this.registerDomEvent(this.pagesContainer, "click", (event) => {
 			const link = event.target instanceof Element ? event.target.closest("a[href^='#p']") : null;
 			const index = /^#p(\d+)$/.exec(link?.getAttribute("href") ?? "")?.[1];
-			if (!index) return;
+			if (!link || !index) return;
 			event.preventDefault();
 			this.pagesContainer.querySelector(`[${PAGE_INDEX_ATTRIBUTE}="${index}"]`)?.scrollIntoView({ block: "start" });
+			const target = link.getAttribute("title");
+			const file = this.trackedFile;
+			if (target && file) {
+				void openTocTarget(this.app, target, file.path, this.editorLeafFor(file, Keymap.isModEvent(event)));
+			}
 		});
 
 		this.registerEvent(
@@ -205,6 +213,18 @@ export class HomebreweryView extends ItemView {
 		}
 
 		this.flagOverflowingPages();
+	}
+
+	/**
+	 * The editor to open a contents row in: a new tab on Mod-click, else the
+	 * editor already showing the previewed note, so the preview stays open.
+	 */
+	private editorLeafFor(file: TFile, paneType: PaneType | boolean): WorkspaceLeaf {
+		if (paneType) return this.app.workspace.getLeaf(paneType === true ? "tab" : paneType);
+		const editor = this.app.workspace
+			.getLeavesOfType("markdown")
+			.find((leaf) => leaf.view instanceof MarkdownView && leaf.view.file === file);
+		return editor ?? this.app.workspace.getLeaf("tab");
 	}
 
 	/**

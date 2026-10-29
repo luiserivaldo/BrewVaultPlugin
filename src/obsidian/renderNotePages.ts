@@ -41,7 +41,7 @@ export async function renderNotePages(app: App, request: NotePagesRequest): Prom
 		const images = await resolveVaultImageEmbeds(source, file, app.vault, app.metadataCache);
 		images.dependencyPaths.forEach((path) => dependencyPaths.add(path));
 		const pages = await request.paginate(
-			renderBrewMarkdown(source, { imageEmbeds: images.imageEmbeds })
+			renderBrewMarkdown(source, { imageEmbeds: images.imageEmbeds, headingSource: file.path })
 		);
 		return { pages, dependencyPaths, book: null };
 	}
@@ -105,5 +105,8 @@ async function renderWithImages(
 	const source = isBookText ? `\n${markdown}` : markdown;
 	const images = await resolveVaultImageEmbeds(source, sourceFile, app.vault, app.metadataCache);
 	images.dependencyPaths.forEach((path) => dependencyPaths.add(path));
-	return renderBrewDocumentHtml(source, { imageEmbeds: images.imageEmbeds });
+	return renderBrewDocumentHtml(source, {
+		imageEmbeds: images.imageEmbeds,
+		headingSource: sourceFile.path,
+	});
 }

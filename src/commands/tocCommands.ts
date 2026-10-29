@@ -9,6 +9,7 @@ import {
 	formatTocRows,
 	TOC_HEADER,
 	TOC_OPENER,
+	type TocHeading,
 } from "../toc/tableOfContents";
 import { findTargetMarkdownView } from "./insertSnippet";
 
@@ -84,7 +85,11 @@ async function generateTableOfContents(
 			});
 			const headings = detectHeadings(rendered.pages);
 			headingCount = headings.length;
-			const next = buildTocBlock(formatTocRows(headings, layout.firstPageNumber), opener, header);
+			const next = buildTocBlock(
+				formatTocRows(headings, layout.firstPageNumber, (heading) => rowTarget(plugin, file, heading)),
+				opener,
+				header
+			);
 			if (next === block) break;
 			block = next;
 		}
@@ -104,4 +109,11 @@ async function generateTableOfContents(
 	new Notice(
 		`${existing ? "Refreshed" : "Added"} the table of contents: ${headingCount} ${headingCount === 1 ? "heading" : "headings"}.`
 	);
+}
+
+/** Where a row jumps to: `Note#Heading`, as short as the vault allows. */
+function rowTarget(plugin: Plugin, file: TFile, heading: TocHeading): string {
+	const source = heading.sourcePath ? plugin.app.vault.getAbstractFileByPath(heading.sourcePath) : file;
+	const note = source instanceof TFile ? source : file;
+	return `${plugin.app.metadataCache.fileToLinktext(note, file.path, true)}#${heading.text}`;
 }

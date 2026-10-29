@@ -1,11 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { renderBrewDocumentHtml, renderBrewMarkdown } from "../src/renderer";
+import { buildStandaloneHtml } from "../src/export/buildStandaloneHtml";
 import {
 	buildTocBlock,
 	detectHeadings,
+	findHeadingLine,
 	findTocBlock,
 	formatTocRows,
+	parseTocRowLink,
+	splitTocTarget,
 	type TocHeading,
 } from "../src/toc/tableOfContents";
 
@@ -143,4 +147,40 @@ void test("\\page and \\column break directly under a paragraph, list, or quote"
 	assert.match(render("A\n\\column\nB"), /<p>A<\/p>\n<div class="columnSplit"><\/div><p>B<\/p>/);
 	// Inside a code fence it stays text.
 	assert.equal(pages("```\nA\n\\page\n```").length, 1);
+});
+
+void test("rows name the note and heading they jump to, and the link can be read back", () => {
+	const pages = renderBrewMarkdown("## Imp & \\\"Kin\\\"", { imageEmbeds: new Map(), headingSource: "SRD/Imp & Co.md" });
+	const headings = detectHeadings(pages);
+	assert.deepEqual(headings, [{ level: 2, text: 'Imp & "Kin"', pageIndex: 1, sourcePath: "SRD/Imp & Co.md" }]);
+
+	const [row] = formatTocRows(headings, 1, (heading) => `SRD/Imp & Co#${heading.text}`);
+	assert.equal(row, '- ### [{{ Imp & "Kin"}}{{ 1}}](#p1 "SRD/Imp & Co#Imp & \\"Kin\\"")');
+	assert.deepEqual(parseTocRowLink(row), { pageIndex: 1, target: 'SRD/Imp & Co#Imp & "Kin"' });
+	assert.deepEqual(parseTocRowLink("- ### [{{ Old}}{{ 2}}](#p2)"), { pageIndex: 2, target: null });
+	assert.equal(parseTocRowLink("- [[Imp]]"), null);
+	// The title renders as a tooltip, so the row still works in Homebrewery.
+	assert.match(render(row), /<a href="#p1" title="SRD\/Imp &amp; Co#Imp &amp; &quot;Kin&quot;">/);
+
+	assert.deepEqual(splitTocTarget("SRD/Imp#Lair #2"), { linkpath: "SRD/Imp", heading: "Lair #2" });
+	assert.deepEqual(splitTocTarget("Imp"), { linkpath: "Imp", heading: "" });
+});
+
+void test("a row finds its heading line ignoring Markdown marks", () => {
+	const headings = [
+		{ heading: "Intro", line: 0 },
+		{ heading: "Spells & *Charms*", line: 4 },
+		{ heading: "See [[Imp|the imp]]", line: 9 },
+	];
+	assert.equal(findHeadingLine(headings, "Spells & Charms"), 4);
+	assert.equal(findHeadingLine(headings, "see the IMP"), 9);
+	assert.equal(findHeadingLine(headings, "Missing"), null);
+});
+
+void test("exports keep vault paths out of the page HTML", () => {
+	const pages = renderBrewMarkdown("# Title", { imageEmbeds: new Map(), headingSource: "Secret/Note.md" });
+	assert.match(pages[0].html, /data-brewvault-source="Secret\/Note.md"/);
+	const html = buildStandaloneHtml(pages, "phb", "", "Doc", 816, 1056);
+	assert.doesNotMatch(html, /Secret\/Note/);
+	assert.match(html, /<h1>Title<\/h1>/);
 });

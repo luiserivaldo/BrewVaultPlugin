@@ -39,7 +39,7 @@ See [Compiling notes](./books.md).
 
 | Command | Effect |
 | --- | --- |
-| **Generate table of contents** | Writes or refreshes a `{{toc` block listing the note's `#`, `##`, and `###` headings with their page numbers. |
+| **Generate table of contents** | Writes or refreshes a `{{toc` block listing the note's `#`, `##`, and `###` headings with their page numbers. Click a row to jump to its heading. |
 
 See [Table of contents](./table-of-contents.md).
 

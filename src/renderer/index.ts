@@ -35,6 +35,7 @@ export function renderBrewDocumentHtml(
 	const engine = createBrewMarkdownEngine();
 	const environment: BrewRenderEnvironment = {
 		imageEmbeds: options.imageEmbeds,
+		headingSource: options.headingSource,
 	};
 	return engine.render(stripYamlFrontmatter(source), environment);
 }
