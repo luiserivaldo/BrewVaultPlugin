@@ -11,6 +11,7 @@ import {
 	BrewVaultSettings,
 	BrewTheme,
 	DEFAULT_SETTINGS,
+	type MobilePdfMethod,
 	normalizeStoredSettings,
 } from "./settings/types";
 import { BrewVaultSettingTab } from "./settings/SettingTab";
@@ -34,6 +35,22 @@ import {
 } from "./themes/customStyles";
 import { registerInsertSnippetCommands } from "./commands/insertSnippet";
 
+/** Persistent notice shown only while a backend renders pages one by one. */
+class ExportProgressNotice {
+	private notice: Notice | null = null;
+
+	update(rendered: number, total: number): void {
+		const message = `Rendering PDF page ${rendered} of ${total}…`;
+		if (this.notice) this.notice.setMessage(message);
+		else this.notice = new Notice(message, 0);
+	}
+
+	hide(): void {
+		this.notice?.hide();
+		this.notice = null;
+	}
+}
+
 // The community reviewer analyzes source without running BrewVault's esbuild
 // virtual-module loader. Narrow through `unknown` so both that environment and
 // the production bundle have a verified string at every renderer call site.
@@ -51,7 +68,10 @@ export default class BrewVaultPlugin extends Plugin {
 	async onload(): Promise<void> {
 		await this.loadSettings();
 		this.installCustomStyleSheet();
-		this.exportBackendProvider = createBackendProvider(detectPlatform(Platform));
+		const platform = detectPlatform(Platform);
+		this.exportBackendProvider = createBackendProvider(platform, {
+			getMobilePdfMethod: () => this.settings.mobilePdfMethod,
+		});
 		this.registerEditorExtension(homebreweryTagPreviewExtension);
 
 		this.registerView(HOMEBREWERY_VIEW_TYPE, (leaf) => new HomebreweryView(leaf, this));
@@ -114,9 +134,31 @@ export default class BrewVaultPlugin extends Plugin {
 			"Export current file as BrewVault PDF in Blank style",
 			"blank"
 		);
+
+		// Mobile-only commands choose the PDF method for one export, so either
+		// method stays one command away regardless of the saved setting.
+		if (platform === "mobile") {
+			this.addPdfExportCommand(
+				"export-current-file-as-pdf-mobile-browser",
+				"Export current file as BrewVault PDF via browser",
+				undefined,
+				"browser"
+			);
+			this.addPdfExportCommand(
+				"export-current-file-as-pdf-mobile-direct",
+				"Export current file as BrewVault PDF directly (image pages)",
+				undefined,
+				"native"
+			);
+		}
 	}
 
-	private addPdfExportCommand(id: string, name: string, theme?: BrewTheme): void {
+	private addPdfExportCommand(
+		id: string,
+		name: string,
+		theme?: BrewTheme,
+		mobilePdfMethod?: MobilePdfMethod
+	): void {
 		this.addCommand({
 			id,
 			name,
@@ -124,7 +166,7 @@ export default class BrewVaultPlugin extends Plugin {
 				const file = this.app.workspace.getActiveFile();
 				const canRun = file instanceof TFile && file.extension === "md";
 				if (canRun && !checking) {
-					void this.exportFileAsPdf(file, theme);
+					void this.exportFileAsPdf(file, theme, mobilePdfMethod);
 				}
 				return canRun;
 			},
@@ -173,7 +215,11 @@ export default class BrewVaultPlugin extends Plugin {
 	}
 
 	/** Export directly on desktop or preserve and hand off HTML on mobile. */
-	async exportFileAsPdf(file: TFile, themeOverride?: BrewTheme): Promise<void> {
+	async exportFileAsPdf(
+		file: TFile,
+		themeOverride?: BrewTheme,
+		mobilePdfMethod?: MobilePdfMethod
+	): Promise<void> {
 		try {
 			const backend = await this.getExportBackendProvider().getBackend();
 			const theme = themeOverride ?? this.settings.theme;
@@ -199,7 +245,20 @@ export default class BrewVaultPlugin extends Plugin {
 				this.settings.pageHeightPx
 			);
 
-			const result = await backend.export({ html, basename: file.basename });
+			const progress = new ExportProgressNotice();
+			let result;
+			try {
+				result = await backend.export({
+					html,
+					basename: file.basename,
+					pageWidthPx: this.settings.pageWidthPx,
+					pageHeightPx: this.settings.pageHeightPx,
+					mobilePdfMethod,
+					onProgress: (rendered, total) => progress.update(rendered, total),
+				});
+			} finally {
+				progress.hide();
+			}
 			if (result.kind === "html-handoff") {
 				const outPath = this.allocateExportPath(
 					exportFolder,

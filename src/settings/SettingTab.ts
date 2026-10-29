@@ -2,8 +2,13 @@ import { App, Notice, PluginSettingTab, Setting } from "obsidian";
 import type { DropdownComponent } from "obsidian";
 import type { SettingDefinitionItem } from "obsidian";
 import type BrewVaultPlugin from "../main";
-import { DEFAULT_SETTINGS, type BrewTheme } from "./types";
+import { DEFAULT_SETTINGS, isMobilePdfMethod, type BrewTheme } from "./types";
 import { isEdition } from "../snippets/catalog";
+
+const MOBILE_PDF_METHOD_DESC =
+	"Browser handoff saves a .brew.html file and opens it for Share → Print → Save as PDF, keeping selectable text. " +
+	"Direct PDF renders each page as an image and writes the PDF inside Obsidian, with no other app; text is not selectable. " +
+	"Desktop always exports directly.";
 
 export class BrewVaultSettingTab extends PluginSettingTab {
 	plugin: BrewVaultPlugin;
@@ -43,6 +48,13 @@ export class BrewVaultSettingTab extends PluginSettingTab {
 				desc: "Edition used by the block picker and by insert commands that do not name one; edition-specific commands are unaffected.",
 				render: (setting) => {
 					this.addDefaultEditionControl(setting);
+				},
+			},
+			{
+				name: "Mobile PDF export",
+				desc: MOBILE_PDF_METHOD_DESC,
+				render: (setting) => {
+					this.addMobilePdfMethodControl(setting);
 				},
 			},
 			{
@@ -103,6 +115,10 @@ export class BrewVaultSettingTab extends PluginSettingTab {
 		this.addDefaultEditionControl(new Setting(containerEl)
 			.setName("Default edition")
 			.setDesc("Edition used by the block picker and by insert commands that do not name one; edition-specific commands are unaffected."));
+
+		this.addMobilePdfMethodControl(new Setting(containerEl)
+			.setName("Mobile PDF export")
+			.setDesc(MOBILE_PDF_METHOD_DESC));
 
 		this.addExportFolderControl(new Setting(containerEl)
 			.setName("Export folder")
@@ -208,6 +224,20 @@ export class BrewVaultSettingTab extends PluginSettingTab {
 				.onChange(async (value) => {
 					if (!isEdition(value)) return;
 					this.plugin.settings.defaultEdition = value;
+					await this.plugin.saveSettings();
+				})
+		);
+	}
+
+	private addMobilePdfMethodControl(setting: Setting): void {
+		setting.addDropdown((drop) =>
+			drop
+				.addOption("browser", "Browser handoff")
+				.addOption("native", "Direct PDF (image pages)")
+				.setValue(this.plugin.settings.mobilePdfMethod)
+				.onChange(async (value) => {
+					if (!isMobilePdfMethod(value)) return;
+					this.plugin.settings.mobilePdfMethod = value;
 					await this.plugin.saveSettings();
 				})
 		);

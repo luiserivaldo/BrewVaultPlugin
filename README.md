@@ -21,15 +21,27 @@ PDF using preconfigured themes, or export as HTML and apply custom CSS styles.
 - Configurable vault-relative export folder; defaults to the root folder at
   `BrewVault-Exports`.
 - Fully local and offline. Desktop requires no external browser, server, or
-  Chromium installation; mobile delegates only the final print/export step to
-  an installed browser.
+  Chromium installation. Mobile can either hand the final print step to an
+  installed browser or write the PDF directly inside Obsidian.
 
 ## Mobile support
 
-Mobile preview scales each page to fit the screen. Mobile PDF commands save a
-self-contained `.brew.html` file and hand it to a browser, where you use
-**Share → Print → Save as PDF**. Current releases are tested on Android only;
-see [Mobile support](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/mobile.md).
+Mobile preview scales each page to fit the screen. Mobile PDF export offers two
+methods:
+
+- **Browser handoff** (default) saves a self-contained `.brew.html` file and
+  hands it to a browser, where you use **Share → Print → Save as PDF**. Text
+  stays selectable and searchable.
+- **Direct PDF (image pages)** writes the PDF inside Obsidian with no other
+  app. Each page is stored as an image, so text is not selectable and files are
+  larger.
+
+Pick the default under **Settings → BrewVault → Mobile PDF export**, or run
+**Export current file as BrewVault PDF via browser** or **Export current file
+as BrewVault PDF directly (image pages)** for a one-off choice. Current
+releases are tested on Android only; see
+[Mobile support](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/mobile.md)
+for the full comparison.
 
 ## Installation
 
@@ -71,7 +83,7 @@ BrewVault 0.5.0 supports desktop and mobile Obsidian `1.7.2` or newer.
 | [Commands](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/commands.md) | Every preview, export, and insert command, plus export file naming. |
 | [Markdown syntax](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/syntax.md) | Blocks, inline tags, stat fields, spacing, page and column breaks, links, and images. |
 | [Settings](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/settings.md) | Plugin settings and custom CSS themes. |
-| [Mobile support](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/mobile.md) | Mobile preview and the browser-assisted PDF workflow. |
+| [Mobile support](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/mobile.md) | Mobile preview and the two mobile PDF methods: browser handoff and direct PDF. |
 
 ## Accreditation and licensing
 

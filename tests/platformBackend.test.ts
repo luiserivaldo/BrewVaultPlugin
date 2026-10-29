@@ -81,7 +81,12 @@ void test("the default mobile backend initializes without Electron or window", a
 	assert.equal(typeof window, "undefined");
 	const provider = createBackendProvider("mobile");
 	const backend = await provider.getBackend();
-	const result = await backend.export({ html: "<p>safe</p>", basename: "safe" });
+	const result = await backend.export({
+		html: "<p>safe</p>",
+		basename: "safe",
+		pageWidthPx: 816,
+		pageHeightPx: 1056,
+	});
 
 	assert.equal(backend.platform, "mobile");
 	assert.equal(backend.supportsDirectPdf, false);
@@ -178,3 +183,63 @@ function createLoaders(
 		loadMobile: () => Promise.resolve(new TestBackend("mobile")),
 	};
 }
+
+void test("the mobile PDF backend follows the current method without reloading", async () => {
+	const { MobilePdfBackend } = await import("../src/mobile/MobilePdfBackend");
+	let method: "browser" | "native" = "browser";
+	let rendererLoads = 0;
+	let cancelledAtRender: boolean | null = null;
+	const backend = new MobilePdfBackend(
+		() => method,
+		undefined,
+		() => {
+			rendererLoads += 1;
+			return Promise.resolve((_request, isCancelled) => {
+				cancelledAtRender = isCancelled();
+				return Promise.resolve(new ArrayBuffer(8));
+			});
+		}
+	);
+	const request = {
+		html: "<p>safe</p>",
+		basename: "safe",
+		pageWidthPx: 816,
+		pageHeightPx: 1056,
+	};
+
+	assert.equal(backend.supportsDirectPdf, false);
+	assert.equal((await backend.export(request)).kind, "html-handoff");
+	assert.equal(rendererLoads, 0);
+
+	method = "native";
+	assert.equal(backend.supportsDirectPdf, true);
+	const result = await backend.export(request);
+	assert.equal(result.kind, "pdf");
+	assert.equal(rendererLoads, 1);
+	assert.equal(cancelledAtRender, false);
+	backend.dispose();
+});
+
+void test("a per-export mobile method overrides the saved setting both ways", async () => {
+	const { MobilePdfBackend } = await import("../src/mobile/MobilePdfBackend");
+	let method: "browser" | "native" = "browser";
+	const backend = new MobilePdfBackend(
+		() => method,
+		undefined,
+		() => Promise.resolve(() => Promise.resolve(new ArrayBuffer(8)))
+	);
+	const request = {
+		html: "<p>safe</p>",
+		basename: "safe",
+		pageWidthPx: 816,
+		pageHeightPx: 1056,
+	};
+
+	assert.equal((await backend.export({ ...request, mobilePdfMethod: "native" })).kind, "pdf");
+	method = "native";
+	assert.equal(
+		(await backend.export({ ...request, mobilePdfMethod: "browser" })).kind,
+		"html-handoff"
+	);
+	backend.dispose();
+});

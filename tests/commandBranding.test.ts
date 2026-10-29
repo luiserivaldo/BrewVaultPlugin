@@ -21,3 +21,13 @@ void test("the generic BrewVault PDF command resolves the selected theme", () =>
 	assert.match(mainSource, /const theme = themeOverride \?\? this\.settings\.theme;/);
 	assert.match(mainSource, /this\.getThemeCss\(theme\)/);
 });
+
+void test("method-specific PDF commands are registered only on mobile", () => {
+	const mobileBlock = /if \(platform === "mobile"\) \{([\s\S]*?)\n\t\t\}/.exec(mainSource)?.[1] ?? "";
+	assert.match(mobileBlock, /"export-current-file-as-pdf-mobile-browser",\s*"Export current file as BrewVault PDF via browser",\s*undefined,\s*"browser"/);
+	assert.match(mobileBlock, /"export-current-file-as-pdf-mobile-direct",\s*"Export current file as BrewVault PDF directly \(image pages\)",\s*undefined,\s*"native"/);
+	assert.equal(mainSource.match(/export-current-file-as-pdf-mobile-/g)?.length, 2);
+	const commandsGuide = readFileSync("docs/guide/commands.md", "utf8");
+	assert.match(commandsGuide, /\*\*Export current file as BrewVault PDF via browser\*\*/);
+	assert.match(commandsGuide, /\*\*Export current file as BrewVault PDF directly \(image pages\)\*\*/);
+});

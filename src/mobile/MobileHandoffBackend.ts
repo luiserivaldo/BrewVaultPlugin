@@ -22,7 +22,3 @@ export class MobileHandoffBackend implements ExportBackend {
 
 	dispose(): void {}
 }
-
-export function createMobileHandoffBackend(): ExportBackend {
-	return new MobileHandoffBackend();
-}

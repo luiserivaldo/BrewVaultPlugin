@@ -11,13 +11,17 @@ can also be opened using BrewVault's scroll icon in the ribbon.
 | --- | --- |
 | **Open preview** | Opens or reveals a live BrewVault preview of the active Markdown note. |
 | **Export current file as HTML** | Creates a self-contained `.brew.html` file using the selected theme. |
-| **Export current file as BrewVault PDF** | Creates a direct PDF on desktop or starts the browser-assisted mobile workflow using the selected theme. |
-| **Export current file as BrewVault PDF in PHB style** | Uses the Player's Handbook parchment theme for direct desktop PDF or mobile browser handoff. |
-| **Export current file as BrewVault PDF in DMG style** | Uses the Dungeon Master's Guide theme for direct desktop PDF or mobile browser handoff. |
-| **Export current file as BrewVault PDF in SRD style** | Uses the SRD / Unearthed Arcana theme for direct desktop PDF or mobile browser handoff. |
-| **Export current file as BrewVault PDF in Blank style** | Uses the plain Blank theme for direct desktop PDF or mobile browser handoff. |
+| **Export current file as BrewVault PDF** | Creates a direct PDF on desktop, or uses the mobile PDF method from settings, with the selected theme. |
+| **Export current file as BrewVault PDF in PHB style** | Uses the Player's Handbook parchment theme. |
+| **Export current file as BrewVault PDF in DMG style** | Uses the Dungeon Master's Guide theme. |
+| **Export current file as BrewVault PDF in SRD style** | Uses the SRD / Unearthed Arcana theme. |
+| **Export current file as BrewVault PDF in Blank style** | Uses the plain Blank theme. |
+| **Export current file as BrewVault PDF via browser** | Mobile only. Saves a `.brew.html` file and opens the browser handoff, whatever the setting says. |
+| **Export current file as BrewVault PDF directly (image pages)** | Mobile only. Writes a PDF of image pages inside Obsidian, whatever the setting says. |
 
-Theme-specific PDF commands do not change the saved preview theme.
+Theme-specific PDF commands do not change the saved preview theme. On mobile,
+the generic and theme-specific PDF commands follow the **Mobile PDF export**
+setting; see [Mobile support](./mobile.md#choosing-a-method).
 
 ## Inserting blocks
 
@@ -63,5 +67,5 @@ BrewVault-Exports/Alchemist_2.pdf
 HTML exports use the same policy with names such as `Alchemist.brew.html` and
 `Alchemist_1.brew.html`.
 
-On mobile, PDF commands use a browser handoff instead; see
-[Mobile support](./mobile.md).
+Mobile direct PDFs use the same names. Mobile browser handoff saves a
+`.brew.html` file instead; see [Mobile support](./mobile.md).

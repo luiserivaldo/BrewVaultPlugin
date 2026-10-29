@@ -18,3 +18,4 @@ dist/
 /docs/*
 !/docs/guide/
 /examples/
+/android-test-output/
