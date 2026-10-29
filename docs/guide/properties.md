@@ -19,6 +19,7 @@ properties or your note.
 | [`bv_page_size`](#bv_page_size-letter-or-a4) | Available | Uses US Letter or A4 paper. |
 | [`bv_title`](#bv_title-document-title-and-file-name) | Available | Sets the document title and export file name. |
 | [`bv_export_folder`](#bv_export_folder-export-subfolder) | Available | Saves exports in a subfolder of the export folder. |
+| [`bv_edition`](#bv_edition-rules-edition-for-inserted-blocks) | Available | Picks 2014 or 2024 blocks for **Insert block…** in this note. |
 | [`bv_book`](#bv_book-combine-notes-into-one-pdf-planned) | Planned, not available yet | Turns a note into a book that combines many notes into one PDF. |
 
 ## `bv_theme`: theme for one note
@@ -181,6 +182,22 @@ This saves to `BrewVault-Exports/Llynwych/Monsters/`.
 - The path is always inside the export folder. Values containing `..` or
   `.`, drive letters such as `C:`, or the characters `: * ? " < > |` are
   ignored with a notice.
+
+## `bv_edition`: rules edition for inserted blocks
+
+Makes **Insert block…** and the other insert commands that don't name an
+edition use 2014 or 2024 blocks in this note, regardless of **Default
+edition** in settings:
+
+```yaml
+---
+bv_edition: 2014
+---
+```
+
+- Accepted values: `2014` and `2024`.
+- Commands that name an edition, such as **Insert 2024 block…**, ignore it.
+- It doesn't change how a note exports.
 
 ## `bv_book`: combine notes into one PDF (planned)
 

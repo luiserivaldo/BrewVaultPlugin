@@ -42,7 +42,9 @@ Edition-sensitive blocks ship in 2014 and 2024 variants: monster stat blocks,
 spells, class features, martial and full-caster class tables, feats,
 backgrounds, species, and magic items. **Default edition** in BrewVault
 settings (2024 unless changed) decides which variant the picker and the
-non-edition commands insert. The 2024 layouts follow the SRD 5.2.1 (Initiative,
+non-edition commands insert. A note's
+[`bv_edition`](./properties.md#bv_edition-rules-edition-for-inserted-blocks)
+property overrides it for that note. The 2024 layouts follow the SRD 5.2.1 (Initiative,
 MOD/SAVE ability table, CR with XP and PB, core class traits); every name and
 sentence in either edition is an original placeholder.
 

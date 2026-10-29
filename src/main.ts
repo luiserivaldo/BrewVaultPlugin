@@ -34,6 +34,8 @@ import {
 	type CustomStyleDefinition,
 } from "./themes/customStyles";
 import { registerInsertSnippetCommands } from "./commands/insertSnippet";
+import type { Edition } from "./snippets/catalog";
+import { NOTE_EDITION_PROPERTY, resolveNoteEdition } from "./snippets/noteEdition";
 import { readNoteFrontmatter } from "./obsidian/readNoteFrontmatter";
 import {
 	pageDimensions,
@@ -111,7 +113,7 @@ export default class BrewVaultPlugin extends Plugin {
 		});
 
 		this.addSettingTab(new BrewVaultSettingTab(this.app, this));
-		registerInsertSnippetCommands(this, () => this.settings.defaultEdition);
+		registerInsertSnippetCommands(this, () => this.getActiveNoteEdition());
 
 		// --- Milestone 4: export ---
 		this.addCommand({
@@ -284,6 +286,23 @@ export default class BrewVaultPlugin extends Plugin {
 			defaults: this.getDefaultExportOptions(file),
 		});
 		return { resolved, invalid: note.invalid };
+	}
+
+	/**
+	 * Edition for insert commands that don't name one: the active note's
+	 * `bv_edition`, else the default edition from settings.
+	 */
+	private getActiveNoteEdition(): Edition {
+		const file = this.app.workspace.getActiveFile();
+		if (!file) return this.settings.defaultEdition;
+		const note = resolveNoteEdition(readNoteFrontmatter(file, this.app.metadataCache));
+		if (note.kind === "edition") return note.edition;
+		if (note.kind === "invalid") {
+			new Notice(
+				`BrewVault ignored invalid ${NOTE_EDITION_PROPERTY} "${note.value}" in "${file.basename}" and used the default edition.`
+			);
+		}
+		return this.settings.defaultEdition;
 	}
 
 	private getDefaultExportOptions(file: TFile): ExportOptions {
