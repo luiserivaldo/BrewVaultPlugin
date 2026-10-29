@@ -55,6 +55,7 @@ export default defineConfig(
 					brands: [
 						'BrewVault',
 						'Homebrewery',
+						"Dungeon Master's Guide",
 						"Player's Handbook",
 						'Unearthed Arcana',
 					],
