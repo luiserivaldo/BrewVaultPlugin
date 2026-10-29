@@ -53,6 +53,10 @@ The thief crept through the shadows, watching for danger.
 }}
 ```
 
+Start with a space to leave out the class: `{{ text}}` is a plain inline
+span. Tables of contents use two of them per row, for the title and the page
+number; see [Table of contents](./table-of-contents.md).
+
 ## Stat fields and vertical spacing
 
 Use `::` between a stat label and its value. Each source line becomes a
@@ -69,7 +73,8 @@ sections. Use `::` on its own line for two lines of space.
 
 ## Page and column breaks
 
-Place break directives on their own lines:
+Place break directives on their own lines. Blank lines around them are
+optional: a break directly under a paragraph, list, or quote still breaks.
 
 ```markdown
 First page content.

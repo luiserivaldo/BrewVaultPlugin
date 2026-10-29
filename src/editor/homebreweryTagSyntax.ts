@@ -105,8 +105,9 @@ export function selectionTouchesTag(
 	return selections.some((selection) => selection.from <= tag.to && selection.to >= tag.from);
 }
 
-/** Labels clearer than the class name, for blocks BrewVault reads itself. */
+/** Labels clearer than the class name, for blocks BrewVault reads or writes itself. */
 const TAG_LABELS: Readonly<Record<string, string>> = {
+	toc: "Table of Contents",
 	bookcontent: "Book Content",
 	"book-content": "Book Content",
 	bv_book_content: "Book Content",

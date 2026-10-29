@@ -10,6 +10,8 @@ import { resolveVaultImageEmbeds } from "./resolveVaultImageEmbeds";
 
 export interface NotePagesRequest {
 	readonly file: TFile;
+	/** Unsaved text to render instead of the saved note, such as a candidate edit. */
+	readonly source?: string;
 	readonly paginate: (pages: BrewPage[]) => Promise<BrewPage[]>;
 }
 
@@ -32,7 +34,7 @@ export interface PlannedBook {
  */
 export async function renderNotePages(app: App, request: NotePagesRequest): Promise<RenderedNotePages> {
 	const { file } = request;
-	const source = await app.vault.cachedRead(file);
+	const source = request.source ?? (await app.vault.cachedRead(file));
 	const dependencyPaths = new Set<string>();
 
 	if (!hasBookContent(source)) {

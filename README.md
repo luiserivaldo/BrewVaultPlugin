@@ -13,6 +13,8 @@ PDF using preconfigured themes, or export as HTML and apply custom CSS styles.
   page numbers, Letter or A4 paper, file name, and export subfolder.
 - Compiling notes: list notes or whole folders in a `{{bookContent}}` block to
   export them as one paginated preview and PDF.
+- Table of contents: generate a Homebrewery `{{toc` list with page numbers
+  from a note's headings, including compiled notes.
 - Styling inspired by Homebrewery fonts, page measurements, headings, tables,
   notes, descriptive boxes, monster blocks, and page furniture.
 - Standard Obsidian Markdown plus Homebrewery-style blocks, inline tags, page
@@ -88,6 +90,7 @@ BrewVault 0.6.0 supports desktop and mobile Obsidian `1.7.2` or newer.
 | [Markdown syntax](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/syntax.md) | Blocks, inline tags, stat fields, spacing, page and column breaks, links, and images. |
 | [Note properties](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/properties.md) | `bv_*` properties for a note's theme, footer, page numbers, page size, file name, export folder, and insert edition. |
 | [Compiling notes](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/books.md) | Exporting many notes as one paginated document from links and folder includes. |
+| [Table of contents](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/table-of-contents.md) | Generating a contents list with page numbers from a note's headings. |
 | [Settings](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/settings.md) | Plugin settings and custom CSS themes. |
 | [Mobile support](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/mobile.md) | Mobile preview and the two mobile PDF methods: browser handoff and direct PDF. |
 

@@ -87,3 +87,9 @@ Run **Show included notes**, or click the caption above the preview, to see:
 - the included notes' properties that were ignored
 
 The preview caption counts the included notes and flags problems.
+
+## Contents page
+
+Run **Generate table of contents** in the compiling note to list its headings
+and the included notes' headings with page numbers. See
+[Table of contents](./table-of-contents.md).

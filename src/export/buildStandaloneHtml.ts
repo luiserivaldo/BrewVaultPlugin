@@ -32,7 +32,7 @@ export function buildStandaloneHtml(
 	const pagesHtml = pages
 		.map(
 			(page) => `
-	<div class="page brewPage">
+	<div class="page brewPage" id="p${page.index}">
 		${ensureColumnWrapper(page.html)}${footerHtml}${pageNumberHtml(page.index, furniture)}
 	</div>`
 		)

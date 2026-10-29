@@ -25,8 +25,11 @@ export function createBrewMarkdownEngine(): MarkdownIt {
 	// markdown-it's rule chain is: block rules run top-to-bottom per file,
 	// so we insert ours near the front (before "paragraph"/"fence" catch-alls
 	// but after "code"/"blockquote" so those still take precedence).
-	md.block.ruler.before("fence", "brew_page_break", pageBreakRule);
-	md.block.ruler.before("fence", "brew_column_break", columnBreakRule);
+	// Breaks end a paragraph, list, or quote directly above them, as in
+	// Homebrewery, which splits pages on any "\page" line before Markdown.
+	const breakTerminates = { alt: ["paragraph", "reference", "blockquote", "list"] };
+	md.block.ruler.before("fence", "brew_page_break", pageBreakRule, breakTerminates);
+	md.block.ruler.before("fence", "brew_column_break", columnBreakRule, breakTerminates);
 	md.block.ruler.before("fence", "brew_template_line", templateLineRule, {
 		alt: ["paragraph", "reference", "blockquote", "list"],
 	});

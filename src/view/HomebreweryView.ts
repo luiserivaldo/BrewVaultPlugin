@@ -11,6 +11,8 @@ import { calculatePreviewViewportLayout } from "../ui/previewViewport";
 import type { PlannedBook } from "../obsidian/renderNotePages";
 
 export const HOMEBREWERY_VIEW_TYPE = "brewvault-preview";
+/** Each preview page's 1-based index, the target of `#p<index>` links. */
+const PAGE_INDEX_ATTRIBUTE = "data-brewvault-page";
 
 export class HomebreweryView extends ItemView {
 	plugin: BrewVaultPlugin;
@@ -70,6 +72,14 @@ export class HomebreweryView extends ItemView {
 			cls: "brewvault-pages brewvault-preview-pages",
 		});
 		this.startViewportObservation();
+		// Table of contents rows link to #p<page>, like Homebrewery and the export.
+		this.registerDomEvent(this.pagesContainer, "click", (event) => {
+			const link = event.target instanceof Element ? event.target.closest("a[href^='#p']") : null;
+			const index = /^#p(\d+)$/.exec(link?.getAttribute("href") ?? "")?.[1];
+			if (!index) return;
+			event.preventDefault();
+			this.pagesContainer.querySelector(`[${PAGE_INDEX_ATTRIBUTE}="${index}"]`)?.scrollIntoView({ block: "start" });
+		});
 
 		this.registerEvent(
 			this.app.vault.on("modify", (file) => {
@@ -181,7 +191,10 @@ export class HomebreweryView extends ItemView {
 		this.pagesContainer.addClass(...getThemeClassNames(theme));
 
 		for (const page of pages) {
-			const pageEl = this.pagesContainer.createDiv({ cls: "page brewPage" });
+			const pageEl = this.pagesContainer.createDiv({
+				cls: "page brewPage",
+				attr: { [PAGE_INDEX_ATTRIBUTE]: page.index },
+			});
 			appendRenderedHtml(pageEl, page.html);
 			const footer = pageFooterText(furniture);
 			if (footer) pageEl.createDiv({ cls: PAGE_FOOTER_CLASS, text: footer });

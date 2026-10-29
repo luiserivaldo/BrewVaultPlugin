@@ -35,6 +35,14 @@ setting; see [Mobile support](./mobile.md#choosing-a-method).
 
 See [Compiling notes](./books.md).
 
+## Table of contents
+
+| Command | Effect |
+| --- | --- |
+| **Generate table of contents** | Writes or refreshes a `{{toc` block listing the note's `#`, `##`, and `###` headings with their page numbers. |
+
+See [Table of contents](./table-of-contents.md).
+
 ## Inserting blocks
 
 | Command | Effect |

@@ -34,6 +34,7 @@ import {
 } from "./themes/customStyles";
 import { registerInsertSnippetCommands } from "./commands/insertSnippet";
 import { openBookContents, registerBookCommands } from "./commands/bookCommands";
+import { registerTocCommands } from "./commands/tocCommands";
 import type { Edition } from "./snippets/catalog";
 import { NOTE_EDITION_PROPERTY, resolveNoteEdition } from "./snippets/noteEdition";
 import { readNoteFrontmatter } from "./obsidian/readNoteFrontmatter";
@@ -117,6 +118,14 @@ export default class BrewVaultPlugin extends Plugin {
 		this.addSettingTab(new BrewVaultSettingTab(this.app, this));
 		registerInsertSnippetCommands(this, () => this.getActiveNoteEdition());
 		registerBookCommands(this);
+		registerTocCommands(this, (file) => {
+			const options = this.resolveNoteExportOptions(file).resolved.values;
+			const size = pageDimensions(options.pageSize, this.settings);
+			return {
+				firstPageNumber: options.firstPageNumber,
+				paginate: (pages) => this.paginateWithTheme(pages, options.theme, size),
+			};
+		});
 
 		this.addCommand({
 			id: "show-export-options",

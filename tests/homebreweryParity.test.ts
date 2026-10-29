@@ -26,7 +26,7 @@ void test("standalone pages use the Homebrewery page DOM contract", () => {
 		1056
 	);
 
-	assert.match(html, /class="page brewPage">\s*<div class="columnWrapper">/);
+	assert.match(html, /class="page brewPage" id="p1">\s*<div class="columnWrapper">/);
 	assert.match(html, /class="pageNumber brewPageNumber">1<\/div>/);
 	assert.match(html, /brewvault-theme-blank brewvault-theme-phb/);
 });

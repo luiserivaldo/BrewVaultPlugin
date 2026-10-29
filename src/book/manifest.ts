@@ -35,10 +35,10 @@ const MEMBER_LINE =
 	/^\s*(?:[-*+]|\d+[.)])\s+\[\[([^\]|#^\n]+)(?:[#^][^\]|\n]*)?(?:\|[^\]\n]*)?\]\](?:\s*(?:[:–—-]\s.*|[:–—-]?))?\s*$/;
 const DIRECTIVE_LINE = /^\s*\{\{bv:(include)\b(.*)\}\}\s*$/i;
 /** Same opener and closer lines as Homebrewery blocks (see blockContainer.ts). */
-const BLOCK_OPEN = /^\s*\{\{([a-zA-Z][a-zA-Z0-9_,\-\s]*?)\s*$/;
-const BLOCK_CLOSE = /^\s*\}\}\s*$/;
+export const BLOCK_OPEN = /^\s*\{\{([a-zA-Z][a-zA-Z0-9_,\-\s]*?)\s*$/;
+export const BLOCK_CLOSE = /^\s*\}\}\s*$/;
 const ATTRIBUTE = /([A-Za-z][\w-]*)\s*=\s*"([^"]*)"/g;
-const FENCE = /^\s*(`{3,}|~{3,})/;
+export const FENCE = /^\s*(`{3,}|~{3,})/;
 
 /** Class names that open a book content block (`{{bookContent`). */
 const CONTENT_BLOCK_NAMES = new Set(["bookcontent", "book-content", "bv_book_content"]);
