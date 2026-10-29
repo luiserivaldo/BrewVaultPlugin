@@ -33,6 +33,27 @@ const themeCssModulePlugin = {
   },
 };
 
+// pdfmake's prebuilt bundle resolves the global object through
+// `new Function("return this")()`, which Obsidian's plugin scanner reports as
+// dynamic code execution. Electron always provides `globalThis`, so the
+// fallback is unreachable and can be replaced with a static reference.
+const pdfmakeGlobalThisPlugin = {
+  name: "pdfmake-global-this",
+  setup(build) {
+    build.onLoad(
+      { filter: /[\\/]node_modules[\\/]pdfmake[\\/]build[\\/]pdfmake\.js$/ },
+      async (args) => {
+        const source = await readFile(args.path, "utf8");
+        const pattern = /new Function\((["'])return this\1\)\(\)/g;
+        if (!pattern.test(source)) {
+          throw new Error("pdfmake-global-this: expected global lookup not found; review the pdfmake upgrade.");
+        }
+        return { contents: source.replace(pattern, "globalThis"), loader: "js" };
+      }
+    );
+  },
+};
+
 // CSS must exist before the virtual module snapshots it into the JS bundle.
 await buildCss(prod);
 
@@ -40,7 +61,7 @@ const jsContext = await esbuild.context({
   banner: { js: banner },
   entryPoints: ["src/main.ts"],
   bundle: true,
-  plugins: [themeCssModulePlugin],
+  plugins: [themeCssModulePlugin, pdfmakeGlobalThisPlugin],
   external: [
     "obsidian",
     "electron",

@@ -17,7 +17,9 @@
 }
 
 .brewvault-theme-dmg .page .quote p:first-child::first-line {
-	all: unset;
+	font-size: inherit;
+	font-style: inherit;
+	font-variant: inherit;
 }
 
 .brewvault-theme-dmg .page::after {
@@ -31,4 +33,82 @@
 
 .brewvault-theme-dmg .page .partCover {
 	background-image: url("../../vendor/homebrewery/assets/partCoverHeaderDMG.svg");
+}
+
+/* BrewVault DMG block furniture. Homebrewery's 5eDMG theme inherits the PHB
+   note and stat-block borders; the printed DMG instead uses flat sidebars capped
+   by dark bars with outward-pointing tips. There is no DMG stat-block reference,
+   so the framed monster block reuses that bar vocabulary with its own fill. */
+.brewvault-theme-dmg .page {
+	--BV_DMG_Bar: #231f20;
+	--BV_DMG_Sidebar: #e2dae6;
+	--BV_DMG_TableStripe: #efe3cb;
+	--BV_DMG_TableRow: #f8f4ec;
+	--BV_DMG_BarTip: 7px;
+	--BV_DMG_BarStroke: 1.5px;
+}
+
+/* Every body row gets a fill so tables stand off the grey page, as in print;
+   the header row stays on the page background. */
+.brewvault-theme-dmg .page table tbody tr {
+	background-color: var(--BV_DMG_TableRow);
+}
+
+.brewvault-theme-dmg .page table tbody tr:nth-child(odd) {
+	background-color: var(--BV_DMG_TableStripe);
+}
+
+.brewvault-theme-dmg .page :is(.note, .monster.frame) {
+	position: relative;
+	border: 0;
+	border-image: none;
+	box-shadow: none;
+}
+
+.brewvault-theme-dmg .page :is(.note, .monster.frame)::before,
+.brewvault-theme-dmg .page :is(.note, .monster.frame)::after {
+	position: absolute;
+	right: -5px;
+	left: -5px;
+	height: 9px;
+	content: "";
+	background: var(--BV_DMG_Bar);
+	/* stylelint-disable-next-line plugin/no-unsupported-browser-features -- polygon() basic shapes are fully supported; the partial flag covers SVG clip references. */
+	clip-path: polygon(
+		0 50%,
+		var(--BV_DMG_BarTip) 0,
+		var(--BV_DMG_BarTip) calc(50% - var(--BV_DMG_BarStroke)),
+		calc(100% - var(--BV_DMG_BarTip)) calc(50% - var(--BV_DMG_BarStroke)),
+		calc(100% - var(--BV_DMG_BarTip)) 0,
+		100% 50%,
+		calc(100% - var(--BV_DMG_BarTip)) 100%,
+		calc(100% - var(--BV_DMG_BarTip)) calc(50% + var(--BV_DMG_BarStroke)),
+		var(--BV_DMG_BarTip) calc(50% + var(--BV_DMG_BarStroke)),
+		var(--BV_DMG_BarTip) 100%
+	);
+}
+
+.brewvault-theme-dmg .page :is(.note, .monster.frame)::before { top: -4.5px; }
+.brewvault-theme-dmg .page :is(.note, .monster.frame)::after { bottom: -4.5px; }
+
+.brewvault-theme-dmg .page .note {
+	padding: .2cm .25cm;
+	margin-top: .3cm;
+	background-color: var(--BV_DMG_Sidebar);
+}
+
+.brewvault-theme-dmg .page .note :where(h1, h2, h3, h4, h5) {
+	color: var(--BV_DMG_Bar);
+	border-bottom: 0;
+}
+
+/* Flat pale tan, related to the DMG table stripe, keeps stat blocks distinct
+   from lavender sidebars while dropping the PHB parchment texture. */
+.brewvault-theme-dmg .page .monster.frame {
+	box-sizing: border-box;
+	width: 100%;
+	padding: .3cm .25cm .25cm;
+	margin: .3cm 0 .45cm;
+	background: #f5ecd9;
+	background-blend-mode: normal;
 }

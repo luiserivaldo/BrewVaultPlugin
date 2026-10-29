@@ -83,3 +83,27 @@ void test("legacy journal themes still normalize to SRD", () => {
 	assert.equal(result.settings.theme, "srd");
 	assert.equal(result.shouldPersist, true);
 });
+
+void test("the default edition is 2024 and invalid stored editions are repaired", () => {
+	assert.equal(normalizeStoredSettings(null).settings.defaultEdition, "2024");
+
+	const kept = normalizeStoredSettings({
+		theme: "phb",
+		customStyles: [],
+		nextCustomStyleNumber: 1,
+		exportFolder: "BrewVault-Exports",
+		defaultEdition: "2014",
+	});
+	assert.equal(kept.settings.defaultEdition, "2014");
+	assert.equal(kept.shouldPersist, false);
+
+	const repaired = normalizeStoredSettings({
+		theme: "phb",
+		customStyles: [],
+		nextCustomStyleNumber: 1,
+		exportFolder: "BrewVault-Exports",
+		defaultEdition: "2020",
+	});
+	assert.equal(repaired.settings.defaultEdition, "2024");
+	assert.equal(repaired.shouldPersist, true);
+});

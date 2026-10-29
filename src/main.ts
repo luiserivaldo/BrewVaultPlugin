@@ -74,7 +74,7 @@ export default class BrewVaultPlugin extends Plugin {
 		});
 
 		this.addSettingTab(new BrewVaultSettingTab(this.app, this));
-		registerInsertSnippetCommands(this);
+		registerInsertSnippetCommands(this, () => this.settings.defaultEdition);
 
 		// --- Milestone 4: export ---
 		this.addCommand({
