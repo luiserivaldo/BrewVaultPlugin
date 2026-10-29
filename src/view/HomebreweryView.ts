@@ -1,6 +1,7 @@
 import { ItemView, Notice, TFile, WorkspaceLeaf } from "obsidian";
-import type { BrewTheme } from "../settings/types";
-import { chooseExportTheme, formatInvalidNoteThemeMessage } from "../themes/noteTheme";
+import type { ExportOptions } from "../exportOptions/options";
+import { formatInvalidPropertiesMessage } from "../exportOptions/noteProperties";
+import { pageFooterText } from "../export/pageFurniture";
 import { renderBrewMarkdown } from "../renderer";
 import { paginateBrewPages } from "../renderer/paginateDom";
 import type BrewVaultPlugin from "../main";
@@ -19,7 +20,7 @@ export class HomebreweryView extends ItemView {
 	private debounceHandle: number | null = null;
 	private viewportObserver: ResizeObserver | null = null;
 	private imageDependencyPaths = new Set<string>();
-	private lastThemeWarningKey: string | null = null;
+	private lastOptionWarningKey: string | null = null;
 
 	constructor(leaf: WorkspaceLeaf, plugin: BrewVaultPlugin) {
 		super(leaf);
@@ -133,7 +134,8 @@ export class HomebreweryView extends ItemView {
 			imageEmbeds: resolvedImages.imageEmbeds,
 		});
 		const { pageWidthPx, pageHeightPx } = this.plugin.settings;
-		const theme = this.resolvePreviewTheme(this.trackedFile);
+		const options = this.resolvePreviewOptions(this.trackedFile);
+		const { theme } = options;
 		this.plugin.syncCustomStyleSheet(theme);
 		const pages = await paginateBrewPages(renderedPages, {
 			theme,
@@ -153,6 +155,8 @@ export class HomebreweryView extends ItemView {
 		for (const page of pages) {
 			const pageEl = this.pagesContainer.createDiv({ cls: "page brewPage" });
 			appendRenderedHtml(pageEl, page.html);
+			const footer = pageFooterText(options);
+			if (footer) pageEl.createDiv({ cls: "footnote", text: footer });
 			pageEl.createDiv({ cls: "pageNumber brewPageNumber", text: String(page.index) });
 		}
 
@@ -160,21 +164,19 @@ export class HomebreweryView extends ItemView {
 	}
 
 	/**
-	 * Uses the note's `bv_theme` when valid, else the settings theme. The
-	 * preview re-renders on every edit, so an invalid value is reported only
-	 * when it first appears rather than on each keystroke.
+	 * Resolves the note's export options for the preview. The preview
+	 * re-renders on every edit, so invalid properties are reported only when
+	 * they change rather than on each keystroke.
 	 */
-	private resolvePreviewTheme(file: TFile): BrewTheme {
-		const noteTheme = this.plugin.readNoteTheme(file);
-		let warningKey: string | null = null;
-		if (noteTheme.kind === "invalid") {
-			warningKey = `${file.path}\n${noteTheme.value}`;
-			if (warningKey !== this.lastThemeWarningKey) {
-				new Notice(formatInvalidNoteThemeMessage(file.basename, noteTheme.value));
-			}
+	private resolvePreviewOptions(file: TFile): ExportOptions {
+		const { resolved, invalid } = this.plugin.resolveNoteExportOptions(file);
+		const warningKey =
+			invalid.length > 0 ? `${file.path}\n${JSON.stringify(invalid)}` : null;
+		if (warningKey && warningKey !== this.lastOptionWarningKey) {
+			new Notice(formatInvalidPropertiesMessage(file.basename, invalid));
 		}
-		this.lastThemeWarningKey = warningKey;
-		return chooseExportTheme(undefined, noteTheme, this.plugin.settings.theme);
+		this.lastOptionWarningKey = warningKey;
+		return resolved.values;
 	}
 
 	private startViewportObservation(): void {

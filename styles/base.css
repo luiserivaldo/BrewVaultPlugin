@@ -215,3 +215,15 @@
 }
 
 .brewvault-measure-pages .brewPageMeasurement { box-shadow: none; }
+
+/* BrewVault running footer (bv_footer). Themes such as PHB and DMG restyle
+   `.page .footnote` with higher specificity; this places it on themes that
+   have no footer style of their own. Only properties those themes override
+   are set here, so nothing leaks into their layout. */
+.brewPage > .footnote {
+	position: absolute;
+	right: 96px;
+	bottom: 30px;
+	font-size: .8em;
+	text-align: right;
+}

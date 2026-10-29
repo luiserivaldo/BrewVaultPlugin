@@ -1,6 +1,7 @@
 import type { BrewPage } from "../renderer/types";
 import type { BrewTheme } from "../settings/types";
 import { getThemeClassNames } from "../themes/registry";
+import { DEFAULT_PAGE_FURNITURE, pageFooterText, type PageFurniture } from "./pageFurniture";
 
 /**
  * Wraps already-rendered pages into a complete, self-contained HTML
@@ -16,14 +17,17 @@ export function buildStandaloneHtml(
 	themeCss: string,
 	title: string,
 	pageWidthPx: number,
-	pageHeightPx: number
+	pageHeightPx: number,
+	furniture: PageFurniture = DEFAULT_PAGE_FURNITURE
 ): string {
 	const themeClassNames = getThemeClassNames(theme).join(" ");
+	const footer = pageFooterText(furniture);
+	const footerHtml = footer ? `\n\t\t<div class="footnote">${escapeHtml(footer)}</div>` : "";
 	const pagesHtml = pages
 		.map(
 			(page) => `
 	<div class="page brewPage">
-		${ensureColumnWrapper(page.html)}
+		${ensureColumnWrapper(page.html)}${footerHtml}
 		<div class="pageNumber brewPageNumber">${page.index}</div>
 	</div>`
 		)

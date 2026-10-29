@@ -34,12 +34,14 @@ import {
 	type CustomStyleDefinition,
 } from "./themes/customStyles";
 import { registerInsertSnippetCommands } from "./commands/insertSnippet";
-import { readNoteTheme } from "./obsidian/readNoteTheme";
+import { readNoteFrontmatter } from "./obsidian/readNoteFrontmatter";
+import type { ExportOptions, PartialExportOptions } from "./exportOptions/options";
 import {
-	chooseExportTheme,
-	formatInvalidNoteThemeMessage,
-	type NoteThemeResolution,
-} from "./themes/noteTheme";
+	formatInvalidPropertiesMessage,
+	parseNoteExportOptions,
+	type InvalidNoteProperty,
+} from "./exportOptions/noteProperties";
+import { resolveExportOptions, type ResolvedExportOptions } from "./exportOptions/resolve";
 
 /** Persistent notice shown only while a backend renders pages one by one. */
 class ExportProgressNotice {
@@ -187,27 +189,7 @@ export default class BrewVaultPlugin extends Plugin {
 	 */
 	async exportFileAsHtml(file: TFile): Promise<void> {
 		try {
-			const source = await this.app.vault.cachedRead(file);
-			const resolvedImages = await resolveVaultImageEmbeds(
-				source,
-				file,
-				this.app.vault,
-				this.app.metadataCache
-			);
-			const renderedPages = renderBrewMarkdown(source, {
-				imageEmbeds: resolvedImages.imageEmbeds,
-			});
-			const theme = this.resolveExportTheme(file);
-			const pages = await this.paginateWithTheme(renderedPages, theme);
-
-			const html = buildStandaloneHtml(
-				pages,
-				theme,
-				this.getThemeCss(theme),
-				file.basename,
-				this.settings.pageWidthPx,
-				this.settings.pageHeightPx
-			);
+			const { html } = await this.renderExportDocument(file);
 
 			const exportFolder = await this.ensureExportFolder();
 			const outPath = this.allocateExportPath(exportFolder, file.basename, ".brew.html");
@@ -230,28 +212,8 @@ export default class BrewVaultPlugin extends Plugin {
 	): Promise<void> {
 		try {
 			const backend = await this.getExportBackendProvider().getBackend();
-			const theme = this.resolveExportTheme(file, themeOverride);
+			const { html } = await this.renderExportDocument(file, { theme: themeOverride });
 			const exportFolder = await this.ensureExportFolder();
-			const source = await this.app.vault.cachedRead(file);
-			const resolvedImages = await resolveVaultImageEmbeds(
-				source,
-				file,
-				this.app.vault,
-				this.app.metadataCache
-			);
-			const renderedPages = renderBrewMarkdown(source, {
-				imageEmbeds: resolvedImages.imageEmbeds,
-			});
-			const pages = await this.paginateWithTheme(renderedPages, theme);
-
-			const html = buildStandaloneHtml(
-				pages,
-				theme,
-				this.getThemeCss(theme),
-				file.basename,
-				this.settings.pageWidthPx,
-				this.settings.pageHeightPx
-			);
 
 			const progress = new ExportProgressNotice();
 			let result;
@@ -294,22 +256,65 @@ export default class BrewVaultPlugin extends Plugin {
 		}
 	}
 
-	/** Reads and validates a note's `bv_theme` frontmatter property. */
-	readNoteTheme(file: TFile): NoteThemeResolution {
-		return readNoteTheme(file, this.app.metadataCache, this.settings.customStyles);
+	/**
+	 * Resolves a note's export options from the command, the note's `bv_*`
+	 * properties, and settings, in that order. Invalid properties are listed
+	 * so the caller can tell the user.
+	 */
+	resolveNoteExportOptions(
+		file: TFile,
+		command?: PartialExportOptions
+	): { resolved: ResolvedExportOptions; invalid: readonly InvalidNoteProperty[] } {
+		const note = parseNoteExportOptions(readNoteFrontmatter(file, this.app.metadataCache), {
+			customStyles: this.settings.customStyles,
+		});
+		const resolved = resolveExportOptions({
+			command,
+			note: note.options,
+			defaults: this.getDefaultExportOptions(),
+		});
+		return { resolved, invalid: note.invalid };
+	}
+
+	private getDefaultExportOptions(): ExportOptions {
+		return { theme: this.settings.theme, footer: "" };
 	}
 
 	/**
-	 * Chooses the export theme: an explicit command theme, then the note's
-	 * `bv_theme`, then the settings theme. An unrecognized `bv_theme` is
-	 * reported once per export and falls back to the settings theme.
+	 * Renders `file` into one self-contained HTML document with its resolved
+	 * export options. Both HTML and PDF export start here, so they always
+	 * agree with each other.
 	 */
-	private resolveExportTheme(file: TFile, commandTheme?: BrewTheme): BrewTheme {
-		const noteTheme = this.readNoteTheme(file);
-		if (!commandTheme && noteTheme.kind === "invalid") {
-			new Notice(formatInvalidNoteThemeMessage(file.basename, noteTheme.value));
-		}
-		return chooseExportTheme(commandTheme, noteTheme, this.settings.theme);
+	private async renderExportDocument(
+		file: TFile,
+		command?: PartialExportOptions
+	): Promise<{ html: string; options: ExportOptions }> {
+		const { resolved, invalid } = this.resolveNoteExportOptions(file, command);
+		if (invalid.length > 0) new Notice(formatInvalidPropertiesMessage(file.basename, invalid));
+		const options = resolved.values;
+
+		const source = await this.app.vault.cachedRead(file);
+		const resolvedImages = await resolveVaultImageEmbeds(
+			source,
+			file,
+			this.app.vault,
+			this.app.metadataCache
+		);
+		const renderedPages = renderBrewMarkdown(source, {
+			imageEmbeds: resolvedImages.imageEmbeds,
+		});
+		const pages = await this.paginateWithTheme(renderedPages, options.theme);
+
+		const html = buildStandaloneHtml(
+			pages,
+			options.theme,
+			this.getThemeCss(options.theme),
+			file.basename,
+			this.settings.pageWidthPx,
+			this.settings.pageHeightPx,
+			{ footer: options.footer }
+		);
+		return { html, options };
 	}
 
 	onunload(): void {

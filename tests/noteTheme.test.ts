@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { chooseExportTheme, resolveNoteTheme } from "../src/themes/noteTheme";
+import { resolveNoteTheme } from "../src/themes/noteTheme";
 import type { CustomStyleDefinition } from "../src/themes/customStyles";
 
 const customStyles: CustomStyleDefinition[] = [
@@ -51,15 +51,4 @@ void test("unknown, removed, or non-string values are reported as invalid", () =
 		value: '["phb"]',
 	});
 	assert.deepEqual(resolveNoteTheme(3, customStyles), { kind: "invalid", value: "3" });
-});
-
-void test("command theme beats bv_theme, which beats the settings theme", () => {
-	const noteDmg = resolveNoteTheme("dmg", customStyles);
-	assert.equal(chooseExportTheme("blank", noteDmg, "phb"), "blank");
-	assert.equal(chooseExportTheme(undefined, noteDmg, "phb"), "dmg");
-	assert.equal(chooseExportTheme(undefined, { kind: "none" }, "srd"), "srd");
-	assert.equal(
-		chooseExportTheme(undefined, { kind: "invalid", value: "nope" }, "srd"),
-		"srd"
-	);
 });

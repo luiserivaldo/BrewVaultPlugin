@@ -13,6 +13,7 @@ properties or your note.
 | Property | Status | What it does |
 | --- | --- | --- |
 | [`bv_theme`](#bv_theme-theme-for-one-note) | Available | Picks the theme for one note. |
+| [`bv_footer`](#bv_footer-running-footer) | Available | Prints a running footer on every page. |
 | [`bv_book`](#bv_book-combine-notes-into-one-pdf-planned) | Planned, not available yet | Turns a note into a book that combines many notes into one PDF. |
 
 ## `bv_theme`: theme for one note
@@ -74,6 +75,22 @@ leaving its value empty, also uses the settings theme, with no notice.
   `bv_theme` only on the few notes that should look different.
 - **Books (planned).** A book will have one theme for every note in it. See
   below.
+
+## `bv_footer`: running footer
+
+Prints the same text at the bottom of every page, like the chapter footers in
+official D&D books. PHB and DMG place it beside the page number, in their small
+uppercase footer style; other themes place it at the bottom right.
+
+```yaml
+---
+bv_footer: Llynwych | Monsters
+---
+```
+
+- Any text works. Numbers are printed as written.
+- `bv_footer: false` turns the footer off.
+- An empty value, or no `bv_footer`, prints no footer.
 
 ## `bv_book`: combine notes into one PDF (planned)
 

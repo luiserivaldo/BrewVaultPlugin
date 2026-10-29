@@ -55,20 +55,3 @@ export function resolveNoteTheme(
 
 	return { kind: "invalid", value: trimmed };
 }
-
-export function formatInvalidNoteThemeMessage(noteName: string, value: string): string {
-	return `Unknown ${NOTE_THEME_PROPERTY} "${value}" in "${noteName}". Using the theme from settings.`;
-}
-
-/**
- * Applies BrewVault's theme precedence: an explicit command theme, then the
- * note's `bv_theme`, then the theme chosen in settings.
- */
-export function chooseExportTheme(
-	commandTheme: ThemeSelectionId | undefined,
-	noteTheme: NoteThemeResolution,
-	settingsTheme: ThemeSelectionId
-): ThemeSelectionId {
-	if (commandTheme) return commandTheme;
-	return noteTheme.kind === "theme" ? noteTheme.theme : settingsTheme;
-}
