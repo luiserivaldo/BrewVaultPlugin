@@ -250,6 +250,10 @@
 	cursor: pointer;
 }
 
+.brewvault-preview-caption-warning {
+	color: var(--text-warning);
+}
+
 .brewvault-preview-caption:hover,
 .brewvault-preview-caption:focus-visible {
 	color: var(--text-normal);

@@ -1,4 +1,4 @@
-import { ItemView, Notice, TFile, WorkspaceLeaf } from "obsidian";
+import { ItemView, TFile, WorkspaceLeaf } from "obsidian";
 import {
 	EXPORT_OPTION_KEYS,
 	pageDimensions,
@@ -6,7 +6,6 @@ import {
 } from "../exportOptions/options";
 import type { ResolvedExportOptions } from "../exportOptions/resolve";
 import { describeSource, themeDisplayName } from "../exportOptions/describe";
-import { formatInvalidPropertiesMessage } from "../exportOptions/noteProperties";
 import { PAGE_FOOTER_CLASS, pageFooterText, pageNumberText } from "../export/pageFurniture";
 import { renderBrewMarkdown } from "../renderer";
 import { paginateBrewPages } from "../renderer/paginateDom";
@@ -27,7 +26,6 @@ export class HomebreweryView extends ItemView {
 	private debounceHandle: number | null = null;
 	private viewportObserver: ResizeObserver | null = null;
 	private imageDependencyPaths = new Set<string>();
-	private lastOptionWarningKey: string | null = null;
 	/** Page size of the note currently shown; set on every render. */
 	private pageSize: { pageWidthPx: number; pageHeightPx: number };
 
@@ -193,19 +191,17 @@ export class HomebreweryView extends ItemView {
 	}
 
 	/**
-	 * Resolves the note's export options for the preview. The preview
-	 * re-renders on every edit, so invalid properties are reported only when
-	 * they change rather than on each keystroke.
+	 * Resolves the note's export options for the preview. Invalid properties
+	 * are flagged in the caption rather than with a notice: the Properties
+	 * panel saves on every keystroke, so a half-typed value would otherwise
+	 * raise a notice per letter. Exports still show a notice.
 	 */
 	private resolvePreviewOptions(file: TFile): ExportOptions {
 		const { resolved, invalid } = this.plugin.resolveNoteExportOptions(file);
-		this.captionEl.setText(previewCaption(resolved, this.plugin.settings.customStyles));
-		const warningKey =
-			invalid.length > 0 ? `${file.path}\n${JSON.stringify(invalid)}` : null;
-		if (warningKey && warningKey !== this.lastOptionWarningKey) {
-			new Notice(formatInvalidPropertiesMessage(file.basename, invalid));
-		}
-		this.lastOptionWarningKey = warningKey;
+		this.captionEl.setText(
+			previewCaption(resolved, invalid.length, this.plugin.settings.customStyles)
+		);
+		this.captionEl.toggleClass("brewvault-preview-caption-warning", invalid.length > 0);
 		return resolved.values;
 	}
 
@@ -293,6 +289,7 @@ function parseCssPixels(value: string): number {
 /** Short caption above the pages: the theme, its source, and other properties. */
 function previewCaption(
 	resolved: ResolvedExportOptions,
+	invalidCount: number,
 	customStyles: Parameters<typeof themeDisplayName>[1]
 ): string {
 	const theme = themeDisplayName(resolved.values.theme, customStyles);
@@ -304,5 +301,9 @@ function previewCaption(
 		otherNoteOptions === 0
 			? ""
 			: ` · ${otherNoteOptions} more note ${otherNoteOptions === 1 ? "property" : "properties"}`;
-	return `${theme} · ${themeSource}${extra}`;
+	const warning =
+		invalidCount === 0
+			? ""
+			: ` · ⚠ ${invalidCount} invalid ${invalidCount === 1 ? "property" : "properties"}`;
+	return `${theme} · ${themeSource}${extra}${warning}`;
 }

@@ -29,7 +29,10 @@ note, its value, and whether it came from a note property or from settings.
 Invalid properties are listed underneath.
 
 The caption itself shows the theme and its source, for example
-`5e DMG · Note property bv_theme · 2 more note properties`.
+`5e DMG · Note property bv_theme · 2 more note properties`. If a property has
+an invalid value, the caption turns orange and ends with
+`⚠ 1 invalid property`; click it to see which one. Exporting the note also
+shows a notice listing invalid properties.
 
 ## `bv_theme`: theme for one note
 
@@ -74,13 +77,15 @@ Case doesn't matter.
 
 ### When the value is wrong
 
-A notice says something like:
+The note still renders, using the settings theme. The preview caption turns
+orange and ends with `⚠ 1 invalid property`, and exporting shows a notice
+such as:
 
-> Unknown bv_theme "parchment" in "My Note". Using the theme from settings.
+> BrewVault ignored invalid bv_theme "parchment" in "My Note" and used the
+> defaults instead.
 
-The note still renders, using the settings theme. The preview shows this
-notice once per value rather than on every keystroke. Deleting the property, or
-leaving its value empty, also uses the settings theme, with no notice.
+Deleting the property, or leaving its value empty, also uses the settings
+theme, with no warning. The same applies to every other `bv_*` property.
 
 ### Giving many notes the same theme
 
