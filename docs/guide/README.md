@@ -7,6 +7,6 @@ installation steps, see the [project README](../../README.md).
 | --- | --- |
 | [Commands](./commands.md) | Preview, HTML/PDF export, block insert commands, and export file names. |
 | [Markdown syntax](./syntax.md) | Homebrewery-style blocks, inline tags, stat fields, spacing, page and column breaks, links, and images. |
-| [Note properties](./properties.md) | `bv_theme` for a theme per note, and the planned `bv_book` for combining notes into one PDF. |
+| [Note properties](./properties.md) | `bv_*` properties that set a note's theme, footer, page numbers, page size, title, export folder, and insert edition. |
 | [Settings](./settings.md) | Every plugin setting and how to submit custom CSS themes. |
 | [Mobile support](./mobile.md) | Mobile preview scaling and the two mobile PDF methods. |

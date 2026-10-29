@@ -10,17 +10,16 @@ Properties are not `#tags`. A tag says what a note is about. A BrewVault
 property tells BrewVault how to render the note. BrewVault never edits your
 properties or your note.
 
-| Property | Status | What it does |
-| --- | --- | --- |
-| [`bv_theme`](#bv_theme-theme-for-one-note) | Available | Picks the theme for one note. |
-| [`bv_footer`](#bv_footer-running-footer) | Available | Prints a running footer on every page. |
-| [`bv_page_numbers`](#bv_page_numbers-show-or-hide-page-numbers) | Available | Shows or hides page numbers. |
-| [`bv_page_start`](#bv_page_start-first-page-number) | Available | Sets the number printed on the first page. |
-| [`bv_page_size`](#bv_page_size-letter-or-a4) | Available | Uses US Letter or A4 paper. |
-| [`bv_title`](#bv_title-document-title-and-file-name) | Available | Sets the document title and export file name. |
-| [`bv_export_folder`](#bv_export_folder-export-subfolder) | Available | Saves exports in a subfolder of the export folder. |
-| [`bv_edition`](#bv_edition-rules-edition-for-inserted-blocks) | Available | Picks 2014 or 2024 blocks for **Insert block…** in this note. |
-| [`bv_book`](#bv_book-combine-notes-into-one-pdf-planned) | Planned, not available yet | Turns a note into a book that combines many notes into one PDF. |
+| Property | What it does |
+| --- | --- |
+| [`bv_theme`](#bv_theme-theme-for-one-note) | Picks the theme for one note. |
+| [`bv_footer`](#bv_footer-running-footer) | Prints a running footer on every page. |
+| [`bv_page_numbers`](#bv_page_numbers-show-or-hide-page-numbers) | Shows or hides page numbers. |
+| [`bv_page_start`](#bv_page_start-first-page-number) | Sets the number printed on the first page. |
+| [`bv_page_size`](#bv_page_size-letter-or-a4) | Uses US Letter or A4 paper. |
+| [`bv_title`](#bv_title-document-title-and-file-name) | Sets the document title and export file name. |
+| [`bv_export_folder`](#bv_export_folder-export-subfolder) | Saves exports in a subfolder of the export folder. |
+| [`bv_edition`](#bv_edition-rules-edition-for-inserted-blocks) | Picks 2014 or 2024 blocks for **Insert block…** in this note. |
 
 ## Checking a note's options
 
@@ -85,12 +84,10 @@ leaving its value empty, also uses the settings theme, with no notice.
 
 ### Giving many notes the same theme
 
-`bv_theme` belongs to each note. Two ways to cover many notes:
-
-- **Leave it off.** Notes without `bv_theme` use the settings theme. Set
-  `bv_theme` only on the few notes that should look different.
-- **Books (planned).** A book will have one theme for every note in it. See
-  below.
+Every `bv_*` property belongs to one note. Notes without a property use the
+value from settings, so set properties only on notes that should differ.
+Applying options to every note with a tag, property value, or folder is
+planned as **export rules** in a later release.
 
 ## `bv_footer`: running footer
 
@@ -209,52 +206,9 @@ bv_edition: 2014
 - Commands that name an edition, such as **Insert 2024 block…**, ignore it.
 - It doesn't change how a note exports.
 
-## `bv_book`: combine notes into one PDF (planned)
+## Combining notes into one PDF
 
-> **Not available yet.** This section describes the design so you can prepare
-> your notes. Adding `bv_book` today does nothing.
-
-A book is an ordinary note with a `bv_book` property. Exporting it will produce
-one PDF with continuous page numbers, made from many notes in a set order.
-
-### Choosing notes and their order
-
-You can use any mix of these:
-
-1. **Links in the book note's body, in the order you write them.** A line, or
-   list item, that is just a link such as `[[Aberrant Hound]]` is replaced by
-   that note's content. Headings become section titles, and other text (an
-   introduction, for example) stays as written. An existing index or catalogue
-   note can become a book just by adding `bv_book: {}`.
-2. **A query** for notes that aren't linked: by tag, by property value, or by
-   folder.
-3. **A sort order** for the query results: a `bv_order` number on each note,
-   then file path, name, any property, or created/modified date. Numbers in
-   names sort as numbers, so `2. Uncommon` comes before `10. Legendary`.
-
-```yaml
----
-bv_book:
-  title: Llynwych Compendium
-  theme: phb
-  include:
-    tags: [llynwych]
-    properties: { catalogues: Llynwych }
-    folders: ["Monsters/Llynwych"]
-  sort: [bv_order, path]
-  unlisted: append        # append | warn | exclude
----
-## Monsters
-- [[Aberrant Hound]]
-- [[Aberrant Skulker]]
-```
-
-A **Show book order…** command will list the final order, and any problems,
-before you export.
-
-### Preparing now
-
-- Keep index or catalogue notes that link your notes in reading order. That is
-  the most precise way to set a book's order.
-- To sort by number, give notes a `bv_order` property, such as `bv_order: 10`.
-  Leave gaps (10, 20, 30) so you can insert notes later.
+BrewVault exports one note at a time. Combining several notes into one book
+is not planned for now, but any PDF tool that merges files can join exported
+PDFs. Use `bv_page_start` so the page numbers
+continue across the merged files.
