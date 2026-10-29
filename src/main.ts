@@ -277,7 +277,7 @@ export default class BrewVaultPlugin extends Plugin {
 	}
 
 	private getDefaultExportOptions(): ExportOptions {
-		return { theme: this.settings.theme, footer: "" };
+		return { theme: this.settings.theme, footer: "", showPageNumbers: true };
 	}
 
 	/**
@@ -312,7 +312,7 @@ export default class BrewVaultPlugin extends Plugin {
 			file.basename,
 			this.settings.pageWidthPx,
 			this.settings.pageHeightPx,
-			{ footer: options.footer }
+			options
 		);
 		return { html, options };
 	}

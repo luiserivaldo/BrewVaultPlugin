@@ -11,21 +11,25 @@ export interface ExportOptions {
 	theme: BrewTheme;
 	/** Running footer text on every page; empty means no footer. */
 	footer: string;
+	/** Whether page numbers are printed. */
+	showPageNumbers: boolean;
 }
 
 export type ExportOptionKey = keyof ExportOptions;
 export type PartialExportOptions = Partial<ExportOptions>;
 
-export const EXPORT_OPTION_KEYS: readonly ExportOptionKey[] = ["theme", "footer"];
+export const EXPORT_OPTION_KEYS: readonly ExportOptionKey[] = ["theme", "footer", "showPageNumbers"];
 
 export const EXPORT_OPTION_PROPERTIES: Readonly<Record<ExportOptionKey, string>> = {
 	theme: "bv_theme",
 	footer: "bv_footer",
+	showPageNumbers: "bv_page_numbers",
 };
 
 export const EXPORT_OPTION_LABELS: Readonly<Record<ExportOptionKey, string>> = {
 	theme: "Theme",
 	footer: "Footer",
+	showPageNumbers: "Page numbers",
 };
 
 export type OptionParseResult<T> =
@@ -60,7 +64,30 @@ const EXPORT_OPTION_PARSERS: OptionParsers = {
 		}
 		return invalid(value);
 	},
+	showPageNumbers: parseBoolean,
 };
+
+const BOOLEAN_WORDS: Readonly<Record<string, boolean>> = {
+	true: true,
+	yes: true,
+	on: true,
+	show: true,
+	false: false,
+	no: false,
+	off: false,
+	hide: false,
+};
+
+/** Accepts YAML booleans and common yes/no words, case-insensitively. */
+function parseBoolean(value: unknown): OptionParseResult<boolean> {
+	if (value === undefined || value === null) return NONE;
+	if (typeof value === "boolean") return { kind: "value", value };
+	if (typeof value === "string") {
+		const word = BOOLEAN_WORDS[value.trim().toLowerCase()];
+		if (word !== undefined) return { kind: "value", value: word };
+	}
+	return invalid(value);
+}
 
 /** Parses one untrusted option value, such as a frontmatter property. */
 export function parseExportOption<K extends ExportOptionKey>(

@@ -1,7 +1,7 @@
 import { ItemView, Notice, TFile, WorkspaceLeaf } from "obsidian";
 import type { ExportOptions } from "../exportOptions/options";
 import { formatInvalidPropertiesMessage } from "../exportOptions/noteProperties";
-import { pageFooterText } from "../export/pageFurniture";
+import { pageFooterText, pageNumberText } from "../export/pageFurniture";
 import { renderBrewMarkdown } from "../renderer";
 import { paginateBrewPages } from "../renderer/paginateDom";
 import type BrewVaultPlugin from "../main";
@@ -157,7 +157,10 @@ export class HomebreweryView extends ItemView {
 			appendRenderedHtml(pageEl, page.html);
 			const footer = pageFooterText(options);
 			if (footer) pageEl.createDiv({ cls: "footnote", text: footer });
-			pageEl.createDiv({ cls: "pageNumber brewPageNumber", text: String(page.index) });
+			const pageNumber = pageNumberText(page.index, options);
+			if (pageNumber !== null) {
+				pageEl.createDiv({ cls: "pageNumber brewPageNumber", text: pageNumber });
+			}
 		}
 
 		this.flagOverflowingPages();

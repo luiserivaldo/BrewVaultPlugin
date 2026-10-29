@@ -1,7 +1,12 @@
 import type { BrewPage } from "../renderer/types";
 import type { BrewTheme } from "../settings/types";
 import { getThemeClassNames } from "../themes/registry";
-import { DEFAULT_PAGE_FURNITURE, pageFooterText, type PageFurniture } from "./pageFurniture";
+import {
+	DEFAULT_PAGE_FURNITURE,
+	pageFooterText,
+	pageNumberText,
+	type PageFurniture,
+} from "./pageFurniture";
 
 /**
  * Wraps already-rendered pages into a complete, self-contained HTML
@@ -27,8 +32,7 @@ export function buildStandaloneHtml(
 		.map(
 			(page) => `
 	<div class="page brewPage">
-		${ensureColumnWrapper(page.html)}${footerHtml}
-		<div class="pageNumber brewPageNumber">${page.index}</div>
+		${ensureColumnWrapper(page.html)}${footerHtml}${pageNumberHtml(page.index, furniture)}
 	</div>`
 		)
 		.join("\n");
@@ -154,6 +158,13 @@ function ensureColumnWrapper(html: string): string {
 	return /^\s*<div class="columnWrapper">/.test(html)
 		? html
 		: `<div class="columnWrapper">${html}</div>`;
+}
+
+function pageNumberHtml(pageIndex: number, furniture: PageFurniture): string {
+	const text = pageNumberText(pageIndex, furniture);
+	return text === null
+		? ""
+		: `\n\t\t<div class="pageNumber brewPageNumber">${escapeHtml(text)}</div>`;
 }
 
 function escapeHtml(s: string): string {

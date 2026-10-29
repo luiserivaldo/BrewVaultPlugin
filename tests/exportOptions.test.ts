@@ -9,7 +9,7 @@ import type { ExportOptions } from "../src/exportOptions/options";
 import { buildStandaloneHtml } from "../src/export/buildStandaloneHtml";
 
 const context = { customStyles: [] };
-const defaults: ExportOptions = { theme: "phb", footer: "" };
+const defaults: ExportOptions = { theme: "phb", footer: "", showPageNumbers: true };
 
 void test("notes without BrewVault properties set no options", () => {
 	assert.deepEqual(parseNoteExportOptions(undefined, context), { options: {}, invalid: [] });
@@ -51,12 +51,24 @@ void test("each option resolves separately: command, then note, then settings", 
 		note: { theme: "dmg", footer: "Everfrost" },
 		defaults,
 	});
-	assert.deepEqual(resolved.values, { theme: "blank", footer: "Everfrost" });
-	assert.deepEqual(resolved.sources, { theme: "command", footer: "note" });
+	assert.deepEqual(resolved.values, {
+		theme: "blank",
+		footer: "Everfrost",
+		showPageNumbers: true,
+	});
+	assert.deepEqual(resolved.sources, {
+		theme: "command",
+		footer: "note",
+		showPageNumbers: "settings",
+	});
 
 	const fallback = resolveExportOptions({ command: { theme: undefined }, note: {}, defaults });
 	assert.deepEqual(fallback.values, defaults);
-	assert.deepEqual(fallback.sources, { theme: "settings", footer: "settings" });
+	assert.deepEqual(fallback.sources, {
+		theme: "settings",
+		footer: "settings",
+		showPageNumbers: "settings",
+	});
 });
 
 void test("standalone export adds an escaped footer to every page", () => {
@@ -66,6 +78,7 @@ void test("standalone export adds an escaped footer to every page", () => {
 	];
 	const withFooter = buildStandaloneHtml(pages, "phb", "", "Doc", 816, 1056, {
 		footer: "Monsters <of> Llynwych",
+		showPageNumbers: true,
 	});
 	assert.equal(
 		withFooter.match(/<div class="footnote">Monsters &lt;of&gt; Llynwych<\/div>/g)?.length,
@@ -73,4 +86,32 @@ void test("standalone export adds an escaped footer to every page", () => {
 	);
 	const withoutFooter = buildStandaloneHtml(pages, "phb", "", "Doc", 816, 1056);
 	assert.doesNotMatch(withoutFooter, /class="footnote"/);
+});
+
+void test("bv_page_numbers accepts booleans and yes/no words", () => {
+	for (const [value, expected] of [
+		[false, false],
+		[true, true],
+		["No", false],
+		["hide", false],
+		["yes", true],
+	] as const) {
+		assert.equal(
+			parseNoteExportOptions({ bv_page_numbers: value }, context).options.showPageNumbers,
+			expected
+		);
+	}
+	assert.deepEqual(parseNoteExportOptions({ bv_page_numbers: "maybe" }, context).invalid, [
+		{ property: "bv_page_numbers", value: "maybe" },
+	]);
+});
+
+void test("hidden page numbers are omitted from standalone export", () => {
+	const pages = [{ html: "<p>One</p>", index: 1 }];
+	const html = buildStandaloneHtml(pages, "phb", "", "Doc", 816, 1056, {
+		footer: "",
+		showPageNumbers: false,
+	});
+	assert.doesNotMatch(html, /class="pageNumber/);
+	assert.match(buildStandaloneHtml(pages, "phb", "", "Doc", 816, 1056), /class="pageNumber brewPageNumber">1</);
 });

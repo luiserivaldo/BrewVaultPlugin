@@ -14,6 +14,7 @@ properties or your note.
 | --- | --- | --- |
 | [`bv_theme`](#bv_theme-theme-for-one-note) | Available | Picks the theme for one note. |
 | [`bv_footer`](#bv_footer-running-footer) | Available | Prints a running footer on every page. |
+| [`bv_page_numbers`](#bv_page_numbers-show-or-hide-page-numbers) | Available | Shows or hides page numbers. |
 | [`bv_book`](#bv_book-combine-notes-into-one-pdf-planned) | Planned, not available yet | Turns a note into a book that combines many notes into one PDF. |
 
 ## `bv_theme`: theme for one note
@@ -91,6 +92,19 @@ bv_footer: Llynwych | Monsters
 - Any text works. Numbers are printed as written.
 - `bv_footer: false` turns the footer off.
 - An empty value, or no `bv_footer`, prints no footer.
+
+## `bv_page_numbers`: show or hide page numbers
+
+Hide page numbers for handouts, one-page monsters, and maps:
+
+```yaml
+---
+bv_page_numbers: false
+---
+```
+
+- `false`, `no`, `off`, or `hide` hides them.
+- `true`, `yes`, `on`, or `show` shows them, which is the default.
 
 ## `bv_book`: combine notes into one PDF (planned)
 
