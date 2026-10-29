@@ -132,9 +132,18 @@ function pageOverflows(page: HTMLElement): boolean {
 	return dimensionsOverflow(page) || dimensionsOverflow(getColumnWrapper(page));
 }
 
+/**
+ * Content that no longer fits flows into an extra column to the right, which
+ * widens the scroll area by a whole column (about 300px). Decorations such as
+ * Homebrewery's `frame` stat-block border bleed a few pixels past the column
+ * edge on purpose (`margin-inline: -.16cm`, about 6px); that must not count,
+ * or every framed block in the right-hand column would start a new page.
+ */
+const HORIZONTAL_BLEED_TOLERANCE_PX = 24;
+
 export function dimensionsOverflow(dimensions: OverflowDimensions): boolean {
 	return (
-		dimensions.scrollWidth > dimensions.clientWidth + 1 ||
+		dimensions.scrollWidth > dimensions.clientWidth + HORIZONTAL_BLEED_TOLERANCE_PX ||
 		dimensions.scrollHeight > dimensions.clientHeight + 1
 	);
 }
