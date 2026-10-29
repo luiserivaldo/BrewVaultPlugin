@@ -33,6 +33,7 @@ import {
 	type CustomStyleDefinition,
 } from "./themes/customStyles";
 import { exportBasicPdf } from "./commands/exportBasicPdf";
+import { registerInsertSnippetCommands } from "./commands/insertSnippet";
 import type { BasicPdfExporterContract } from "./export/basicPdf/types";
 
 // The community reviewer analyzes source without running BrewVault's esbuild
@@ -73,6 +74,7 @@ export default class BrewVaultPlugin extends Plugin {
 		});
 
 		this.addSettingTab(new BrewVaultSettingTab(this.app, this));
+		registerInsertSnippetCommands(this);
 
 		// --- Milestone 4: export ---
 		this.addCommand({

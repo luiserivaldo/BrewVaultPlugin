@@ -1,0 +1,10 @@
+.brewvault-snippet-suggestion {
+	display: flex;
+	align-items: center;
+	gap: var(--size-4-2);
+}
+
+.brewvault-snippet-icon {
+	display: inline-flex;
+	color: var(--text-muted);
+}
