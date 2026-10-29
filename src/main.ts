@@ -21,6 +21,7 @@ import { buildStandaloneHtml } from "./export/buildStandaloneHtml";
 import { allocateExportPath, toExportBasename } from "./export/allocateExportPath";
 import { BUNDLED_THEME_CSS as UNCHECKED_THEME_CSS } from "virtual:brewvault-theme-css";
 import { homebreweryTagPreviewExtension } from "./editor/homebreweryTagPreview";
+import { homebreweryBlockFoldService } from "./editor/homebreweryBlockFolding";
 import { detectPlatform } from "./platform/detectPlatform";
 import { createBackendProvider } from "./platform/createBackendProvider";
 import type { ExportBackendProvider } from "./platform/ExportBackendProvider";
@@ -100,7 +101,7 @@ export default class BrewVaultPlugin extends Plugin {
 		this.exportBackendProvider = createBackendProvider(platform, {
 			getMobilePdfMethod: () => this.settings.mobilePdfMethod,
 		});
-		this.registerEditorExtension(homebreweryTagPreviewExtension);
+		this.registerEditorExtension([homebreweryTagPreviewExtension, homebreweryBlockFoldService]);
 
 		this.registerView(HOMEBREWERY_VIEW_TYPE, (leaf) => new HomebreweryView(leaf, this));
 

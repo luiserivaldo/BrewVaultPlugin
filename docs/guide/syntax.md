@@ -20,6 +20,13 @@ This text is displayed as a Homebrewery note.
 Common semantic block classes include `note`, `descriptive`, `monster`, and
 `classTable`.
 
+In the editor, a matched block's opening line shows as a **BrewVault** label
+with a chevron beside it. Click the chevron to collapse the block, hiding
+everything inside it, nested blocks and headings included; click it again to
+expand. Obsidian remembers collapsed blocks with the note's other folds, so
+they stay collapsed when you reopen the note. Move the cursor onto the label
+to edit the raw `{{className` line.
+
 ## Multiple classes and wide elements
 
 Separate classes with commas or spaces. Add `wide` when a component should span

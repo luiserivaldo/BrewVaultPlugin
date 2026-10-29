@@ -23,6 +23,7 @@
   "author": "luiserivaldo",
   "license": "MIT",
   "devDependencies": {
+    "@codemirror/language": "^6.13.1",
     "@eslint/js": "^9.39.4",
     "@types/markdown-it": "^14.2.0",
     "@types/node": "^20.11.0",

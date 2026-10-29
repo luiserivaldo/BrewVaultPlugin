@@ -3,6 +3,8 @@ export interface HomebreweryTagRange {
 	from: number;
 	to: number;
 	label: string;
+	/** For an opener: the end of its closing `}}` line, the end of a fold. */
+	blockEnd?: number;
 }
 
 export interface EditorSelectionRange {
@@ -81,7 +83,7 @@ export function findHomebreweryTagRanges(source: string): HomebreweryTagRange[] 
 			} else if (BLOCK_CLOSE_RE.test(trimmed) && stack.length > 0) {
 				const matched = stack.pop();
 				if (matched) {
-					ranges.push(matched.range, {
+					ranges.push({ ...matched.range, blockEnd: contentTo }, {
 						kind: "close",
 						from: contentFrom,
 						to: contentTo,
@@ -126,4 +128,14 @@ export function formatHomebreweryTagLabel(classSource: string): string {
 				.replace(/\b\w/g, (letter) => letter.toUpperCase())
 		)
 		.join(" · ");
+}
+
+/**
+ * The range a block folds: from the end of its opener line to the end of its
+ * closing line, so the label stays visible and everything inside, nested
+ * blocks and headings included, is hidden.
+ */
+export function blockFoldRange(tag: HomebreweryTagRange): { from: number; to: number } | null {
+	if (tag.kind !== "open" || tag.blockEnd === undefined || tag.blockEnd <= tag.to) return null;
+	return { from: tag.to, to: tag.blockEnd };
 }
