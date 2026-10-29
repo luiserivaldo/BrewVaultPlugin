@@ -67,8 +67,10 @@ can also be opened using BrewVault's scroll icon in the ribbon.
 | **Export current file as BrewVault PDF in Blank style** | Uses the plain Blank theme for direct desktop PDF or mobile browser handoff. |
 | **Export current file as plain PDF (experimental)** | Creates a direct, searchable, two-column SRD / Unearthed Arcana-inspired Letter PDF through BrewVault's plugin-only PDF backend. |
 
-| **Insert block…** | Opens a searchable picker of Homebrewery-style blocks to insert at the cursor. |
-| **Insert *Group*: *Block*** | Inserts one block directly, for example **Insert PHB: Monster stat block**. Each block is its own command, so it can be given a hotkey. |
+| **Insert block…** | Opens a searchable picker of Homebrewery-style blocks in the default edition. |
+| **Insert 2014 block…** / **Insert 2024 block…** | Opens the picker for one edition, regardless of the default. |
+| **Insert *Group*: *Block*** | Inserts one block directly. Edition-sensitive blocks, such as **Insert PHB: Monster stat block**, follow the default edition. |
+| **Insert *Group* 2014: *Block*** / **Insert *Group* 2024: *Block*** | Inserts that edition's variant, for example **Insert Tables 2014: Full caster class table**. Each block is its own command, so it can be given a hotkey. |
 
 Theme-specific PDF functions do not change the saved preview theme.
 
@@ -78,11 +80,13 @@ features, quotes, notes, descriptive boxes, monster stat blocks, magic items,
 and standard, wide, and class tables. They need a note open in editing mode
 and work even when a sidebar has focus.
 
-The **D&D 2024** group adds 2024-edition layouts: monster stat blocks
-(Initiative, MOD/SAVE ability table, CR with XP and PB), spells, core class
-traits, martial and full-caster class tables, feats, backgrounds, species, and
-magic items. Their structure follows the SRD 5.2.1; every name and sentence in
-them is an original placeholder.
+Edition-sensitive blocks ship in 2014 and 2024 variants: monster stat blocks,
+spells, class features, martial and full-caster class tables, feats,
+backgrounds, species, and magic items. **Default edition** in BrewVault
+settings (2024 unless changed) decides which variant the picker and the
+non-edition commands insert. The 2024 layouts follow the SRD 5.2.1 (Initiative,
+MOD/SAVE ability table, CR with XP and PB, core class traits); every name and
+sentence in either edition is an original placeholder.
 
 The experimental plain-PDF command is separate from the existing styled desktop
 exporter and mobile browser handoff. Its layout is intentionally an

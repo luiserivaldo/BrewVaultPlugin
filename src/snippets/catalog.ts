@@ -9,12 +9,20 @@
  * Snippets that need unsupported renderer features or remote assets are
  * tracked in MILESTONES.md (P7a) rather than shipped half-working.
  *
- * The "dnd2024" group holds 2024-edition variants. Their field order and
- * labels follow the SRD 5.2.1 layouts recorded in docs/DND_BLOCK_FORMATS.md;
- * names and prose are original placeholders, never copied rules text.
+ * Edition-sensitive blocks come in 2014 and 2024 variants sharing a family.
+ * The 2024 field order and labels follow the SRD 5.2.1 layouts recorded in
+ * docs/DND_BLOCK_FORMATS.md; names and prose are original placeholders, never
+ * copied rules text.
  */
 
-export type SnippetGroup = "text" | "phb" | "tables" | "dnd2024";
+export type SnippetGroup = "text" | "phb" | "tables";
+
+export type Edition = "2014" | "2024";
+export const EDITIONS: readonly Edition[] = ["2014", "2024"];
+
+export function isEdition(value: unknown): value is Edition {
+	return value === "2014" || value === "2024";
+}
 
 export interface BrewSnippet {
 	/** Stable identifier; never reuse an id for different content. */
@@ -26,13 +34,19 @@ export interface BrewSnippet {
 	icon: string;
 	/** Markdown inserted at the cursor. Always starts and ends on a line boundary. */
 	body: string;
+	/** Rules edition this layout follows; absent for edition-neutral blocks. */
+	edition?: Edition;
+	/**
+	 * Shared by a block's 2014 and 2024 variants, so a default-edition command
+	 * can pick the right one. Set exactly when `edition` is set.
+	 */
+	family?: string;
 }
 
 export const SNIPPET_GROUP_LABELS: Readonly<Record<SnippetGroup, string>> = {
 	text: "Text editor",
 	phb: "PHB",
 	tables: "Tables",
-	dnd2024: "D&D 2024",
 };
 
 const MONSTER_BODY = (classes: string): string => `{{${classes}
@@ -120,6 +134,56 @@ ___
 }}
 `;
 
+const MARTIAL_CLASS_TABLE_2024_BODY = (classes: string): string => `{{${classes}
+##### Wayfarer Features
+| Level | Proficiency Bonus | Class Features             | Trail Dice | Weapon Mastery |
+|:-----:|:-----------------:|:---------------------------|:----------:|:--------------:|
+|   1   |        +2         | Trailcraft, Weapon Mastery |     2      |       2        |
+|   2   |        +2         | Keen Eye, Quick Step       |     2      |       2        |
+|   3   |        +2         | Wayfarer Subclass          |     3      |       2        |
+|   4   |        +2         | Ability Score Improvement  |     3      |       3        |
+|   5   |        +3         | Extra Attack               |     3      |       3        |
+|   6   |        +3         | Subclass Feature           |     4      |       3        |
+|   7   |        +3         | Evasion                    |     4      |       3        |
+|   8   |        +3         | Ability Score Improvement  |     4      |       3        |
+|   9   |        +4         | Long Stride                |     4      |       3        |
+|  10   |        +4         | Subclass Feature           |     4      |       4        |
+|  11   |        +4         | Relentless                 |     4      |       4        |
+|  12   |        +4         | Ability Score Improvement  |     5      |       4        |
+|  13   |        +5         | Unerring Path              |     5      |       4        |
+|  14   |        +5         | Subclass Feature           |     5      |       4        |
+|  15   |        +5         | Tireless                   |     5      |       4        |
+|  16   |        +5         | Ability Score Improvement  |     5      |       4        |
+|  17   |        +6         | Master Wayfarer            |     6      |       4        |
+|  18   |        +6         | Subclass Feature           |     6      |       4        |
+|  19   |        +6         | Epic Boon                  |     6      |       4        |
+|  20   |        +6         | Endless Road               | unlimited  |       4        |
+}}
+`;
+
+const CASTER_SLOT_ROWS_2014 = [
+	"| 1st  | +2 | Spellcasting, Arcane Focus | 3 | 2 | — | — | — | — | — | — | — | — |",
+	"| 2nd  | +2 | Mystic Tradition           | 3 | 3 | — | — | — | — | — | — | — | — |",
+	"| 3rd  | +2 | —                          | 3 | 4 | 2 | — | — | — | — | — | — | — |",
+	"| 4th  | +2 | Ability Score Improvement  | 4 | 4 | 3 | — | — | — | — | — | — | — |",
+	"| 5th  | +3 | —                          | 4 | 4 | 3 | 2 | — | — | — | — | — | — |",
+	"| 6th  | +3 | Tradition Feature          | 4 | 4 | 3 | 3 | — | — | — | — | — | — |",
+	"| 7th  | +3 | —                          | 4 | 4 | 3 | 3 | 1 | — | — | — | — | — |",
+	"| 8th  | +3 | Ability Score Improvement  | 4 | 4 | 3 | 3 | 2 | — | — | — | — | — |",
+	"| 9th  | +4 | —                          | 4 | 4 | 3 | 3 | 3 | 1 | — | — | — | — |",
+	"| 10th | +4 | Tradition Feature          | 5 | 4 | 3 | 3 | 3 | 2 | — | — | — | — |",
+	"| 11th | +4 | —                          | 5 | 4 | 3 | 3 | 3 | 2 | 1 | — | — | — |",
+	"| 12th | +4 | Ability Score Improvement  | 5 | 4 | 3 | 3 | 3 | 2 | 1 | — | — | — |",
+	"| 13th | +5 | —                          | 5 | 4 | 3 | 3 | 3 | 2 | 1 | 1 | — | — |",
+	"| 14th | +5 | Tradition Feature          | 5 | 4 | 3 | 3 | 3 | 2 | 1 | 1 | — | — |",
+	"| 15th | +5 | —                          | 5 | 4 | 3 | 3 | 3 | 2 | 1 | 1 | 1 | — |",
+	"| 16th | +5 | Ability Score Improvement  | 5 | 4 | 3 | 3 | 3 | 2 | 1 | 1 | 1 | — |",
+	"| 17th | +6 | —                          | 5 | 4 | 3 | 3 | 3 | 2 | 1 | 1 | 1 | 1 |",
+	"| 18th | +6 | Mind Unbound               | 5 | 4 | 3 | 3 | 3 | 3 | 1 | 1 | 1 | 1 |",
+	"| 19th | +6 | Ability Score Improvement  | 5 | 4 | 3 | 3 | 3 | 3 | 2 | 1 | 1 | 1 |",
+	"| 20th | +6 | Mystic Apotheosis          | 5 | 4 | 3 | 3 | 3 | 3 | 2 | 2 | 1 | 1 |",
+].join("\n");
+
 const CASTER_SLOT_ROWS_2024 = [
 	"| 1  | +2 | Spellcasting, Arcane Focus     | 3 | 4  | 2 | — | — | — | — | — | — | — | — |",
 	"| 2  | +2 | Mystic Insight                 | 3 | 5  | 3 | — | — | — | — | — | — | — | — |",
@@ -165,6 +229,8 @@ around this block the way you want.
 	{
 		id: "spell",
 		group: "phb",
+		edition: "2014",
+		family: "spell",
 		name: "Spell",
 		icon: "wand-sparkles",
 		body: `#### Lantern Ward
@@ -182,7 +248,9 @@ the spell's effect, its saving throw, and what happens at higher levels.
 	{
 		id: "class-feature",
 		group: "phb",
-		name: "Class feature",
+		edition: "2014",
+		family: "class-feature",
+		name: "Class features",
 		icon: "drama",
 		body: `## Class Features
 
@@ -250,6 +318,8 @@ Use descriptive boxes to highlight text that should be read aloud.
 	{
 		id: "monster-unframed",
 		group: "phb",
+		edition: "2014",
+		family: "monster-unframed",
 		name: "Monster stat block (unframed)",
 		icon: "paw-print",
 		body: MONSTER_BODY("monster"),
@@ -257,6 +327,8 @@ Use descriptive boxes to highlight text that should be read aloud.
 	{
 		id: "monster",
 		group: "phb",
+		edition: "2014",
+		family: "monster",
 		name: "Monster stat block",
 		icon: "bug",
 		body: MONSTER_BODY("monster,frame"),
@@ -264,6 +336,8 @@ Use descriptive boxes to highlight text that should be read aloud.
 	{
 		id: "monster-wide",
 		group: "phb",
+		edition: "2014",
+		family: "monster-wide",
 		name: "Wide monster stat block",
 		icon: "rectangle-horizontal",
 		body: MONSTER_BODY("monster,frame,wide"),
@@ -271,6 +345,8 @@ Use descriptive boxes to highlight text that should be read aloud.
 	{
 		id: "magic-item",
 		group: "phb",
+		edition: "2014",
+		family: "magic-item",
 		name: "Magic item",
 		icon: "gem",
 		body: `#### Compass of Second Chances
@@ -321,6 +397,8 @@ of the last place you rested. Replace this text with the item's properties.
 	{
 		id: "martial-class-table",
 		group: "tables",
+		edition: "2014",
+		family: "martial-class-table",
 		name: "Martial class table",
 		icon: "table-properties",
 		body: MARTIAL_CLASS_TABLE_BODY("classTable,frame,decoration"),
@@ -328,29 +406,125 @@ of the last place you rested. Replace this text with the item's properties.
 	{
 		id: "martial-class-table-unframed",
 		group: "tables",
+		edition: "2014",
+		family: "martial-class-table-unframed",
 		name: "Martial class table (unframed)",
 		icon: "table-2",
 		body: MARTIAL_CLASS_TABLE_BODY("classTable"),
 	},
 
-	// --- D&D 2024 (SRD 5.2.1 layouts; see docs/DND_BLOCK_FORMATS.md) ---
+	{
+		id: "caster-class-table",
+		group: "tables",
+		edition: "2014",
+		family: "caster-class-table",
+		name: "Full caster class table",
+		icon: "sparkles",
+		body: `{{classTable,frame,decoration,wide
+##### The Mystic
+| Level | Proficiency Bonus | Features | Cantrips Known | 1st | 2nd | 3rd | 4th | 5th | 6th | 7th | 8th | 9th |
+|:-----:|:-----------------:|:---------|:--------------:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+${CASTER_SLOT_ROWS_2014}
+}}
+`,
+	},
+	{
+		id: "feat",
+		group: "phb",
+		edition: "2014",
+		family: "feat",
+		name: "Feat",
+		icon: "award",
+		body: `#### Trailblazer
+*Prerequisite: Wisdom 13 or higher*
+
+You have spent years finding the way where others see none. You gain the
+following benefits:
+
+- Increase your Dexterity or Wisdom score by 1, to a maximum of 20.
+- Replace this text with the feat's first benefit.
+- Replace this text with the feat's second benefit.
+`,
+	},
+	{
+		id: "background",
+		group: "phb",
+		edition: "2014",
+		family: "background",
+		name: "Background",
+		icon: "scroll-text",
+		body: `## Wayfinder
+Replace this text with a short description of the life this background
+represents.
+
+**Skill Proficiencies:** :: Nature, Survival
+**Tool Proficiencies:**  :: Cartographer's tools
+**Languages:**           :: One of your choice
+**Equipment:**           :: A set of cartographer's tools, a set of traveler's clothes, a lantern, and a belt pouch containing 10 gp
+
+#### Feature: Trail Sense
+Replace this text with the background feature's benefit.
+`,
+	},
+	{
+		id: "race",
+		group: "phb",
+		edition: "2014",
+		family: "species",
+		name: "Species",
+		icon: "users",
+		body: `#### Thornkin Traits
+Your thornkin character has the following traits.
+
+***Ability Score Increase.*** Your Constitution score increases by 2, and your Wisdom score increases by 1.
+:
+***Age.*** Replace this text with how thornkin age.
+:
+***Alignment.*** Replace this text with typical thornkin outlooks.
+:
+***Size.*** Thornkin stand between 4 and 5 feet tall. Your size is Medium.
+:
+***Speed.*** Your base walking speed is 30 feet.
+:
+***Barbed Hide.*** Replace this text with the race's first trait.
+:
+***Languages.*** You can speak, read, and write Common and one other language of your choice.
+`,
+	},
+
+	// --- 2024 variants (SRD 5.2.1 layouts; see docs/DND_BLOCK_FORMATS.md) ---
 	{
 		id: "monster-2024",
-		group: "dnd2024",
+		group: "phb",
+		edition: "2024",
+		family: "monster",
 		name: "Monster stat block",
 		icon: "bug",
 		body: MONSTER_2024_BODY("monster,frame"),
 	},
 	{
 		id: "monster-2024-wide",
-		group: "dnd2024",
+		group: "phb",
+		edition: "2024",
+		family: "monster-wide",
 		name: "Wide monster stat block",
 		icon: "rectangle-horizontal",
 		body: MONSTER_2024_BODY("monster,frame,wide"),
 	},
 	{
+		id: "monster-2024-unframed",
+		group: "phb",
+		edition: "2024",
+		family: "monster-unframed",
+		name: "Monster stat block (unframed)",
+		icon: "paw-print",
+		body: MONSTER_2024_BODY("monster"),
+	},
+	{
 		id: "spell-2024",
-		group: "dnd2024",
+		group: "phb",
+		edition: "2024",
+		family: "spell",
 		name: "Spell",
 		icon: "wand-sparkles",
 		body: `#### Lantern Ward
@@ -370,8 +544,10 @@ for each spell slot level above 2.
 	},
 	{
 		id: "core-class-traits-2024",
-		group: "dnd2024",
-		name: "Core class traits",
+		group: "phb",
+		edition: "2024",
+		family: "class-feature",
+		name: "Class features",
 		icon: "shield",
 		body: `| Core Wayfarer Traits           |                                                   |
 |:-------------------------------|:--------------------------------------------------|
@@ -387,39 +563,27 @@ for each spell slot level above 2.
 	},
 	{
 		id: "class-table-2024",
-		group: "dnd2024",
+		group: "tables",
+		edition: "2024",
+		family: "martial-class-table",
 		name: "Martial class table",
 		icon: "table-properties",
-		body: `{{classTable,frame,decoration
-##### Wayfarer Features
-| Level | Proficiency Bonus | Class Features             | Trail Dice | Weapon Mastery |
-|:-----:|:-----------------:|:---------------------------|:----------:|:--------------:|
-|   1   |        +2         | Trailcraft, Weapon Mastery |     2      |       2        |
-|   2   |        +2         | Keen Eye, Quick Step       |     2      |       2        |
-|   3   |        +2         | Wayfarer Subclass          |     3      |       2        |
-|   4   |        +2         | Ability Score Improvement  |     3      |       3        |
-|   5   |        +3         | Extra Attack               |     3      |       3        |
-|   6   |        +3         | Subclass Feature           |     4      |       3        |
-|   7   |        +3         | Evasion                    |     4      |       3        |
-|   8   |        +3         | Ability Score Improvement  |     4      |       3        |
-|   9   |        +4         | Long Stride                |     4      |       3        |
-|  10   |        +4         | Subclass Feature           |     4      |       4        |
-|  11   |        +4         | Relentless                 |     4      |       4        |
-|  12   |        +4         | Ability Score Improvement  |     5      |       4        |
-|  13   |        +5         | Unerring Path              |     5      |       4        |
-|  14   |        +5         | Subclass Feature           |     5      |       4        |
-|  15   |        +5         | Tireless                   |     5      |       4        |
-|  16   |        +5         | Ability Score Improvement  |     5      |       4        |
-|  17   |        +6         | Master Wayfarer            |     6      |       4        |
-|  18   |        +6         | Subclass Feature           |     6      |       4        |
-|  19   |        +6         | Epic Boon                  |     6      |       4        |
-|  20   |        +6         | Endless Road               | unlimited  |       4        |
-}}
-`,
+		body: MARTIAL_CLASS_TABLE_2024_BODY("classTable,frame,decoration"),
+	},
+	{
+		id: "class-table-2024-unframed",
+		group: "tables",
+		edition: "2024",
+		family: "martial-class-table-unframed",
+		name: "Martial class table (unframed)",
+		icon: "table-2",
+		body: MARTIAL_CLASS_TABLE_2024_BODY("classTable"),
 	},
 	{
 		id: "caster-class-table-2024",
-		group: "dnd2024",
+		group: "tables",
+		edition: "2024",
+		family: "caster-class-table",
 		name: "Full caster class table",
 		icon: "sparkles",
 		body: `{{classTable,frame,decoration,wide
@@ -432,7 +596,9 @@ ${CASTER_SLOT_ROWS_2024}
 	},
 	{
 		id: "feat-2024",
-		group: "dnd2024",
+		group: "phb",
+		edition: "2024",
+		family: "feat",
 		name: "Feat",
 		icon: "award",
 		body: `#### Trailblazer
@@ -450,7 +616,9 @@ to a maximum of 20.
 	},
 	{
 		id: "background-2024",
-		group: "dnd2024",
+		group: "phb",
+		edition: "2024",
+		family: "background",
 		name: "Background",
 		icon: "scroll-text",
 		body: `#### Wayfinder
@@ -466,7 +634,9 @@ represents.
 	},
 	{
 		id: "species-2024",
-		group: "dnd2024",
+		group: "phb",
+		edition: "2024",
+		family: "species",
 		name: "Species",
 		icon: "users",
 		body: `#### Thornkin Traits
@@ -483,7 +653,9 @@ As a Thornkin, you have these special traits.
 	},
 	{
 		id: "magic-item-2024",
-		group: "dnd2024",
+		group: "phb",
+		edition: "2024",
+		family: "magic-item",
 		name: "Magic item",
 		icon: "gem",
 		body: `#### Compass of Second Chances
@@ -495,3 +667,26 @@ the item's properties.
 `,
 	},
 ];
+
+/** Edition-neutral blocks plus the variants that follow `edition`. */
+export function snippetsForEdition(edition: Edition): BrewSnippet[] {
+	return SNIPPET_CATALOG.filter((snippet) => !snippet.edition || snippet.edition === edition);
+}
+
+/** Every edition family, in catalog order of first appearance. */
+export const SNIPPET_FAMILIES: readonly string[] = [
+	...new Set(SNIPPET_CATALOG.flatMap((snippet) => (snippet.family ? [snippet.family] : []))),
+];
+
+/** The `edition` variant of a family; every family ships both editions. */
+export function resolveSnippetFamily(family: string, edition: Edition): BrewSnippet | undefined {
+	return SNIPPET_CATALOG.find((snippet) => snippet.family === family && snippet.edition === edition);
+}
+
+/** Picker and command label, e.g. "PHB 2024: Monster stat block". */
+export function snippetLabel(snippet: BrewSnippet, showEdition = true): string {
+	const group = SNIPPET_GROUP_LABELS[snippet.group];
+	return showEdition && snippet.edition
+		? `${group} ${snippet.edition}: ${snippet.name}`
+		: `${group}: ${snippet.name}`;
+}

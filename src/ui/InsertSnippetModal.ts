@@ -1,23 +1,24 @@
 import { App, FuzzySuggestModal, type FuzzyMatch, setIcon } from "obsidian";
-import {
-	SNIPPET_CATALOG,
-	SNIPPET_GROUP_LABELS,
-	type BrewSnippet,
-} from "../snippets/catalog";
+import { snippetLabel, type BrewSnippet, type Edition } from "../snippets/catalog";
 
-/** Browsable, icon-labelled picker over the snippet catalog. */
+/** Browsable, icon-labelled picker over one edition's view of the catalog. */
 export class InsertSnippetModal extends FuzzySuggestModal<BrewSnippet> {
-	constructor(app: App, private readonly onChoose: (snippet: BrewSnippet) => void) {
+	constructor(
+		app: App,
+		private readonly snippets: readonly BrewSnippet[],
+		edition: Edition,
+		private readonly onChoose: (snippet: BrewSnippet) => void
+	) {
 		super(app);
-		this.setPlaceholder("Insert block…");
+		this.setPlaceholder(`Insert ${edition} block…`);
 	}
 
 	getItems(): BrewSnippet[] {
-		return [...SNIPPET_CATALOG];
+		return [...this.snippets];
 	}
 
 	getItemText(snippet: BrewSnippet): string {
-		return `${SNIPPET_GROUP_LABELS[snippet.group]}: ${snippet.name}`;
+		return snippetLabel(snippet);
 	}
 
 	renderSuggestion(match: FuzzyMatch<BrewSnippet>, el: HTMLElement): void {

@@ -8,6 +8,7 @@ import {
 	normalizeStoredCustomStyles,
 	type CustomStyleDefinition,
 } from "../themes/customStyles";
+import { isEdition, type Edition } from "../snippets/catalog";
 
 export type BrewTheme = ThemeSelectionId;
 
@@ -26,6 +27,8 @@ export interface BrewVaultSettings {
 	pageHeightPx: number;
 	/** Debounce, in milliseconds, between a file change and a re-render. */
 	debounceMs: number;
+	/** Rules edition used by insert commands that do not name one. */
+	defaultEdition: Edition;
 }
 
 export const LEGACY_DEFAULT_EXPORT_FOLDER = "BrewVault Exports";
@@ -38,6 +41,7 @@ export const DEFAULT_SETTINGS: BrewVaultSettings = {
 	pageWidthPx: 816,
 	pageHeightPx: 1056,
 	debounceMs: 250,
+	defaultEdition: "2024",
 };
 
 export interface NormalizedSettings {
@@ -77,6 +81,11 @@ export function normalizeStoredSettings(
 			? DEFAULT_SETTINGS.exportFolder
 			: trimmedExportFolder;
 
+	const rawDefaultEdition = stored?.defaultEdition;
+	const defaultEdition = isEdition(rawDefaultEdition)
+		? rawDefaultEdition
+		: DEFAULT_SETTINGS.defaultEdition;
+
 	const settings = {
 		...DEFAULT_SETTINGS,
 		...(stored ?? {}),
@@ -84,6 +93,7 @@ export function normalizeStoredSettings(
 		customStyles,
 		nextCustomStyleNumber,
 		exportFolder,
+		defaultEdition,
 	};
 
 	return {
@@ -92,6 +102,7 @@ export function normalizeStoredSettings(
 			!stored ||
 			rawTheme !== theme ||
 			rawExportFolder !== exportFolder ||
+			(rawDefaultEdition !== undefined && rawDefaultEdition !== defaultEdition) ||
 			rawNextCustomStyleNumber !== nextCustomStyleNumber ||
 			JSON.stringify(rawCustomStyles ?? []) !== JSON.stringify(customStyles),
 	};

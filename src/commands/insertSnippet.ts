@@ -1,36 +1,76 @@
 import { MarkdownView, type Editor, type Plugin } from "obsidian";
 import {
+	EDITIONS,
 	SNIPPET_CATALOG,
-	SNIPPET_GROUP_LABELS,
+	SNIPPET_FAMILIES,
+	resolveSnippetFamily,
+	snippetLabel,
+	snippetsForEdition,
 	type BrewSnippet,
+	type Edition,
 } from "../snippets/catalog";
 import { formatSnippetForCursor } from "../snippets/insertion";
 import { InsertSnippetModal } from "../ui/InsertSnippetModal";
 
 /**
  * One palette command per snippet, so each is searchable and hotkey-bindable,
- * plus a browsable picker. Command ids derive from snippet ids, which makes
+ * plus browsable pickers. Command ids derive from snippet ids, which makes
  * snippet ids part of the saved-hotkey contract: never rename one.
+ *
+ * Edition-sensitive blocks get an explicit command per edition plus an
+ * `insert-default-<family>` command that follows the default-edition setting,
+ * read at run time so changing the setting needs no reload.
  */
-export function registerInsertSnippetCommands(plugin: Plugin): void {
+export function registerInsertSnippetCommands(
+	plugin: Plugin,
+	getDefaultEdition: () => Edition
+): void {
 	plugin.addCommand({
 		id: "insert-block",
 		name: "Insert block…",
 		checkCallback: (checking) =>
 			withTargetEditor(plugin, checking, (editor) =>
-				new InsertSnippetModal(plugin.app, (snippet) => insertSnippet(editor, snippet)).open()
+				openPicker(plugin, editor, getDefaultEdition())
 			),
 	});
+	for (const edition of EDITIONS) {
+		plugin.addCommand({
+			id: `insert-block-${edition}`,
+			name: `Insert ${edition} block…`,
+			checkCallback: (checking) =>
+				withTargetEditor(plugin, checking, (editor) => openPicker(plugin, editor, edition)),
+		});
+	}
+
+	for (const family of SNIPPET_FAMILIES) {
+		const sample = resolveSnippetFamily(family, "2024");
+		if (!sample) continue;
+		plugin.addCommand({
+			id: `insert-default-${family}`,
+			name: `Insert ${snippetLabel(sample, false)}`,
+			icon: sample.icon,
+			checkCallback: (checking) =>
+				withTargetEditor(plugin, checking, (editor) =>
+					insertSnippet(editor, resolveSnippetFamily(family, getDefaultEdition()) ?? sample)
+				),
+		});
+	}
 
 	for (const snippet of SNIPPET_CATALOG) {
 		plugin.addCommand({
 			id: `insert-${snippet.id}`,
-			name: `Insert ${SNIPPET_GROUP_LABELS[snippet.group]}: ${snippet.name}`,
+			name: `Insert ${snippetLabel(snippet)}`,
 			icon: snippet.icon,
 			checkCallback: (checking) =>
 				withTargetEditor(plugin, checking, (editor) => insertSnippet(editor, snippet)),
 		});
 	}
+}
+
+function openPicker(plugin: Plugin, editor: Editor, edition: Edition): void {
+	new InsertSnippetModal(plugin.app, snippetsForEdition(edition), edition, (snippet) =>
+		insertSnippet(editor, snippet)
+	).open();
 }
 
 // Not an editorCallback: those hide the command whenever focus is in a

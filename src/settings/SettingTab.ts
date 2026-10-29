@@ -3,6 +3,7 @@ import type { DropdownComponent } from "obsidian";
 import type { SettingDefinitionItem } from "obsidian";
 import type BrewVaultPlugin from "../main";
 import { DEFAULT_SETTINGS, type BrewTheme } from "./types";
+import { isEdition } from "../snippets/catalog";
 
 export class BrewVaultSettingTab extends PluginSettingTab {
 	plugin: BrewVaultPlugin;
@@ -37,6 +38,13 @@ export class BrewVaultSettingTab extends PluginSettingTab {
 					this.addCustomStyleManagementControl(setting, style.id);
 				},
 			})),
+			{
+				name: "Default edition",
+				desc: "Edition used by the block picker and by insert commands that do not name one; edition-specific commands are unaffected.",
+				render: (setting) => {
+					this.addDefaultEditionControl(setting);
+				},
+			},
 			{
 				name: "Export folder",
 				desc: "Vault-relative folder for BrewVault exports. It is created automatically when needed.",
@@ -91,6 +99,10 @@ export class BrewVaultSettingTab extends PluginSettingTab {
 				style.id
 			);
 		}
+
+		this.addDefaultEditionControl(new Setting(containerEl)
+			.setName("Default edition")
+			.setDesc("Edition used by the block picker and by insert commands that do not name one; edition-specific commands are unaffected."));
 
 		this.addExportFolderControl(new Setting(containerEl)
 			.setName("Export folder")
@@ -185,6 +197,20 @@ export class BrewVaultSettingTab extends PluginSettingTab {
 			drop.selectEl.querySelector(`option[value="${styleId}"]`)?.remove();
 			drop.setValue(this.plugin.settings.theme);
 		}
+	}
+
+	private addDefaultEditionControl(setting: Setting): void {
+		setting.addDropdown((drop) =>
+			drop
+				.addOption("2024", "2024 (SRD 5.2)")
+				.addOption("2014", "2014 (SRD 5.1)")
+				.setValue(this.plugin.settings.defaultEdition)
+				.onChange(async (value) => {
+					if (!isEdition(value)) return;
+					this.plugin.settings.defaultEdition = value;
+					await this.plugin.saveSettings();
+				})
+		);
 	}
 
 	private addExportFolderControl(setting: Setting): void {
