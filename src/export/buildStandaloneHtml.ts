@@ -94,6 +94,13 @@ body {
 	cursor: pointer;
 }
 ${themeCss}
+/* The bundled stylesheet gives .brewvault-pages a default Letter size, which
+   would override :root. Set the export size on the container itself, after
+   the theme CSS, so every page matches the printed sheet. */
+.brewvault-pages {
+	--brew-page-width: ${pageWidthPx}px;
+	--brew-page-height: ${pageHeightPx}px;
+}
 /* .brewPage is one complete sheet. Its own padding is the document margin,
    so printer margins must remain zero or the browser scales and repaginates
    the fixed-size sheet. */

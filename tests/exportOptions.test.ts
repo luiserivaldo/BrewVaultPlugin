@@ -184,10 +184,22 @@ void test("page size presets override the settings size", () => {
 });
 
 void test("the printed page size follows the export page size", () => {
-	const html = buildStandaloneHtml([{ html: "<p>A4</p>", index: 1 }], "phb", "", "Doc", 794, 1123);
+	// The bundled stylesheet sets this Letter default on the page container.
+	const bundledDefault = ".brewvault-pages{--brew-page-width: 816px;--brew-page-height: 1056px}";
+	const html = buildStandaloneHtml(
+		[{ html: "<p>A4</p>", index: 1 }],
+		"phb",
+		bundledDefault,
+		"Doc",
+		794,
+		1123
+	);
 	assert.match(html, /@page \{ size: 794px 1123px; margin: 0; \}/);
 	assert.match(html, /html, body \{ width: 794px;/);
-	assert.match(html, /--brew-page-width: 794px;/);
+	const override = html.search(
+		/\.brewvault-pages \{\s*--brew-page-width: 794px;\s*--brew-page-height: 1123px;\s*\}/
+	);
+	assert.ok(override > html.indexOf(bundledDefault), "export size must follow the Letter default");
 });
 
 void test("bv_file_name accepts text up to 200 characters; blank uses the note name", () => {
