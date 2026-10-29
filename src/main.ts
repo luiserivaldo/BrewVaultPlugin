@@ -19,7 +19,7 @@ import { HomebreweryView, HOMEBREWERY_VIEW_TYPE } from "./view/HomebreweryView";
 import { renderBrewMarkdown } from "./renderer";
 import { paginateBrewPages } from "./renderer/paginateDom";
 import { buildStandaloneHtml } from "./export/buildStandaloneHtml";
-import { allocateExportPath } from "./export/allocateExportPath";
+import { allocateExportPath, toExportBasename } from "./export/allocateExportPath";
 import { BUNDLED_THEME_CSS as UNCHECKED_THEME_CSS } from "virtual:brewvault-theme-css";
 import { homebreweryTagPreviewExtension } from "./editor/homebreweryTagPreview";
 import { detectPlatform } from "./platform/detectPlatform";
@@ -50,6 +50,8 @@ import { resolveExportOptions, type ResolvedExportOptions } from "./exportOption
 interface RenderedExportDocument {
 	readonly html: string;
 	readonly options: ExportOptions;
+	/** Safe export file name derived from the title. */
+	readonly basename: string;
 	readonly pageWidthPx: number;
 	readonly pageHeightPx: number;
 }
@@ -200,10 +202,10 @@ export default class BrewVaultPlugin extends Plugin {
 	 */
 	async exportFileAsHtml(file: TFile): Promise<void> {
 		try {
-			const { html } = await this.renderExportDocument(file);
+			const { html, basename } = await this.renderExportDocument(file);
 
 			const exportFolder = await this.ensureExportFolder();
-			const outPath = this.allocateExportPath(exportFolder, file.basename, ".brew.html");
+			const outPath = this.allocateExportPath(exportFolder, basename, ".brew.html");
 			await this.app.vault.create(outPath, html);
 
 			new Notice(
@@ -223,7 +225,7 @@ export default class BrewVaultPlugin extends Plugin {
 	): Promise<void> {
 		try {
 			const backend = await this.getExportBackendProvider().getBackend();
-			const { html, pageWidthPx, pageHeightPx } = await this.renderExportDocument(file, {
+			const { html, basename, pageWidthPx, pageHeightPx } = await this.renderExportDocument(file, {
 				theme: themeOverride,
 			});
 			const exportFolder = await this.ensureExportFolder();
@@ -233,7 +235,7 @@ export default class BrewVaultPlugin extends Plugin {
 			try {
 				result = await backend.export({
 					html,
-					basename: file.basename,
+					basename,
 					pageWidthPx,
 					pageHeightPx,
 					mobilePdfMethod,
@@ -243,11 +245,7 @@ export default class BrewVaultPlugin extends Plugin {
 				progress.hide();
 			}
 			if (result.kind === "html-handoff") {
-				const outPath = this.allocateExportPath(
-					exportFolder,
-					file.basename,
-					".brew.html"
-				);
+				const outPath = this.allocateExportPath(exportFolder, basename, ".brew.html");
 				await this.app.vault.create(outPath, result.html);
 
 				new MobilePdfHandoffModal(this.app, outPath).open();
@@ -259,7 +257,7 @@ export default class BrewVaultPlugin extends Plugin {
 				return;
 			}
 
-			const outPath = this.allocateExportPath(exportFolder, file.basename, ".pdf");
+			const outPath = this.allocateExportPath(exportFolder, basename, ".pdf");
 			await this.app.vault.createBinary(outPath, result.bytes);
 
 			new Notice(`Exported to ${outPath}`);
@@ -284,18 +282,19 @@ export default class BrewVaultPlugin extends Plugin {
 		const resolved = resolveExportOptions({
 			command,
 			note: note.options,
-			defaults: this.getDefaultExportOptions(),
+			defaults: this.getDefaultExportOptions(file),
 		});
 		return { resolved, invalid: note.invalid };
 	}
 
-	private getDefaultExportOptions(): ExportOptions {
+	private getDefaultExportOptions(file: TFile): ExportOptions {
 		return {
 			theme: this.settings.theme,
 			footer: "",
 			showPageNumbers: true,
 			firstPageNumber: 1,
 			pageSize: "settings",
+			title: file.basename,
 		};
 	}
 
@@ -332,12 +331,13 @@ export default class BrewVaultPlugin extends Plugin {
 			pages,
 			options.theme,
 			this.getThemeCss(options.theme),
-			file.basename,
+			options.title,
 			pageWidthPx,
 			pageHeightPx,
 			options
 		);
-		return { html, options, pageWidthPx, pageHeightPx };
+		const basename = toExportBasename(options.title, file.basename);
+		return { html, options, basename, pageWidthPx, pageHeightPx };
 	}
 
 	onunload(): void {

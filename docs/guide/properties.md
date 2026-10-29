@@ -17,6 +17,7 @@ properties or your note.
 | [`bv_page_numbers`](#bv_page_numbers-show-or-hide-page-numbers) | Available | Shows or hides page numbers. |
 | [`bv_page_start`](#bv_page_start-first-page-number) | Available | Sets the number printed on the first page. |
 | [`bv_page_size`](#bv_page_size-letter-or-a4) | Available | Uses US Letter or A4 paper. |
+| [`bv_title`](#bv_title-document-title-and-file-name) | Available | Sets the document title and export file name. |
 | [`bv_book`](#bv_book-combine-notes-into-one-pdf-planned) | Planned, not available yet | Turns a note into a book that combines many notes into one PDF. |
 
 ## `bv_theme`: theme for one note
@@ -142,6 +143,25 @@ bv_page_size: a4
 Without `bv_page_size`, notes use **Page width** and **Page height** from
 [settings](./settings.md). Homebrewery themes are designed for Letter, so A4
 pages are slightly narrower and taller and may break in different places.
+
+## `bv_title`: document title and file name
+
+By default an export is named after the note. `bv_title` sets a different
+title for the PDF or HTML document and its file name:
+
+```yaml
+---
+bv_title: "Llynwych: Monsters of the Everwoods"
+---
+```
+
+- Up to 200 characters. An empty value uses the note name.
+- Characters that file systems reject (`\ / : * ? " < > |`, plus `# ^ [ ]`)
+  become hyphens in the file name only. The document title keeps them, so
+  the example above saves as `Llynwych- Monsters of the Everwoods.pdf`.
+- Quote titles that contain a colon, as in the example, or YAML reads them
+  incorrectly.
+- If a file with that name exists, BrewVault adds `_1`, `_2`, and so on.
 
 ## `bv_book`: combine notes into one PDF (planned)
 

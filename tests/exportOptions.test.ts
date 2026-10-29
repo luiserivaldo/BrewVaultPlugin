@@ -7,6 +7,7 @@ import {
 import { resolveExportOptions } from "../src/exportOptions/resolve";
 import { pageDimensions, type ExportOptions } from "../src/exportOptions/options";
 import { buildStandaloneHtml } from "../src/export/buildStandaloneHtml";
+import { toExportBasename } from "../src/export/allocateExportPath";
 
 const context = { customStyles: [] };
 const defaults: ExportOptions = {
@@ -15,6 +16,7 @@ const defaults: ExportOptions = {
 	showPageNumbers: true,
 	firstPageNumber: 1,
 	pageSize: "settings",
+	title: "Note",
 };
 
 void test("notes without BrewVault properties set no options", () => {
@@ -63,6 +65,7 @@ void test("each option resolves separately: command, then note, then settings", 
 		showPageNumbers: true,
 		firstPageNumber: 1,
 		pageSize: "settings",
+		title: "Note",
 	});
 	assert.deepEqual(resolved.sources, {
 		theme: "command",
@@ -70,6 +73,7 @@ void test("each option resolves separately: command, then note, then settings", 
 		showPageNumbers: "settings",
 		firstPageNumber: "settings",
 		pageSize: "settings",
+		title: "settings",
 	});
 
 	const fallback = resolveExportOptions({ command: { theme: undefined }, note: {}, defaults });
@@ -80,6 +84,7 @@ void test("each option resolves separately: command, then note, then settings", 
 		showPageNumbers: "settings",
 		firstPageNumber: "settings",
 		pageSize: "settings",
+		title: "settings",
 	});
 });
 
@@ -174,4 +179,19 @@ void test("the printed page size follows the export page size", () => {
 	assert.match(html, /@page \{ size: 794px 1123px; margin: 0; \}/);
 	assert.match(html, /html, body \{ width: 794px;/);
 	assert.match(html, /--brew-page-width: 794px;/);
+});
+
+void test("bv_title accepts text up to 200 characters; blank uses the note name", () => {
+	const title = (value: unknown) => parseNoteExportOptions({ bv_title: value }, context);
+	assert.equal(title("  Monsters of Llynwych ").options.title, "Monsters of Llynwych");
+	assert.equal(title("   ").options.title, undefined);
+	assert.equal(title("   ").invalid.length, 0);
+	assert.equal(title("x".repeat(201)).invalid.length, 1);
+});
+
+void test("titles become safe export file names", () => {
+	assert.equal(toExportBasename("Llynwych: Monsters / Vol. 1", "Note"), "Llynwych- Monsters - Vol. 1");
+	assert.equal(toExportBasename("What? #1 [draft]...", "Note"), "What- -1 -draft-");
+	assert.equal(toExportBasename("  ...  ", "Note"), "Note");
+	assert.equal(toExportBasename("Plain Title", "Note"), "Plain Title");
 });
