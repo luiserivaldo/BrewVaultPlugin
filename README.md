@@ -248,7 +248,7 @@ Open **Settings → BrewVault** to configure the plugin.
 
 | Setting | Default | Effect |
 | --- | --- | --- |
-| Choose theme | Player's Handbook (parchment) | Controls the live preview and normal HTML/PDF export appearance. |
+| Choose theme | Player's Handbook | Controls the live preview and normal HTML/PDF export appearance. |
 | Submit custom stylesheet | None | Validates and stores a selected local `.css` file as a selectable theme. |
 | Export folder | `BrewVault-Exports` | Sets the vault-relative output folder. BrewVault creates it automatically. |
 | Page width | `816px` | Controls rendered page width; the default represents 8.5 inches at 96 CSS dpi. |
