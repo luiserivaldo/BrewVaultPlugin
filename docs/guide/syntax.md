@@ -20,6 +20,13 @@ This text is displayed as a Homebrewery note.
 Common semantic block classes include `note`, `descriptive`, `monster`, and
 `classTable`.
 
+In the editor, a matched block's opening line shows as a **BrewVault** label
+with a chevron beside it. Click the chevron to collapse the block, hiding
+everything inside it, nested blocks and headings included; click it again to
+expand. Obsidian remembers collapsed blocks with the note's other folds, so
+they stay collapsed when you reopen the note. Move the cursor onto the label
+to edit the raw `{{className` line.
+
 ## Multiple classes and wide elements
 
 Separate classes with commas or spaces. Add `wide` when a component should span
@@ -53,6 +60,10 @@ The thief crept through the shadows, watching for danger.
 }}
 ```
 
+Start with a space to leave out the class: `{{ text}}` is a plain inline
+span. Tables of contents use two of them per row, for the title and the page
+number; see [Table of contents](./table-of-contents.md).
+
 ## Stat fields and vertical spacing
 
 Use `::` between a stat label and its value. Each source line becomes a
@@ -69,7 +80,8 @@ sections. Use `::` on its own line for two lines of space.
 
 ## Page and column breaks
 
-Place break directives on their own lines:
+Place break directives on their own lines. Blank lines around them are
+optional: a break directly under a paragraph, list, or quote still breaks.
 
 ```markdown
 First page content.

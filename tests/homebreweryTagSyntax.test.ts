@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+	blockFoldRange,
 	findHomebreweryTagRanges,
 	formatHomebreweryTagLabel,
 	selectionTouchesTag,
@@ -75,4 +76,16 @@ void test("labels split commas, spaces, camel case, and hyphens", () => {
 		formatHomebreweryTagLabel("classTable wide dm-note"),
 		"Class Table · Wide · Dm Note"
 	);
+});
+
+void test("matched openers fold from their line end to the end of their closing line", () => {
+	const source = ["{{monster", "## Imp", "{{note", "Inside", "}}", "}}", "{{open", "```", "{{fenced", "```"].join("\n");
+	const folds = findHomebreweryTagRanges(source)
+		.map((tag) => blockFoldRange(tag))
+		.filter((range) => range !== null)
+		.map((range) => source.slice(range.from, range.to));
+	// Outer block first, then the nested one; the unclosed and fenced tags don't fold.
+	assert.deepEqual(folds, ["\n## Imp\n{{note\nInside\n}}\n}}", "\nInside\n}}"]);
+	assert.equal(blockFoldRange({ kind: "close", from: 0, to: 2, label: "Note" }), null);
+	assert.equal(blockFoldRange({ kind: "open", from: 0, to: 6, label: "Note", blockEnd: 6 }), null);
 });

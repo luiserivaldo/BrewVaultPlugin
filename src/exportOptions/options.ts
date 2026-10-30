@@ -192,7 +192,7 @@ const BOOLEAN_WORDS: Readonly<Record<string, boolean>> = {
 };
 
 /** Accepts YAML booleans and common yes/no words, case-insensitively. */
-function parseBoolean(value: unknown): OptionParseResult<boolean> {
+export function parseBoolean(value: unknown): OptionParseResult<boolean> {
 	if (value === undefined || value === null) return NONE;
 	if (typeof value === "boolean") return { kind: "value", value };
 	if (typeof value === "string") {

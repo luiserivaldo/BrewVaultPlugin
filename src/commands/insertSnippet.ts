@@ -82,23 +82,30 @@ function withTargetEditor(plugin: Plugin, checking: boolean, run: (editor: Edito
 	return true;
 }
 
-/** The focused note's editor, else the most recently used note in the main area. */
 function findTargetEditor(plugin: Plugin): Editor | null {
+	return findTargetMarkdownView(plugin)?.editor ?? null;
+}
+
+/** The focused note in edit mode, else the most recently used one in the main area. */
+export function findTargetMarkdownView(plugin: Plugin): MarkdownView | null {
 	const { workspace } = plugin.app;
 	const active = workspace.getActiveViewOfType(MarkdownView);
-	if (active?.getMode() === "source") return active.editor;
+	if (active?.getMode() === "source") return active;
 
 	const recent = workspace.getMostRecentLeaf(workspace.rootSplit)?.view;
-	return recent instanceof MarkdownView && recent.getMode() === "source"
-		? recent.editor
-		: null;
+	return recent instanceof MarkdownView && recent.getMode() === "source" ? recent : null;
 }
 
 function insertSnippet(editor: Editor, snippet: BrewSnippet): void {
+	insertBlock(editor, snippet.body);
+}
+
+/** Inserts block-level Markdown on its own lines, as one undoable edit. */
+export function insertBlock(editor: Editor, body: string): void {
 	const from = editor.getCursor("from");
 	const to = editor.getCursor("to");
 	const text = formatSnippetForCursor(
-		snippet.body,
+		body,
 		editor.getLine(from.line).slice(0, from.ch),
 		editor.getLine(to.line).slice(to.ch)
 	);

@@ -16,17 +16,17 @@ import {
 } from "./settings/types";
 import { BrewVaultSettingTab } from "./settings/SettingTab";
 import { HomebreweryView, HOMEBREWERY_VIEW_TYPE } from "./view/HomebreweryView";
-import { renderBrewMarkdown } from "./renderer";
 import { paginateBrewPages } from "./renderer/paginateDom";
 import { buildStandaloneHtml } from "./export/buildStandaloneHtml";
 import { allocateExportPath, toExportBasename } from "./export/allocateExportPath";
 import { BUNDLED_THEME_CSS as UNCHECKED_THEME_CSS } from "virtual:brewvault-theme-css";
 import { homebreweryTagPreviewExtension } from "./editor/homebreweryTagPreview";
+import { homebreweryBlockFoldService } from "./editor/homebreweryBlockFolding";
 import { detectPlatform } from "./platform/detectPlatform";
 import { createBackendProvider } from "./platform/createBackendProvider";
 import type { ExportBackendProvider } from "./platform/ExportBackendProvider";
 import { MobilePdfHandoffModal } from "./ui/MobilePdfHandoffModal";
-import { resolveVaultImageEmbeds } from "./obsidian/resolveVaultImageEmbeds";
+import { renderNotePages, type RenderedNotePages } from "./obsidian/renderNotePages";
 import type { BrewPage } from "./renderer/types";
 import {
 	createCustomStyleSubmission,
@@ -34,6 +34,9 @@ import {
 	type CustomStyleDefinition,
 } from "./themes/customStyles";
 import { registerInsertSnippetCommands } from "./commands/insertSnippet";
+import { openBookContents, registerBookCommands } from "./commands/bookCommands";
+import { registerTocCommands } from "./commands/tocCommands";
+import { registerTocNavigation } from "./obsidian/tocNavigation";
 import type { Edition } from "./snippets/catalog";
 import { NOTE_EDITION_PROPERTY, resolveNoteEdition } from "./snippets/noteEdition";
 import { readNoteFrontmatter } from "./obsidian/readNoteFrontmatter";
@@ -98,7 +101,7 @@ export default class BrewVaultPlugin extends Plugin {
 		this.exportBackendProvider = createBackendProvider(platform, {
 			getMobilePdfMethod: () => this.settings.mobilePdfMethod,
 		});
-		this.registerEditorExtension(homebreweryTagPreviewExtension);
+		this.registerEditorExtension([homebreweryTagPreviewExtension, homebreweryBlockFoldService]);
 
 		this.registerView(HOMEBREWERY_VIEW_TYPE, (leaf) => new HomebreweryView(leaf, this));
 
@@ -116,6 +119,16 @@ export default class BrewVaultPlugin extends Plugin {
 
 		this.addSettingTab(new BrewVaultSettingTab(this.app, this));
 		registerInsertSnippetCommands(this, () => this.getActiveNoteEdition());
+		registerBookCommands(this);
+		registerTocNavigation(this);
+		registerTocCommands(this, (file) => {
+			const options = this.resolveNoteExportOptions(file).resolved.values;
+			const size = pageDimensions(options.pageSize, this.settings);
+			return {
+				firstPageNumber: options.firstPageNumber,
+				paginate: (pages) => this.paginateWithTheme(pages, options.theme, size),
+			};
+		});
 
 		this.addCommand({
 			id: "show-export-options",
@@ -356,6 +369,11 @@ export default class BrewVaultPlugin extends Plugin {
 		}).open();
 	}
 
+	/** Opens the notes a `{{bookContent}}` block includes, and any problems. */
+	openBookContents(file: TFile): void {
+		openBookContents(this.app, file);
+	}
+
 	private getDefaultExportOptions(file: TFile): ExportOptions {
 		return {
 			theme: this.settings.theme,
@@ -381,24 +399,21 @@ export default class BrewVaultPlugin extends Plugin {
 		if (invalid.length > 0) new Notice(formatInvalidPropertiesMessage(file.basename, invalid));
 		const options = resolved.values;
 
-		const source = await this.app.vault.cachedRead(file);
-		const resolvedImages = await resolveVaultImageEmbeds(
-			source,
-			file,
-			this.app.vault,
-			this.app.metadataCache
-		);
-		const renderedPages = renderBrewMarkdown(source, {
-			imageEmbeds: resolvedImages.imageEmbeds,
-		});
 		const { pageWidthPx, pageHeightPx } = pageDimensions(options.pageSize, this.settings);
-		const pages = await this.paginateWithTheme(renderedPages, options.theme, {
-			pageWidthPx,
-			pageHeightPx,
-		});
+		const rendered = await this.renderNotePages(file, (pages) =>
+			this.paginateWithTheme(pages, options.theme, { pageWidthPx, pageHeightPx })
+		);
+		const bookWarnings = rendered.book?.plan.diagnostics.filter(
+			(diagnostic) => diagnostic.severity === "warning"
+		).length ?? 0;
+		if (bookWarnings > 0) {
+			new Notice(
+				`BrewVault found ${bookWarnings} ${bookWarnings === 1 ? "problem" : "problems"} with included notes in "${file.basename}". Run "Show included notes" for details.`
+			);
+		}
 
 		const html = buildStandaloneHtml(
-			pages,
+			rendered.pages,
 			options.theme,
 			this.getThemeCss(options.theme),
 			options.fileName,
@@ -408,6 +423,18 @@ export default class BrewVaultPlugin extends Plugin {
 		);
 		const basename = toExportBasename(options.fileName, file.basename);
 		return { html, options, basename, pageWidthPx, pageHeightPx };
+	}
+
+	/**
+	 * Renders a note into paginated pages, compiling the notes its
+	 * `{{bookContent}}` block includes. The preview and both exports use this,
+	 * so compiled notes look the same everywhere.
+	 */
+	renderNotePages(
+		file: TFile,
+		paginate: (pages: BrewPage[]) => Promise<BrewPage[]>
+	): Promise<RenderedNotePages> {
+		return renderNotePages(this.app, { file, paginate });
 	}
 
 	onunload(): void {

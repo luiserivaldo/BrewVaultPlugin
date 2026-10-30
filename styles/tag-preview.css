@@ -28,6 +28,45 @@
 	color: var(--text-muted);
 }
 
+/* Opening tags of matched blocks get a chevron that collapses the block.
+   Obsidian also offers its own hover arrow for the same fold; hide it on
+   these lines so each block has one toggle. */
+.cm-line:has(> .brewvault-tag-preview-group) > .cm-fold-indicator {
+	display: none;
+}
+
+.brewvault-tag-preview-group {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25em;
+}
+
+.brewvault-tag-fold {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.35em;
+	height: 1.35em;
+	border-radius: var(--radius-s);
+	color: var(--text-muted);
+	cursor: var(--cursor);
+}
+
+.brewvault-tag-fold:hover {
+	background: var(--background-modifier-hover);
+	color: var(--text-normal);
+}
+
+.brewvault-tag-fold svg {
+	width: var(--icon-xs);
+	height: var(--icon-xs);
+	transition: transform 120ms ease;
+}
+
+.brewvault-tag-fold.is-collapsed svg {
+	transform: rotate(-90deg);
+}
+
 .brewvault-page-break-preview {
 	display: inline-flex;
 	width: 100%;

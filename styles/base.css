@@ -170,6 +170,22 @@
 	box-sizing: border-box;
 }
 
+/* Blocks are inline-blocks, as in Homebrewery, so back-to-back blocks are
+   lines of one anonymous paragraph. The default orphans and widows of 2 then
+   forbid breaking between two blocks, and the browser pushes both into the
+   next column, off the page, even when the second would fit in the column
+   beside it. Allow a break after any block there; real elements keep the
+   default so text still avoids lone lines. */
+.brewPage .columnWrapper {
+	orphans: 1;
+	widows: 1;
+}
+
+.brewPage .columnWrapper > * {
+	orphans: 2;
+	widows: 2;
+}
+
 .brewBlock.brew-wide,
 .brewBlock.wide,
 .brewPage .wide {
@@ -286,4 +302,79 @@
 	border-bottom: 1px solid var(--background-modifier-border);
 	text-align: left;
 	vertical-align: top;
+}
+
+/* Table of contents rows, as Homebrewery writes them:
+   - ### [{{ Title}}{{ 12}}](#p12). A dotted leader runs between the title and
+   the page number. Fonts and colours come from the theme. */
+.brewPage .toc {
+	break-inside: avoid;
+}
+
+.brewPage .toc ul {
+	margin: 0;
+	padding-left: 0;
+	list-style: none;
+}
+
+.brewPage .toc ul ul {
+	padding-left: 1em;
+}
+
+/* A wide contents spans the page and lists its rows in two columns. */
+.brewPage .toc.wide > ul {
+	column-gap: 1cm;
+	columns: 2;
+}
+
+.brewPage .toc.wide > ul > li {
+	break-inside: avoid;
+}
+
+.brewPage .toc li {
+	margin: 0;
+}
+
+.brewPage .toc li h3,
+.brewPage .toc li h4 {
+	margin: 0.35em 0 0;
+	padding: 0;
+	border: 0;
+}
+
+.brewPage .toc li h3 {
+	font-size: 1.3em;
+}
+
+.brewPage .toc li h4 {
+	font-size: 1.1em;
+}
+
+.brewPage .toc a {
+	display: flex;
+	align-items: baseline;
+	color: inherit;
+	text-decoration: none;
+}
+
+.brewPage .toc a::after {
+	order: 1;
+	flex: 1;
+	margin: 0 0.25em;
+	border-bottom: 1px dotted currentcolor;
+	content: "";
+}
+
+.brewPage .toc a > span:last-child {
+	order: 2;
+}
+
+/* Show included notes modal. */
+.brewvault-book-contents ol {
+	padding-left: 1.5em;
+}
+
+.brewvault-book-contents .brewvault-book-contents-source {
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
 }

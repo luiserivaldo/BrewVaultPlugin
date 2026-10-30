@@ -1,6 +1,7 @@
 import MarkdownIt from "markdown-it";
 import { blockContainerRule } from "./rules/blockContainer";
 import { inlineSpanRule } from "./rules/inlineSpan";
+import { isBrewRenderEnvironment } from "./imageEmbeds";
 import { pageBreakRule } from "./rules/pageBreak";
 import { columnBreakRule } from "./rules/columnBreak";
 import { wikilinkRule } from "./rules/wikilink";
@@ -25,8 +26,11 @@ export function createBrewMarkdownEngine(): MarkdownIt {
 	// markdown-it's rule chain is: block rules run top-to-bottom per file,
 	// so we insert ours near the front (before "paragraph"/"fence" catch-alls
 	// but after "code"/"blockquote" so those still take precedence).
-	md.block.ruler.before("fence", "brew_page_break", pageBreakRule);
-	md.block.ruler.before("fence", "brew_column_break", columnBreakRule);
+	// Breaks end a paragraph, list, or quote directly above them, as in
+	// Homebrewery, which splits pages on any "\page" line before Markdown.
+	const breakTerminates = { alt: ["paragraph", "reference", "blockquote", "list"] };
+	md.block.ruler.before("fence", "brew_page_break", pageBreakRule, breakTerminates);
+	md.block.ruler.before("fence", "brew_column_break", columnBreakRule, breakTerminates);
 	md.block.ruler.before("fence", "brew_template_line", templateLineRule, {
 		alt: ["paragraph", "reference", "blockquote", "list"],
 	});
@@ -67,11 +71,22 @@ export function createBrewMarkdownEngine(): MarkdownIt {
 		const token = tokens[index];
 		return `<span${md.renderer.renderAttrs(token)}>${md.renderInline(token.content)}</span>`;
 	};
+	// Headings carry the note they came from, so a table of contents can link
+	// back to the note even when several notes are compiled into one.
+	md.renderer.rules.heading_open = (tokens, index, options, environment, self) => {
+		if (isBrewRenderEnvironment(environment) && environment.headingSource) {
+			tokens[index].attrSet(HEADING_SOURCE_ATTRIBUTE, environment.headingSource);
+		}
+		return self.renderToken(tokens, index, options);
+	};
 	md.renderer.rules.brew_vault_image = (tokens, index) =>
 		`<img${md.renderer.renderAttrs(tokens[index])}>`;
 
 	return md;
 }
+
+/** Attribute naming the vault note a heading came from; removed from exports. */
+export const HEADING_SOURCE_ATTRIBUTE = "data-brewvault-source";
 
 /** Sentinel inserted into rendered HTML at every `\page`; see pageSplitter.ts */
 export const PAGE_BREAK_SENTINEL = "<!--BREW_PAGE_BREAK-->";

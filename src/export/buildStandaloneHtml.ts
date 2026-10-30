@@ -8,6 +8,7 @@ import {
 	pageNumberText,
 	type PageFurniture,
 } from "./pageFurniture";
+import { HEADING_SOURCE_ATTRIBUTE } from "../renderer/markdownEngine";
 
 /**
  * Wraps already-rendered pages into a complete, self-contained HTML
@@ -32,8 +33,8 @@ export function buildStandaloneHtml(
 	const pagesHtml = pages
 		.map(
 			(page) => `
-	<div class="page brewPage">
-		${ensureColumnWrapper(page.html)}${footerHtml}${pageNumberHtml(page.index, furniture)}
+	<div class="page brewPage" id="p${page.index}">
+		${ensureColumnWrapper(withoutHeadingSources(page.html))}${footerHtml}${pageNumberHtml(page.index, furniture)}
 	</div>`
 		)
 		.join("\n");
@@ -181,4 +182,9 @@ function escapeHtml(s: string): string {
 		.replace(/</g, "&lt;")
 		.replace(/>/g, "&gt;")
 		.replace(/"/g, "&quot;");
+}
+
+/** Vault paths stay out of exported files; only the preview needs them. */
+function withoutHeadingSources(html: string): string {
+	return html.replace(new RegExp(` ${HEADING_SOURCE_ATTRIBUTE}="[^"]*"`, "g"), "");
 }

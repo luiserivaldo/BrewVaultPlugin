@@ -3,7 +3,7 @@ import type { StateInline } from "markdown-it";
 /**
  * Homebrewery inline span syntax: {{className content here}}
  * Renders as <span class="brew-className">content here</span>.
- * Multiple classes: {{className1,className2 content}}.
+ * Multiple classes: {{className1,className2 content}}. No classes: {{ content}}.
  *
  * This only matches when "{{" and the matching "}}" are on the SAME line
  * (single inline token) — multi-line usage is handled by blockContainer.ts.
@@ -30,21 +30,30 @@ export function inlineSpanRule(state: StateInline, silent: boolean): boolean {
 	const spaceIdx = inner.indexOf(" ");
 	if (spaceIdx === -1) return false; // no content -> not a valid inline span
 
+	// "{{ text}}" (a space straight after the braces) has no classes. Homebrewery
+	// renders it as an inline-block span; table of contents rows use two.
 	const classPart = inner.slice(0, spaceIdx).trim();
 	const content = inner.slice(spaceIdx + 1).trim();
-	if (!classPart || !content || !/^[a-zA-Z][a-zA-Z0-9_,-]*$/.test(classPart)) {
+	if (!content || (classPart && !/^[a-zA-Z][a-zA-Z0-9_,-]*$/.test(classPart))) {
 		return false;
 	}
 
-	if (silent) return true;
+	// Absolute end position: "{{" + inner (up to closeIdx) + "}}". Silent
+	// mode (link labels such as [{{ Title}}](#p2)) must advance it too.
+	const end = start + 2 + closeIdx + 2;
+	if (silent) {
+		state.pos = end;
+		return true;
+	}
 
-	const semanticClasses = classPart
-		.split(",")
-		.map((c: string) => c.trim())
-		.filter(Boolean);
-	const classNames = semanticClasses
-		.flatMap((className: string) => [className, `brew-${className}`])
-		.join(" ");
+	const classNames = classPart
+		? classPart
+				.split(",")
+				.map((c: string) => c.trim())
+				.filter(Boolean)
+				.flatMap((className: string) => [className, `brew-${className}`])
+				.join(" ")
+		: "inline-block";
 
 	// Keep nested Markdown delimiters isolated from the outer inline parser.
 	// Appending a nested parse directly to state.tokens corrupts markdown-it's
@@ -54,7 +63,6 @@ export function inlineSpanRule(state: StateInline, silent: boolean): boolean {
 	token.attrSet("class", classNames);
 	token.content = content;
 
-	// Absolute end position: "{{" + inner (up to closeIdx) + "}}"
-	state.pos = start + 2 + closeIdx + 2;
+	state.pos = end;
 	return true;
 }
