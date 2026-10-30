@@ -51,7 +51,7 @@ for the full comparison.
 
 ## Installation
 
-BrewVault 0.7.0 supports desktop and mobile Obsidian `1.7.2` or newer.
+BrewVault 0.7.1 supports desktop and mobile Obsidian `1.7.2` or newer.
 
 1. Download or obtain `manifest.json`, `main.js`, and `styles.css` from the
    BrewVault release package.
