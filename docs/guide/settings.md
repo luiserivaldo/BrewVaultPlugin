@@ -9,6 +9,7 @@ Open **Settings → BrewVault** to configure the plugin.
 | Choose theme | Player's Handbook | Controls the live preview and normal HTML/PDF export appearance, unless a note sets [`bv_theme`](./properties.md). |
 | Submit custom stylesheet | None | Validates and stores a selected local `.css` file as a selectable theme. |
 | Default edition | 2024 | Edition used by the block picker and by insert commands that do not name one. See [Commands](./commands.md#inserting-blocks). |
+| Edition-specific block commands | Off | Adds a command for each edition's variant of a block, such as **Insert PHB 2014: Spell**, so it can have its own hotkey. Takes effect immediately. See [Commands](./commands.md#inserting-blocks). |
 | Mobile PDF export | Browser handoff | Mobile method used by the generic and theme-specific PDF commands: **Browser handoff** or **Direct PDF (image pages)**. Desktop always exports directly. See [Mobile support](./mobile.md#pdf-export). |
 | Export folder | `BrewVault-Exports` | Sets the vault-relative output folder. BrewVault creates it automatically. |
 | Page width (px) | `816px` | Controls rendered page width; the default represents 8.5 inches at 96 CSS dpi. |

@@ -4,6 +4,11 @@ import type { SettingDefinitionItem } from "obsidian";
 import type BrewVaultPlugin from "../main";
 import { DEFAULT_SETTINGS, isMobilePdfMethod, type BrewTheme } from "./types";
 import { isEdition } from "../snippets/catalog";
+import { syncEditionBlockCommands } from "../commands/insertSnippet";
+
+const EDITION_BLOCK_COMMANDS_DESC =
+	"Also add a command for each edition's version of a block, e.g. \"PHB 2014: Spell\", so it can have its own hotkey. " +
+	"Off keeps the command palette short; the 2014 and 2024 block pickers still offer every block.";
 
 const MOBILE_PDF_METHOD_DESC =
 	"Browser handoff saves a .brew.html file and opens it for Share → Print → Save as PDF, keeping selectable text. " +
@@ -48,6 +53,13 @@ export class BrewVaultSettingTab extends PluginSettingTab {
 				desc: "Edition used by the block picker and by insert commands that do not name one; edition-specific commands are unaffected.",
 				render: (setting) => {
 					this.addDefaultEditionControl(setting);
+				},
+			},
+			{
+				name: "Edition-specific block commands",
+				desc: EDITION_BLOCK_COMMANDS_DESC,
+				render: (setting) => {
+					this.addEditionBlockCommandsControl(setting);
 				},
 			},
 			{
@@ -115,6 +127,10 @@ export class BrewVaultSettingTab extends PluginSettingTab {
 		this.addDefaultEditionControl(new Setting(containerEl)
 			.setName("Default edition")
 			.setDesc("Edition used by the block picker and by insert commands that do not name one; edition-specific commands are unaffected."));
+
+		this.addEditionBlockCommandsControl(new Setting(containerEl)
+			.setName("Edition-specific block commands")
+			.setDesc(EDITION_BLOCK_COMMANDS_DESC));
 
 		this.addMobilePdfMethodControl(new Setting(containerEl)
 			.setName("Mobile PDF export")
@@ -226,6 +242,16 @@ export class BrewVaultSettingTab extends PluginSettingTab {
 					this.plugin.settings.defaultEdition = value;
 					await this.plugin.saveSettings();
 				})
+		);
+	}
+
+	private addEditionBlockCommandsControl(setting: Setting): void {
+		setting.addToggle((toggle) =>
+			toggle.setValue(this.plugin.settings.editionBlockCommands).onChange(async (value) => {
+				this.plugin.settings.editionBlockCommands = value;
+				syncEditionBlockCommands(this.plugin, value);
+				await this.plugin.saveSettings();
+			})
 		);
 	}
 

@@ -125,3 +125,24 @@ void test("mobile PDF export defaults to browser handoff and repairs unknown met
 	assert.equal(repaired.settings.mobilePdfMethod, "browser");
 	assert.equal(repaired.shouldPersist, true);
 });
+
+void test("edition block commands are off for new installs and keep a stored choice", () => {
+	assert.equal(normalizeStoredSettings(null).settings.editionBlockCommands, false);
+	for (const stored of [true, false]) {
+		const result = normalizeStoredSettings({ ...DEFAULT_SETTINGS, editionBlockCommands: stored });
+		assert.equal(result.settings.editionBlockCommands, stored);
+	}
+});
+
+void test("an invalid edition block commands value is repaired to a boolean", () => {
+	const result = normalizeStoredSettings({ ...DEFAULT_SETTINGS, editionBlockCommands: "yes" });
+	assert.equal(typeof result.settings.editionBlockCommands, "boolean");
+	assert.equal(result.shouldPersist, true);
+});
+
+void test("installs saved before edition block commands existed get the trimmed palette", () => {
+	const { editionBlockCommands: _omitted, ...legacy } = DEFAULT_SETTINGS;
+	const result = normalizeStoredSettings({ ...legacy, defaultEdition: "2014" });
+	assert.equal(result.settings.editionBlockCommands, false);
+	assert.equal(result.shouldPersist, false);
+});

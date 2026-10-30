@@ -13,13 +13,15 @@ import { formatSnippetForCursor } from "../snippets/insertion";
 import { InsertSnippetModal } from "../ui/InsertSnippetModal";
 
 /**
- * One palette command per snippet, so each is searchable and hotkey-bindable,
- * plus browsable pickers. Command ids derive from snippet ids, which makes
- * snippet ids part of the saved-hotkey contract: never rename one.
+ * Palette commands for the snippet catalog. Command ids derive from snippet
+ * ids, which makes snippet ids part of the saved-hotkey contract: never
+ * rename one.
  *
- * Edition-sensitive blocks get an explicit command per edition plus an
- * `insert-default-<family>` command that follows the default-edition setting,
- * read at run time so changing the setting needs no reload.
+ * Always registered: the pickers, one `insert-default-<family>` command per
+ * edition-sensitive block (following the note's or default edition, read at
+ * run time), and every edition-neutral block. The per-edition variants
+ * (`insert-<id>`, e.g. "PHB 2014: Spell") are opt-in through
+ * {@link syncEditionBlockCommands}, so the palette stays short by default.
  */
 export function registerInsertSnippetCommands(
 	plugin: Plugin,
@@ -57,14 +59,36 @@ export function registerInsertSnippetCommands(
 	}
 
 	for (const snippet of SNIPPET_CATALOG) {
-		plugin.addCommand({
-			id: `insert-${snippet.id}`,
-			name: `Insert ${snippetLabel(snippet)}`,
-			icon: snippet.icon,
-			checkCallback: (checking) =>
-				withTargetEditor(plugin, checking, (editor) => insertSnippet(editor, snippet)),
-		});
+		if (!snippet.edition) addSnippetCommand(plugin, snippet);
 	}
+}
+
+const pluginsWithEditionCommands = new WeakSet<Plugin>();
+
+/** Adds or removes the per-edition block commands; safe to call repeatedly. */
+export function syncEditionBlockCommands(plugin: Plugin, enabled: boolean): void {
+	if (enabled === pluginsWithEditionCommands.has(plugin)) return;
+	for (const snippet of SNIPPET_CATALOG) {
+		if (!snippet.edition) continue;
+		if (enabled) addSnippetCommand(plugin, snippet);
+		else plugin.removeCommand(snippetCommandId(snippet));
+	}
+	if (enabled) pluginsWithEditionCommands.add(plugin);
+	else pluginsWithEditionCommands.delete(plugin);
+}
+
+function snippetCommandId(snippet: BrewSnippet): string {
+	return `insert-${snippet.id}`;
+}
+
+function addSnippetCommand(plugin: Plugin, snippet: BrewSnippet): void {
+	plugin.addCommand({
+		id: snippetCommandId(snippet),
+		name: `Insert ${snippetLabel(snippet)}`,
+		icon: snippet.icon,
+		checkCallback: (checking) =>
+			withTargetEditor(plugin, checking, (editor) => insertSnippet(editor, snippet)),
+	});
 }
 
 function openPicker(plugin: Plugin, editor: Editor, edition: Edition): void {

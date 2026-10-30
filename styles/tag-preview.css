@@ -31,7 +31,7 @@
 /* Opening tags of matched blocks get a chevron that collapses the block.
    Obsidian also offers its own hover arrow for the same fold; hide it on
    these lines so each block has one toggle. */
-.cm-line:has(> .brewvault-tag-preview-group) > .cm-fold-indicator {
+.cm-line.brewvault-tag-fold-line > .cm-fold-indicator {
 	display: none;
 }
 

@@ -33,7 +33,7 @@ import {
 	findCustomStyle,
 	type CustomStyleDefinition,
 } from "./themes/customStyles";
-import { registerInsertSnippetCommands } from "./commands/insertSnippet";
+import { registerInsertSnippetCommands, syncEditionBlockCommands } from "./commands/insertSnippet";
 import { openBookContents, registerBookCommands } from "./commands/bookCommands";
 import { registerTocCommands } from "./commands/tocCommands";
 import { registerTocNavigation } from "./obsidian/tocNavigation";
@@ -119,6 +119,7 @@ export default class BrewVaultPlugin extends Plugin {
 
 		this.addSettingTab(new BrewVaultSettingTab(this.app, this));
 		registerInsertSnippetCommands(this, () => this.getActiveNoteEdition());
+		syncEditionBlockCommands(this, this.settings.editionBlockCommands);
 		registerBookCommands(this);
 		registerTocNavigation(this);
 		registerTocCommands(this, (file) => {
