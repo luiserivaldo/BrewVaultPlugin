@@ -19,3 +19,4 @@ dist/
 !/docs/guide/
 /examples/
 /android-test-output/
+*.kate-swp

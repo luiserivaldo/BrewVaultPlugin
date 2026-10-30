@@ -51,7 +51,7 @@ for the full comparison.
 
 ## Installation
 
-BrewVault 0.7.0 supports desktop and mobile Obsidian `1.7.2` or newer.
+BrewVault 0.7.1 supports desktop and mobile Obsidian `1.7.2` or newer.
 
 1. Download or obtain `manifest.json`, `main.js`, and `styles.css` from the
    BrewVault release package.
@@ -89,7 +89,7 @@ BrewVault 0.7.0 supports desktop and mobile Obsidian `1.7.2` or newer.
 | [Commands](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/commands.md) | Every preview, export, and insert command, plus export file naming. |
 | [Markdown syntax](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/syntax.md) | Blocks, inline tags, stat fields, spacing, page and column breaks, links, and images. |
 | [Note properties](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/properties.md) | `bv_*` properties for a note's theme, footer, page numbers, page size, file name, export folder, and insert edition. |
-| [Compiling notes](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/books.md) | Exporting many notes as one paginated document from links and folder includes. |
+| [Compiling notes](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/books.md) | Exporting many notes as one paginated document from links, folders, and note properties. |
 | [Table of contents](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/table-of-contents.md) | Generating a contents list with page numbers from a note's headings. |
 | [Settings](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/settings.md) | Plugin settings and custom CSS themes. |
 | [Mobile support](https://github.com/luiserivaldo/BrewVaultPlugin/blob/main/docs/guide/mobile.md) | Mobile preview and the two mobile PDF methods: browser handoff and direct PDF. |
