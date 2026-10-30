@@ -103,12 +103,21 @@
 }
 
 /* Flat pale tan, related to the DMG table stripe, keeps stat blocks distinct
-   from lavender sidebars while dropping the PHB parchment texture. */
+   from lavender sidebars while dropping the PHB parchment texture.
+   Blocks are inline-blocks, so their margins add up rather than collapse.
+   Keep them, and the padding, just clear of the 4.5px bars so a column of
+   stat blocks packs about as tightly as PHB's: the bottom margin clears this
+   frame's bar and the next one's, so a frame after a frame needs no top
+   margin. */
 .brewvault-theme-dmg .page .monster.frame {
 	box-sizing: border-box;
 	width: 100%;
-	padding: .3cm .25cm .25cm;
-	margin: .3cm 0 .45cm;
+	padding: .2cm .25cm .15cm;
+	margin: 5px 0 .25cm;
 	background: #f5ecd9;
 	background-blend-mode: normal;
+}
+
+.brewvault-theme-dmg .page .monster.frame + .monster.frame {
+	margin-top: 0;
 }

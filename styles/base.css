@@ -170,6 +170,22 @@
 	box-sizing: border-box;
 }
 
+/* Blocks are inline-blocks, as in Homebrewery, so back-to-back blocks are
+   lines of one anonymous paragraph. The default orphans and widows of 2 then
+   forbid breaking between two blocks, and the browser pushes both into the
+   next column, off the page, even when the second would fit in the column
+   beside it. Allow a break after any block there; real elements keep the
+   default so text still avoids lone lines. */
+.brewPage .columnWrapper {
+	orphans: 1;
+	widows: 1;
+}
+
+.brewPage .columnWrapper > * {
+	orphans: 2;
+	widows: 2;
+}
+
 .brewBlock.brew-wide,
 .brewBlock.wide,
 .brewPage .wide {
