@@ -1,3 +1,4 @@
+import { matchesCondition, parseConditions, type PropertyCondition } from "./conditions";
 import type { IncludeAttribute } from "./manifest";
 
 /** What a book needs to know about a note to select and order it. */
@@ -20,18 +21,23 @@ export interface IncludeQuery {
 	readonly recursive: boolean;
 	/** Subfolders, note names, or relative paths to leave out. */
 	readonly exclude: readonly string[];
+	/** Property conditions a note must all meet. */
+	readonly where: readonly PropertyCondition[];
+	/** Property conditions that each leave a note out. */
+	readonly unless: readonly PropertyCondition[];
 	readonly sort: readonly SortKey[];
 }
 
 const DEFAULT_SORT: readonly SortKey[] = [{ by: "name", descending: false }];
-const KNOWN_ATTRIBUTES = new Set(["folder", "exclude", "sort", "recursive"]);
+const KNOWN_ATTRIBUTES = new Set(["folder", "exclude", "sort", "recursive", "where", "unless"]);
 
 /** Numeric collation, so `Session 2` sorts before `Session 10` and `01` before `10`. */
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
 
 /**
  * Turns `{{bv:include …}}` attributes into a query, collecting problems.
- * Returns a null query when there is no folder to include.
+ * Without a folder, `where` conditions select from the whole vault; with
+ * neither, the query is null.
  */
 export function parseIncludeQuery(attributes: readonly IncludeAttribute[]): {
 	query: IncludeQuery | null;
@@ -46,13 +52,22 @@ export function parseIncludeQuery(attributes: readonly IncludeAttribute[]): {
 
 	for (const attribute of attributes) {
 		if (!KNOWN_ATTRIBUTES.has(attribute.name)) {
-			problems.push(`Unknown include setting "${attribute.name}". Use folder, exclude, sort, or recursive.`);
+			problems.push(`Unknown include setting "${attribute.name}". Use folder, where, unless, exclude, sort, or recursive.`);
 		}
 	}
 
+	const conditions = (setting: "where" | "unless") =>
+		attributes
+			.filter((attribute) => attribute.name === setting)
+			.flatMap((attribute) => parseConditions(setting, attribute.value, problems));
+	const where = conditions("where");
+	const unless = conditions("unless");
+
 	const folderValue = single("folder");
-	if (folderValue === null) {
-		problems.push('An include needs a folder, for example {{bv:include folder="SRD"}}.');
+	if (folderValue === null && where.length === 0) {
+		problems.push(
+			'An include needs a folder or a where condition, for example {{bv:include folder="SRD"}} or {{bv:include where="catalogues: Llynwych"}}.'
+		);
 		return { query: null, problems };
 	}
 
@@ -65,9 +80,11 @@ export function parseIncludeQuery(attributes: readonly IncludeAttribute[]): {
 
 	return {
 		query: {
-			folder: trimSlashes(folderValue),
+			folder: trimSlashes(folderValue ?? ""),
 			recursive: recursiveValue === null || !/^(false|no|off)$/i.test(recursiveValue),
 			exclude,
+			where,
+			unless,
 			sort: parseSortKeys(single("sort"), problems),
 		},
 		problems,
@@ -94,7 +111,13 @@ export function resolveInclude(
 	query: IncludeQuery
 ): BookNoteFacts[] {
 	return sortNotes(
-		notes.filter((note) => inFolder(note.path, query.folder, query.recursive) && !isExcluded(note, query)),
+		notes.filter(
+			(note) =>
+				inFolder(note.path, query.folder, query.recursive) &&
+				!isExcluded(note, query) &&
+				query.where.every((condition) => matchesCondition(note.frontmatter, condition)) &&
+				!query.unless.some((condition) => matchesCondition(note.frontmatter, condition))
+		),
 		query.sort
 	);
 }

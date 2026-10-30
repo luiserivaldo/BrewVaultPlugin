@@ -16,14 +16,19 @@ function note(path: string, frontmatter: Record<string, unknown> = {}): BookNote
 
 const VAULT: BookNoteFacts[] = [
 	note("Llynwych/Llynwych Handout.md"),
-	note("Llynwych/Titans/Humbaba.md", { bv_theme: "dmg" }),
+	note("Llynwych/Titans/Humbaba.md", { bv_theme: "dmg", catalogues: ["[[Llynwych]]"], publish: true }),
 	note("Llynwych/Titans/The Moving Mound.md"),
 	note("Llynwych/Locations/Session 10 Cove.md"),
 	note("Llynwych/Locations/Session 2 Marsh.md"),
 	note("Llynwych/Locations/Islands/Lone Island.md"),
-	note("Llynwych/DM Notes/Prep.md"),
-	note("Species/Shark-Kin.md", { bv_footer: "SHARKS" }),
-	note("Species/Snow Elf.md"),
+	note("Llynwych/DM Notes/Prep.md", { catalogues: ["Llynwych"], publish: false }),
+	note("Species/Shark-Kin.md", {
+		bv_footer: "SHARKS",
+		catalogues: "[[Lore/Llynwych|Llynwych]]",
+		publish: "yes",
+		tags: ["#llynwych/species"],
+	}),
+	note("Species/Snow Elf.md", { catalogues: ["Everfrost", "llynwych"], publish: true, status: "Draft" }),
 ];
 
 function sources(bookPath = "Llynwych/Llynwych Handout.md") {
@@ -138,12 +143,46 @@ void test("folder includes recurse, exclude subfolders or notes, and sort natura
 	assert.deepEqual(parseIncludeQuery([{ name: "tag", value: "x" }]), {
 		query: null,
 		problems: [
-			'Unknown include setting "tag". Use folder, exclude, sort, or recursive.',
-			'An include needs a folder, for example {{bv:include folder="SRD"}}.',
+			'Unknown include setting "tag". Use folder, where, unless, exclude, sort, or recursive.',
+			'An include needs a folder or a where condition, for example {{bv:include folder="SRD"}} or {{bv:include where="catalogues: Llynwych"}}.',
 		],
 	});
 	assert.deepEqual(parseIncludeQuery([{ name: "folder", value: "A" }, { name: "sort", value: "date" }]).problems, [
 		'Unknown sort "date". Use name or path, with - in front to reverse.',
+	]);
+});
+
+void test("where and unless select notes by their properties", () => {
+	const names = (attributes: Record<string, string>) => {
+		const parsed = parseIncludeQuery(Object.entries(attributes).map(([name, value]) => ({ name, value })));
+		assert.ok(parsed.query);
+		assert.deepEqual(parsed.problems, []);
+		return resolveInclude(VAULT, parsed.query).map((facts) => facts.name);
+	};
+
+	// No folder: the whole vault. Lists, links (with folders or aliases) and
+	// case all match; yes and true are the same.
+	assert.deepEqual(names({ where: "catalogues: Llynwych, publish: true" }), ["Humbaba", "Shark-Kin", "Snow Elf"]);
+	assert.deepEqual(names({ where: "catalogues: Llynwych", unless: "publish: false, status: draft" }), [
+		"Humbaba",
+		"Shark-Kin",
+	]);
+	// | accepts either value; = works like :.
+	assert.deepEqual(names({ where: "catalogues = Everfrost | Hongshan" }), ["Snow Elf"]);
+	// A bare property name means it is set and not false.
+	assert.deepEqual(names({ where: "publish" }), ["Humbaba", "Shark-Kin", "Snow Elf"]);
+	assert.deepEqual(names({ where: "status" }), ["Snow Elf"]);
+	// A tag matches its nested tags, with or without #.
+	assert.deepEqual(names({ where: "tags: #llynwych" }), ["Shark-Kin"]);
+	assert.deepEqual(names({ where: "tags: llynwych/species" }), ["Shark-Kin"]);
+	// Conditions narrow a folder, and several where settings all apply.
+	assert.deepEqual(names({ folder: "Llynwych", where: "catalogues: llynwych" }), ["Humbaba", "Prep"]);
+	assert.deepEqual(names({ folder: "Species", where: "publish", unless: "status: draft" }), ["Shark-Kin"]);
+
+	const parsed = parseIncludeQuery([{ name: "where", value: ": Llynwych" }]);
+	assert.equal(parsed.query, null);
+	assert.deepEqual(parsed.problems.slice(0, 1), [
+		'where condition ": Llynwych" has no property name. Write it as property: value.',
 	]);
 });
 
