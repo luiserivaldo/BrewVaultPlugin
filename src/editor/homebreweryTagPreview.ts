@@ -23,6 +23,10 @@ class HomebreweryTagWidget extends WidgetType {
 		super();
 	}
 
+	get hasFoldToggle(): boolean {
+		return this.foldRange !== null;
+	}
+
 	eq(other: HomebreweryTagWidget): boolean {
 		return (
 			other.label === this.label &&
@@ -149,17 +153,27 @@ function buildDecorations(
 		.filter(
 			(range) => !view.hasFocus || !selectionTouchesTag(selections, range)
 		)
-		.map((range) =>
-			Decoration.replace({
-				widget:
-					range.kind === "page"
-						? new HomebreweryPageBreakWidget(range.label)
-						: tagWidget(view, range),
-			}).range(range.from, range.to)
-		);
+		.flatMap((range) => {
+			if (range.kind === "page") {
+				return [
+					Decoration.replace({
+						widget: new HomebreweryPageBreakWidget(range.label),
+					}).range(range.from, range.to),
+				];
+			}
+			const widget = tagWidget(view, range);
+			const replace = Decoration.replace({ widget }).range(range.from, range.to);
+			if (!widget.hasFoldToggle) return [replace];
+			// Marks the line so CSS can hide Obsidian's duplicate fold arrow
+			// without a `:has()` selector re-evaluated on every editor change.
+			const lineStart = view.state.doc.lineAt(range.from).from;
+			return [foldToggleLine.range(lineStart), replace];
+		});
 
 	return Decoration.set(decorations, true);
 }
+
+const foldToggleLine = Decoration.line({ class: "brewvault-tag-fold-line" });
 
 function tagWidget(view: EditorView, range: HomebreweryTagRange): HomebreweryTagWidget {
 	const fold = blockFoldRange(range);
