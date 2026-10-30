@@ -50,7 +50,7 @@ See [Table of contents](./table-of-contents.md).
 | **Insert block…** | Opens a searchable picker of Homebrewery-style blocks in the default edition. |
 | **Insert 2014 block…** / **Insert 2024 block…** | Opens the picker for one edition, regardless of the default. |
 | **Insert *Group*: *Block*** | Inserts one block directly. Edition-sensitive blocks, such as **Insert PHB: Monster stat block**, follow the default edition. |
-| **Insert *Group* 2014: *Block*** / **Insert *Group* 2024: *Block*** | Inserts that edition's variant, for example **Insert Tables 2014: Full caster class table**. Each block is its own command, so it can be given a hotkey. |
+| **Insert *Group* 2014: *Block*** / **Insert *Group* 2024: *Block*** | Inserts that edition's variant, for example **Insert Tables 2014: Full caster class table**. Off by default: turn on **Edition-specific block commands** in BrewVault settings to add them, for example to give one edition's block its own hotkey. |
 
 The insert commands cover the Homebrewery V3 snippets that BrewVault renders
 today: column and page breaks, vertical spacing, wide blocks, spells, class

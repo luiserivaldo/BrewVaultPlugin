@@ -41,6 +41,12 @@ export interface BrewVaultSettings {
 	defaultEdition: Edition;
 	/** Mobile PDF strategy; desktop always prints directly through Electron. */
 	mobilePdfMethod: MobilePdfMethod;
+	/**
+	 * Also register a palette command for each edition's variant of a block
+	 * (e.g. "PHB 2014: Spell"). Off keeps the palette to the pickers, the
+	 * default-edition block commands, and edition-neutral blocks.
+	 */
+	editionBlockCommands: boolean;
 }
 
 export const LEGACY_DEFAULT_EXPORT_FOLDER = "BrewVault Exports";
@@ -55,6 +61,7 @@ export const DEFAULT_SETTINGS: BrewVaultSettings = {
 	debounceMs: 250,
 	defaultEdition: "2024",
 	mobilePdfMethod: "browser",
+	editionBlockCommands: false,
 };
 
 export interface NormalizedSettings {
@@ -104,6 +111,9 @@ export function normalizeStoredSettings(
 		? rawMobilePdfMethod
 		: DEFAULT_SETTINGS.mobilePdfMethod;
 
+	const rawEditionBlockCommands = stored?.editionBlockCommands;
+	const editionBlockCommands = resolveEditionBlockCommands(rawEditionBlockCommands);
+
 	const settings = {
 		...DEFAULT_SETTINGS,
 		...(stored ?? {}),
@@ -113,6 +123,7 @@ export function normalizeStoredSettings(
 		exportFolder,
 		defaultEdition,
 		mobilePdfMethod,
+		editionBlockCommands,
 	};
 
 	return {
@@ -123,9 +134,19 @@ export function normalizeStoredSettings(
 			rawExportFolder !== exportFolder ||
 			(rawDefaultEdition !== undefined && rawDefaultEdition !== defaultEdition) ||
 			(rawMobilePdfMethod !== undefined && rawMobilePdfMethod !== mobilePdfMethod) ||
+			(rawEditionBlockCommands !== undefined && rawEditionBlockCommands !== editionBlockCommands) ||
 			rawNextCustomStyleNumber !== nextCustomStyleNumber ||
 			JSON.stringify(rawCustomStyles ?? []) !== JSON.stringify(customStyles),
 	};
+}
+
+/**
+ * Whether per-edition block commands are on. Installs saved before 0.7.2 have
+ * no stored value and get the trimmed default like fresh installs: hotkeys
+ * bound to those commands stay in hotkeys.json and return when re-enabled.
+ */
+export function resolveEditionBlockCommands(raw: unknown): boolean {
+	return typeof raw === "boolean" ? raw : DEFAULT_SETTINGS.editionBlockCommands;
 }
 
 export function isBrewTheme(
