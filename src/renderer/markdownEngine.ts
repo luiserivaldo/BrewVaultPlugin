@@ -7,6 +7,8 @@ import { columnBreakRule } from "./rules/columnBreak";
 import { wikilinkRule } from "./rules/wikilink";
 import { templateLineRule } from "./rules/templateLine";
 import { imageAttributeRule } from "./rules/imageAttributes";
+import { renderStatBlockHtml, STATBLOCK_FENCE_LANGUAGE } from "../statblock/html";
+import { DEFAULT_SETTINGS } from "../settings/types";
 
 /**
  * Builds a fresh markdown-it instance configured for Homebrewery-flavored
@@ -78,6 +80,25 @@ export function createBrewMarkdownEngine(): MarkdownIt {
 			tokens[index].attrSet(HEADING_SOURCE_ATTRIBUTE, environment.headingSource);
 		}
 		return self.renderToken(tokens, index, options);
+	};
+	// ```statblock fences print as monster blocks, in the note's edition. Any
+	// other fence keeps markdown-it's default code block rendering.
+	const renderFence = md.renderer.rules.fence;
+	md.renderer.rules.fence = (tokens, index, options, environment, self) => {
+		const token = tokens[index];
+		if (token.info.trim().split(/\s+/)[0] !== STATBLOCK_FENCE_LANGUAGE) {
+			return renderFence
+				? renderFence(tokens, index, options, environment, self)
+				: self.renderToken(tokens, index, options);
+		}
+		const edition = isBrewRenderEnvironment(environment)
+			? environment.statblockEdition
+			: undefined;
+		return renderStatBlockHtml(
+			token.content,
+			edition ?? DEFAULT_SETTINGS.defaultEdition,
+			(markdown) => md.render(markdown, environment)
+		).html;
 	};
 	md.renderer.rules.brew_vault_image = (tokens, index) =>
 		`<img${md.renderer.renderAttrs(tokens[index])}>`;

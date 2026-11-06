@@ -5,6 +5,7 @@ import { hasBookContent, parseBookManifest } from "../book/manifest";
 import { planBook, type BookPlan, type BookSegment } from "../book/plan";
 import { renderBrewDocumentHtml, renderBrewMarkdown } from "../renderer";
 import type { BrewPage } from "../renderer/types";
+import type { Edition } from "../snippets/catalog";
 import { readNoteFrontmatter } from "./readNoteFrontmatter";
 import { resolveVaultImageEmbeds } from "./resolveVaultImageEmbeds";
 
@@ -12,6 +13,8 @@ export interface NotePagesRequest {
 	readonly file: TFile;
 	/** Unsaved text to render instead of the saved note, such as a candidate edit. */
 	readonly source?: string;
+	/** Edition a note's `statblock` blocks print in; each note may differ. */
+	readonly editionFor?: (file: TFile) => Edition;
 	readonly paginate: (pages: BrewPage[]) => Promise<BrewPage[]>;
 }
 
@@ -41,7 +44,11 @@ export async function renderNotePages(app: App, request: NotePagesRequest): Prom
 		const images = await resolveVaultImageEmbeds(source, file, app.vault, app.metadataCache);
 		images.dependencyPaths.forEach((path) => dependencyPaths.add(path));
 		const pages = await request.paginate(
-			renderBrewMarkdown(source, { imageEmbeds: images.imageEmbeds, headingSource: file.path })
+			renderBrewMarkdown(source, {
+				imageEmbeds: images.imageEmbeds,
+				headingSource: file.path,
+				statblockEdition: request.editionFor?.(file),
+			})
 		);
 		return { pages, dependencyPaths, book: null };
 	}
@@ -49,13 +56,13 @@ export async function renderNotePages(app: App, request: NotePagesRequest): Prom
 	const book = planBookNote(app, file, source);
 	const renderSegment = async (segment: BookSegment): Promise<string> => {
 		if (segment.kind === "text") {
-			return renderWithImages(app, segment.markdown, file, dependencyPaths, true);
+			return renderWithImages(app, segment.markdown, file, dependencyPaths, request.editionFor, true);
 		}
 		const member = app.vault.getAbstractFileByPath(segment.note.path);
 		if (!(member instanceof TFile)) return "";
 		dependencyPaths.add(member.path);
 		const memberSource = await app.vault.cachedRead(member);
-		return renderWithImages(app, memberSource, member, dependencyPaths);
+		return renderWithImages(app, memberSource, member, dependencyPaths, request.editionFor);
 	};
 
 	const pages = await compileBook(book.plan, { renderSegment, paginate: request.paginate });
@@ -100,6 +107,7 @@ async function renderWithImages(
 	markdown: string,
 	sourceFile: TFile,
 	dependencyPaths: Set<string>,
+	editionFor: ((file: TFile) => Edition) | undefined,
 	isBookText = false
 ): Promise<string> {
 	const source = isBookText ? `\n${markdown}` : markdown;
@@ -108,5 +116,6 @@ async function renderWithImages(
 	return renderBrewDocumentHtml(source, {
 		imageEmbeds: images.imageEmbeds,
 		headingSource: sourceFile.path,
+		statblockEdition: editionFor?.(sourceFile),
 	});
 }

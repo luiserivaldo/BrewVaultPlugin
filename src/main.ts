@@ -37,6 +37,10 @@ import { registerInsertSnippetCommands, syncEditionBlockCommands } from "./comma
 import { openBookContents, registerBookCommands } from "./commands/bookCommands";
 import { registerTocCommands } from "./commands/tocCommands";
 import { registerTocNavigation } from "./obsidian/tocNavigation";
+import { registerStatBlockEmbed } from "./obsidian/statblockEmbed";
+import { mountBrewMarkdown } from "./obsidian/brewBlockEmbed";
+import { registerMonsterBlockReading } from "./obsidian/monsterBlockReading";
+import { monsterBlockPreviewExtension } from "./editor/monsterBlockPreview";
 import type { Edition } from "./snippets/catalog";
 import { NOTE_EDITION_PROPERTY, resolveNoteEdition } from "./snippets/noteEdition";
 import { readNoteFrontmatter } from "./obsidian/readNoteFrontmatter";
@@ -121,12 +125,22 @@ export default class BrewVaultPlugin extends Plugin {
 		registerInsertSnippetCommands(this, () => this.getActiveNoteEdition());
 		syncEditionBlockCommands(this, this.settings.editionBlockCommands);
 		registerBookCommands(this);
+		if (this.settings.statblockInNotes) registerStatBlockEmbed(this);
+		if (this.settings.monsterBlocksInNotes) {
+			this.registerEditorExtension(
+				monsterBlockPreviewExtension((host, sourcePath, markdown) =>
+					mountBrewMarkdown(this, host, sourcePath, markdown)
+				)
+			);
+			registerMonsterBlockReading(this);
+		}
 		registerTocNavigation(this);
 		registerTocCommands(this, (file) => {
 			const options = this.resolveNoteExportOptions(file).resolved.values;
 			const size = pageDimensions(options.pageSize, this.settings);
 			return {
 				firstPageNumber: options.firstPageNumber,
+				editionFor: (note) => this.resolveNoteEditionFor(note).edition,
 				paginate: (pages) => this.paginateWithTheme(pages, options.theme, size),
 			};
 		});
@@ -331,7 +345,7 @@ export default class BrewVaultPlugin extends Plugin {
 		return edition;
 	}
 
-	private resolveNoteEditionFor(file: TFile): {
+	resolveNoteEditionFor(file: TFile): {
 		edition: Edition;
 		fromNote: boolean;
 		invalidValue: string | null;
@@ -435,7 +449,11 @@ export default class BrewVaultPlugin extends Plugin {
 		file: TFile,
 		paginate: (pages: BrewPage[]) => Promise<BrewPage[]>
 	): Promise<RenderedNotePages> {
-		return renderNotePages(this.app, { file, paginate });
+		return renderNotePages(this.app, {
+			file,
+			paginate,
+			editionFor: (note) => this.resolveNoteEditionFor(note).edition,
+		});
 	}
 
 	onunload(): void {
