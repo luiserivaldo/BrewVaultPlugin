@@ -26,6 +26,8 @@ export class HomebreweryView extends ItemView {
 	/** Members and images of the shown note; their changes re-render it. */
 	private dependencyPaths = new Set<string>();
 	private isBook = false;
+	private lastRenderedPath: string | null = null;
+	private typedSource: { path: string; text: string } | null = null;
 	/** Page size of the note currently shown; set on every render. */
 	private pageSize: { pageWidthPx: number; pageHeightPx: number };
 
@@ -88,6 +90,19 @@ export class HomebreweryView extends ItemView {
 				void openTocTarget(this.app, target, file.path, this.editorLeafFor(file, Keymap.isModEvent(event)));
 			}
 		});
+
+		// Obsidian saves a note a couple of seconds after the last keystroke, and
+		// `modify` only fires then. The editor reports each keystroke at once, so
+		// the preview follows typing at the debounce delay, not the save delay.
+		this.registerEvent(
+			this.app.workspace.on("editor-change", (editor, info) => {
+				if (!info.file || info.file !== this.trackedFile) return;
+				// Taken at the keystroke, not at render time: while a note is
+				// opening, its editor can still hold the previous note's text.
+				this.typedSource = { path: info.file.path, text: editor.getValue() };
+				this.scheduleRender();
+			})
+		);
 
 		this.registerEvent(
 			this.app.vault.on("modify", (file) => {
@@ -178,8 +193,10 @@ export class HomebreweryView extends ItemView {
 		const { pageWidthPx, pageHeightPx } = this.pageSize;
 		const { theme } = options.resolved.values;
 		this.plugin.syncCustomStyleSheet(theme);
-		const rendered = await this.plugin.renderNotePages(file, (pages) =>
-			paginateBrewPages(pages, { theme, pageWidthPx, pageHeightPx })
+		const rendered = await this.plugin.renderNotePages(
+			file,
+			(pages) => paginateBrewPages(pages, { theme, pageWidthPx, pageHeightPx }),
+			this.takeTypedSource(file)
 		);
 		// A newer render may have started while this one was paginating.
 		if (file !== this.trackedFile) return;
@@ -188,6 +205,14 @@ export class HomebreweryView extends ItemView {
 		this.updateCaption(options.resolved, options.invalid.length, rendered.book);
 		const furniture = options.resolved.values;
 		const pages = rendered.pages;
+
+		// Rebuilding the pages collapses the scroll range, which snaps the pane to
+		// the top; keep the reader's place when the same note is re-rendered.
+		const keepScroll =
+			this.lastRenderedPath === file.path
+				? { top: this.rootEl.scrollTop, left: this.rootEl.scrollLeft }
+				: null;
+		this.lastRenderedPath = file.path;
 
 		this.pagesContainer.empty();
 		this.pagesContainer.setCssProps({
@@ -212,7 +237,18 @@ export class HomebreweryView extends ItemView {
 			}
 		}
 
+		if (keepScroll) {
+			this.rootEl.scrollTop = keepScroll.top;
+			this.rootEl.scrollLeft = keepScroll.left;
+		}
 		this.flagOverflowingPages();
+	}
+
+	/** The latest unsaved text typed into `file`, used once, or undefined. */
+	private takeTypedSource(file: TFile): string | undefined {
+		const typed = this.typedSource;
+		this.typedSource = null;
+		return typed && typed.path === file.path ? typed.text : undefined;
 	}
 
 	/**

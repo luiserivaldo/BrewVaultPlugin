@@ -87,3 +87,28 @@
 	border-top: 2px solid var(--interactive-accent);
 	flex: 1 1 auto;
 }
+
+/* The label of a tag being edited: drawn at the line's far edge, outside the
+   text, so there is nothing to type around. */
+.cm-line.brewvault-tag-editing-line {
+	position: relative;
+}
+
+.cm-line.brewvault-tag-editing-line::after {
+	content: attr(data-brewvault-label);
+	position: absolute;
+	top: 50%;
+	right: 0.5em;
+	transform: translateY(-50%);
+	padding: 0 0.5em;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-s);
+	background: var(--background-secondary-alt);
+	color: var(--text-muted);
+	font-family: var(--font-interface);
+	font-size: var(--font-ui-smaller);
+	font-weight: var(--font-semibold);
+	line-height: 1.35;
+	pointer-events: none;
+	user-select: none;
+}

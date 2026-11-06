@@ -36,7 +36,6 @@ export function renderBrewDocumentHtml(
 	const environment: BrewRenderEnvironment = {
 		imageEmbeds: options.imageEmbeds,
 		headingSource: options.headingSource,
-		statblockEdition: options.statblockEdition,
 	};
 	return engine.render(stripYamlFrontmatter(source), environment);
 }

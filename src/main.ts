@@ -1,4 +1,6 @@
+import type { EditorView } from "@codemirror/view";
 import {
+	MarkdownView,
 	Notice,
 	normalizePath,
 	Platform,
@@ -20,6 +22,7 @@ import { paginateBrewPages } from "./renderer/paginateDom";
 import { buildStandaloneHtml } from "./export/buildStandaloneHtml";
 import { allocateExportPath, toExportBasename } from "./export/allocateExportPath";
 import { BUNDLED_THEME_CSS as UNCHECKED_THEME_CSS } from "virtual:brewvault-theme-css";
+import { refreshBlockLabels } from "./editor/blockLabels";
 import { homebreweryTagPreviewExtension } from "./editor/homebreweryTagPreview";
 import { homebreweryBlockFoldService } from "./editor/homebreweryBlockFolding";
 import { detectPlatform } from "./platform/detectPlatform";
@@ -37,7 +40,6 @@ import { registerInsertSnippetCommands, syncEditionBlockCommands } from "./comma
 import { openBookContents, registerBookCommands } from "./commands/bookCommands";
 import { registerTocCommands } from "./commands/tocCommands";
 import { registerTocNavigation } from "./obsidian/tocNavigation";
-import { registerStatBlockEmbed } from "./obsidian/statblockEmbed";
 import { mountBrewMarkdown } from "./obsidian/brewBlockEmbed";
 import { registerMonsterBlockReading } from "./obsidian/monsterBlockReading";
 import { monsterBlockPreviewExtension } from "./editor/monsterBlockPreview";
@@ -112,7 +114,10 @@ export default class BrewVaultPlugin extends Plugin {
 		this.exportBackendProvider = createBackendProvider(platform, {
 			getMobilePdfMethod: () => this.settings.mobilePdfMethod,
 		});
-		this.registerEditorExtension([homebreweryTagPreviewExtension, homebreweryBlockFoldService]);
+		this.registerEditorExtension([
+			homebreweryTagPreviewExtension(() => this.settings.showBlockLabels),
+			homebreweryBlockFoldService,
+		]);
 
 		this.registerView(HOMEBREWERY_VIEW_TYPE, (leaf) => new HomebreweryView(leaf, this));
 
@@ -132,11 +137,11 @@ export default class BrewVaultPlugin extends Plugin {
 		registerInsertSnippetCommands(this, () => this.getActiveNoteEdition());
 		syncEditionBlockCommands(this, this.settings.editionBlockCommands);
 		registerBookCommands(this);
-		if (this.settings.statblockInNotes) registerStatBlockEmbed(this);
 		if (this.settings.monsterBlocksInNotes) {
 			this.registerEditorExtension(
-				monsterBlockPreviewExtension((host, sourcePath, markdown) =>
-					mountBrewMarkdown(this, host, sourcePath, markdown)
+				monsterBlockPreviewExtension(
+					(host, sourcePath, markdown) => mountBrewMarkdown(this, host, sourcePath, markdown),
+					() => this.settings.showBlockLabels
 				)
 			);
 			registerMonsterBlockReading(this);
@@ -147,7 +152,6 @@ export default class BrewVaultPlugin extends Plugin {
 			const size = pageDimensions(options.pageSize, this.settings);
 			return {
 				firstPageNumber: options.firstPageNumber,
-				editionFor: (note) => this.resolveNoteEditionFor(note).edition,
 				paginate: (pages) => this.paginateWithTheme(pages, options.theme, size),
 			};
 		});
@@ -454,12 +458,13 @@ export default class BrewVaultPlugin extends Plugin {
 	 */
 	renderNotePages(
 		file: TFile,
-		paginate: (pages: BrewPage[]) => Promise<BrewPage[]>
+		paginate: (pages: BrewPage[]) => Promise<BrewPage[]>,
+		source?: string
 	): Promise<RenderedNotePages> {
 		return renderNotePages(this.app, {
 			file,
+			source,
 			paginate,
-			editionFor: (note) => this.resolveNoteEditionFor(note).edition,
 		});
 	}
 
@@ -609,6 +614,15 @@ export default class BrewVaultPlugin extends Plugin {
 		} finally {
 			this.syncCustomStyleSheet(selectedTheme);
 		}
+	}
+
+	/** Tells every open editor to re-read the "Show block labels" setting. */
+	refreshBlockLabels(): void {
+		this.app.workspace.iterateAllLeaves((leaf) => {
+			if (!(leaf.view instanceof MarkdownView)) return;
+			const cm = (leaf.view.editor as unknown as { cm?: EditorView }).cm;
+			if (cm) refreshBlockLabels(cm);
+		});
 	}
 
 	/** Re-render every open BrewVault preview leaf (e.g. after a settings change). */

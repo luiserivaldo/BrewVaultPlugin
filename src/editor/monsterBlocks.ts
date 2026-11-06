@@ -18,10 +18,22 @@ export interface MonsterBlock {
 const OPENER_RE = /^\{\{([a-zA-Z][a-zA-Z0-9_,\-\s]*)\s*$/;
 
 /**
- * Finds the stat blocks a note writes as Homebrewery `{{monster,frame ... }}`
- * containers, outermost first. Blocks inside code fences and unterminated
- * openers are not blocks, matching the renderer. A monster block nested inside
- * another monster block belongs to the outer one.
+ * Homebrewery containers drawn in place of their source: stat blocks and the
+ * callout boxes (`{{quote}}`, `{{note}}`, `{{descriptive}}`).
+ */
+export const INLINE_BLOCK_CLASSES: ReadonlySet<string> = new Set([
+	"monster",
+	"quote",
+	"note",
+	"descriptive",
+]);
+
+/**
+ * Finds the blocks a note writes as Homebrewery `{{monster,frame ... }}` (or
+ * `{{quote}}`, `{{note}}`, `{{descriptive}}`) containers, outermost first.
+ * Blocks inside code fences and unterminated openers are not blocks, matching
+ * the renderer. A block nested inside another drawn block belongs to the outer
+ * one.
  */
 export function findMonsterBlocks(source: string): MonsterBlock[] {
 	const blocks: MonsterBlock[] = [];
@@ -34,7 +46,7 @@ export function findMonsterBlocks(source: string): MonsterBlock[] {
 
 		const opener = OPENER_RE.exec(source.slice(tag.from, tag.to).trim());
 		const classes = opener ? opener[1].split(/[,\s]+/).filter(Boolean) : [];
-		if (!classes.includes("monster")) continue;
+		if (!classes.some((name) => INLINE_BLOCK_CLASSES.has(name))) continue;
 
 		lineStarts ??= computeLineStarts(source);
 		const from = lineStartOf(source, tag.from);
