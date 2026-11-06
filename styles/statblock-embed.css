@@ -27,6 +27,14 @@
 	box-sizing: border-box;
 }
 
+/* Themes draw a footer ornament (and DMG a header one) on every printed page
+   with `.page::before/::after`. A card is not a page, so it would sit on top
+   of the block's last lines. */
+.brewvault-statblock-embed .brewPage::before,
+.brewvault-statblock-embed .brewPage::after {
+	display: none;
+}
+
 /* The edition switch sits above the block and shows on hover or focus. */
 .brewvault-statblock-toolbar {
 	position: absolute;
