@@ -59,6 +59,12 @@ Homebrewery and exports as before; BrewVault never rewrites it.
 - **Theme:** the note's `bv_theme`, else the theme setting. Add `wide` to the
   classes (`{{monster,frame,wide`) for a two-column card.
 
+**Show block labels** (on by default) puts a start and an end label, such as
+"Class Table · Frame", around each Homebrewery block in Live Preview, so you can
+see where a block begins and ends. While you edit a block's opening or closing
+line, its label stays beside the text. Source mode never shows labels: it shows
+the Markdown exactly as written. The setting applies at once.
+
 ## Theme per note
 
 A note can override **Choose theme** with a `bv_theme` property. See

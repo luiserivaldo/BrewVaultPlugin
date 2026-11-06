@@ -158,3 +158,11 @@ void test("monster blocks render in notes by default and honor a stored choice",
 		true
 	);
 });
+
+void test("block labels are on by default and honor a stored choice", () => {
+	assert.equal(normalizeStoredSettings(null).settings.showBlockLabels, true);
+	assert.equal(normalizeStoredSettings({ ...DEFAULT_SETTINGS, showBlockLabels: false }).settings.showBlockLabels, false);
+	const invalid = normalizeStoredSettings({ ...DEFAULT_SETTINGS, showBlockLabels: "no" });
+	assert.equal(invalid.settings.showBlockLabels, true);
+	assert.equal(invalid.shouldPersist, true);
+});

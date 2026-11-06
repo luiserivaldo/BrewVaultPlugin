@@ -53,6 +53,11 @@ export interface BrewVaultSettings {
 	 * Homebrewery Markdown. Read once at load.
 	 */
 	monsterBlocksInNotes: boolean;
+	/**
+	 * Show start and end label chips on Homebrewery blocks in Live Preview.
+	 * Source mode never shows them.
+	 */
+	showBlockLabels: boolean;
 }
 
 export const LEGACY_DEFAULT_EXPORT_FOLDER = "BrewVault Exports";
@@ -69,6 +74,7 @@ export const DEFAULT_SETTINGS: BrewVaultSettings = {
 	mobilePdfMethod: "browser",
 	editionBlockCommands: false,
 	monsterBlocksInNotes: true,
+	showBlockLabels: true,
 };
 
 export interface NormalizedSettings {
@@ -127,6 +133,10 @@ export function normalizeStoredSettings(
 			? rawMonsterBlocksInNotes
 			: DEFAULT_SETTINGS.monsterBlocksInNotes;
 
+	const rawShowBlockLabels = stored?.showBlockLabels;
+	const showBlockLabels =
+		typeof rawShowBlockLabels === "boolean" ? rawShowBlockLabels : DEFAULT_SETTINGS.showBlockLabels;
+
 	const settings = {
 		...DEFAULT_SETTINGS,
 		...(stored ?? {}),
@@ -138,6 +148,7 @@ export function normalizeStoredSettings(
 		mobilePdfMethod,
 		editionBlockCommands,
 		monsterBlocksInNotes,
+		showBlockLabels,
 	};
 
 	return {
@@ -150,6 +161,7 @@ export function normalizeStoredSettings(
 			(rawMobilePdfMethod !== undefined && rawMobilePdfMethod !== mobilePdfMethod) ||
 			(rawEditionBlockCommands !== undefined && rawEditionBlockCommands !== editionBlockCommands) ||
 			(rawMonsterBlocksInNotes !== undefined && rawMonsterBlocksInNotes !== monsterBlocksInNotes) ||
+			(rawShowBlockLabels !== undefined && rawShowBlockLabels !== showBlockLabels) ||
 			rawNextCustomStyleNumber !== nextCustomStyleNumber ||
 			JSON.stringify(rawCustomStyles ?? []) !== JSON.stringify(customStyles),
 	};

@@ -14,6 +14,10 @@ const RENDERED_BLOCKS_IN_NOTES_DESC =
 	"Draw {{monster,frame}} stat blocks and {{quote}}, {{note}} and {{descriptive}} boxes as rendered in Live Preview and Reading view, without opening the preview pane. " +
 	"Click a block to edit its Markdown, which is never changed. Reload Obsidian after changing it.";
 
+const SHOW_BLOCK_LABELS_DESC =
+	"Show a start and end label (such as \"Class Table · Frame\") on each Homebrewery block in Live Preview. " +
+	"Source mode always shows the text as written, without labels.";
+
 const MOBILE_PDF_METHOD_DESC =
 	"Browser handoff saves a .brew.html file and opens it for Share → Print → Save as PDF, keeping selectable text. " +
 	"Direct PDF renders each page as an image and writes the PDF inside Obsidian, with no other app; text is not selectable. " +
@@ -71,6 +75,13 @@ export class BrewVaultSettingTab extends PluginSettingTab {
 				desc: RENDERED_BLOCKS_IN_NOTES_DESC,
 				render: (setting) => {
 					this.addMonsterBlocksInNotesControl(setting);
+				},
+			},
+			{
+				name: "Show block labels",
+				desc: SHOW_BLOCK_LABELS_DESC,
+				render: (setting) => {
+					this.addShowBlockLabelsControl(setting);
 				},
 			},
 			{
@@ -146,6 +157,10 @@ export class BrewVaultSettingTab extends PluginSettingTab {
 		this.addMonsterBlocksInNotesControl(new Setting(containerEl)
 			.setName("Rendered blocks in notes")
 			.setDesc(RENDERED_BLOCKS_IN_NOTES_DESC));
+
+		this.addShowBlockLabelsControl(new Setting(containerEl)
+			.setName("Show block labels")
+			.setDesc(SHOW_BLOCK_LABELS_DESC));
 
 		this.addMobilePdfMethodControl(new Setting(containerEl)
 			.setName("Mobile PDF export")
@@ -275,6 +290,16 @@ export class BrewVaultSettingTab extends PluginSettingTab {
 			toggle.setValue(this.plugin.settings.monsterBlocksInNotes).onChange(async (value) => {
 				this.plugin.settings.monsterBlocksInNotes = value;
 				await this.plugin.saveSettings();
+			})
+		);
+	}
+
+	private addShowBlockLabelsControl(setting: Setting): void {
+		setting.addToggle((toggle) =>
+			toggle.setValue(this.plugin.settings.showBlockLabels).onChange(async (value) => {
+				this.plugin.settings.showBlockLabels = value;
+				await this.plugin.saveSettings();
+				this.plugin.refreshBlockLabels();
 			})
 		);
 	}

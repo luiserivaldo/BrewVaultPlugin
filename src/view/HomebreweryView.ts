@@ -27,6 +27,7 @@ export class HomebreweryView extends ItemView {
 	private dependencyPaths = new Set<string>();
 	private isBook = false;
 	private lastRenderedPath: string | null = null;
+	private typedSource: { path: string; text: string } | null = null;
 	/** Page size of the note currently shown; set on every render. */
 	private pageSize: { pageWidthPx: number; pageHeightPx: number };
 
@@ -94,8 +95,12 @@ export class HomebreweryView extends ItemView {
 		// `modify` only fires then. The editor reports each keystroke at once, so
 		// the preview follows typing at the debounce delay, not the save delay.
 		this.registerEvent(
-			this.app.workspace.on("editor-change", (_editor, info) => {
-				if (info.file && info.file === this.trackedFile) this.scheduleRender();
+			this.app.workspace.on("editor-change", (editor, info) => {
+				if (!info.file || info.file !== this.trackedFile) return;
+				// Taken at the keystroke, not at render time: while a note is
+				// opening, its editor can still hold the previous note's text.
+				this.typedSource = { path: info.file.path, text: editor.getValue() };
+				this.scheduleRender();
 			})
 		);
 
@@ -191,7 +196,7 @@ export class HomebreweryView extends ItemView {
 		const rendered = await this.plugin.renderNotePages(
 			file,
 			(pages) => paginateBrewPages(pages, { theme, pageWidthPx, pageHeightPx }),
-			this.openEditorText(file)
+			this.takeTypedSource(file)
 		);
 		// A newer render may have started while this one was paginating.
 		if (file !== this.trackedFile) return;
@@ -239,13 +244,11 @@ export class HomebreweryView extends ItemView {
 		this.flagOverflowingPages();
 	}
 
-	/** The note's text as it is being edited, which may not be saved yet. */
-	private openEditorText(file: TFile): string | undefined {
-		const view = this.app.workspace
-			.getLeavesOfType("markdown")
-			.map((leaf) => leaf.view)
-			.find((candidate): candidate is MarkdownView => candidate instanceof MarkdownView && candidate.file === file);
-		return view && view.getMode() === "source" ? view.editor.getValue() : undefined;
+	/** The latest unsaved text typed into `file`, used once, or undefined. */
+	private takeTypedSource(file: TFile): string | undefined {
+		const typed = this.typedSource;
+		this.typedSource = null;
+		return typed && typed.path === file.path ? typed.text : undefined;
 	}
 
 	/**

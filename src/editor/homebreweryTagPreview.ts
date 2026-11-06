@@ -1,7 +1,9 @@
 import { foldedRanges } from "@codemirror/language";
+import type { Extension } from "@codemirror/state";
 import { Decoration, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
 import type { DecorationSet } from "@codemirror/view";
-import { setIcon } from "obsidian";
+import { editorLivePreviewField, setIcon } from "obsidian";
+import { isBlockLabelsChange } from "./blockLabels";
 import { isBlockFolded, toggleBlockFold } from "./homebreweryBlockFolding";
 import {
 	blockFoldRange,
@@ -107,42 +109,52 @@ class HomebreweryPageBreakWidget extends WidgetType {
 	}
 }
 
-class HomebreweryTagPreviewView {
-	decorations: DecorationSet;
-	private ranges: HomebreweryTagRange[];
+/**
+ * Lightweight, editor-local presentation for matched Homebrewery block tags.
+ * Labels are drawn in Live Preview only (Source mode shows the text as
+ * written), and only while `showLabels()` is on.
+ */
+export function homebreweryTagPreviewExtension(showLabels: () => boolean): Extension {
+	class HomebreweryTagPreviewView {
+		decorations: DecorationSet;
+		private ranges: HomebreweryTagRange[];
 
-	constructor(view: EditorView) {
-		this.ranges = findHomebreweryTagRanges(view.state.doc.toString());
-		this.decorations = buildDecorations(view, this.ranges);
-	}
-
-	update(update: ViewUpdate): void {
-		if (update.docChanged) {
-			this.ranges = findHomebreweryTagRanges(update.state.doc.toString());
+		constructor(view: EditorView) {
+			this.ranges = findHomebreweryTagRanges(view.state.doc.toString());
+			this.decorations = buildDecorations(view, this.ranges, showLabels());
 		}
 
-		if (
-			update.docChanged ||
-			foldedRanges(update.startState) !== foldedRanges(update.state) ||
-			update.selectionSet ||
-			update.viewportChanged ||
-			update.focusChanged
-		) {
-			this.decorations = buildDecorations(update.view, this.ranges);
+		update(update: ViewUpdate): void {
+			if (update.docChanged) {
+				this.ranges = findHomebreweryTagRanges(update.state.doc.toString());
+			}
+
+			if (
+				update.docChanged ||
+				foldedRanges(update.startState) !== foldedRanges(update.state) ||
+				update.selectionSet ||
+				update.viewportChanged ||
+				update.focusChanged ||
+				update.startState.field(editorLivePreviewField, false) !==
+					update.state.field(editorLivePreviewField, false) ||
+				isBlockLabelsChange(update.transactions)
+			) {
+				this.decorations = buildDecorations(update.view, this.ranges, showLabels());
+			}
 		}
 	}
+
+	return ViewPlugin.fromClass(HomebreweryTagPreviewView, {
+		decorations: (plugin) => plugin.decorations,
+	});
 }
-
-/** Lightweight, editor-local presentation for matched Homebrewery block tags. */
-export const homebreweryTagPreviewExtension = ViewPlugin.fromClass(
-	HomebreweryTagPreviewView,
-	{ decorations: (plugin) => plugin.decorations }
-);
 
 function buildDecorations(
 	view: EditorView,
-	ranges: readonly HomebreweryTagRange[]
+	ranges: readonly HomebreweryTagRange[],
+	showLabels: boolean
 ): DecorationSet {
+	if (!showLabels || !view.state.field(editorLivePreviewField, false)) return Decoration.none;
 	const selections = view.state.selection.ranges;
 	const decorations = ranges
 		.filter((range) =>
@@ -150,15 +162,27 @@ function buildDecorations(
 				(visible) => range.to >= visible.from && range.from <= visible.to
 			)
 		)
-		.filter(
-			(range) => !view.hasFocus || !selectionTouchesTag(selections, range)
-		)
 		.flatMap((range) => {
+			// A tag being edited shows its source, and nothing sits in the text
+			// flow beside the cursor: its label moves to the line's far edge, so
+			// both ends of a block stay labelled without a widget to type around.
+			const editing = view.hasFocus && selectionTouchesTag(selections, range);
+			if (editing && range.kind === "page") return [];
 			if (range.kind === "page") {
 				return [
 					Decoration.replace({
 						widget: new HomebreweryPageBreakWidget(range.label),
 					}).range(range.from, range.to),
+				];
+			}
+			if (editing) {
+				const label = range.kind === "close" ? `End ${range.label}` : range.label;
+				const lineStart = view.state.doc.lineAt(range.from).from;
+				return [
+					Decoration.line({
+						class: "brewvault-tag-editing-line",
+						attributes: { "data-brewvault-label": label },
+					}).range(lineStart),
 				];
 			}
 			const widget = tagWidget(view, range);

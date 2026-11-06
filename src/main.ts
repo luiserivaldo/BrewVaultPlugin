@@ -1,4 +1,6 @@
+import type { EditorView } from "@codemirror/view";
 import {
+	MarkdownView,
 	Notice,
 	normalizePath,
 	Platform,
@@ -20,6 +22,7 @@ import { paginateBrewPages } from "./renderer/paginateDom";
 import { buildStandaloneHtml } from "./export/buildStandaloneHtml";
 import { allocateExportPath, toExportBasename } from "./export/allocateExportPath";
 import { BUNDLED_THEME_CSS as UNCHECKED_THEME_CSS } from "virtual:brewvault-theme-css";
+import { refreshBlockLabels } from "./editor/blockLabels";
 import { homebreweryTagPreviewExtension } from "./editor/homebreweryTagPreview";
 import { homebreweryBlockFoldService } from "./editor/homebreweryBlockFolding";
 import { detectPlatform } from "./platform/detectPlatform";
@@ -111,7 +114,10 @@ export default class BrewVaultPlugin extends Plugin {
 		this.exportBackendProvider = createBackendProvider(platform, {
 			getMobilePdfMethod: () => this.settings.mobilePdfMethod,
 		});
-		this.registerEditorExtension([homebreweryTagPreviewExtension, homebreweryBlockFoldService]);
+		this.registerEditorExtension([
+			homebreweryTagPreviewExtension(() => this.settings.showBlockLabels),
+			homebreweryBlockFoldService,
+		]);
 
 		this.registerView(HOMEBREWERY_VIEW_TYPE, (leaf) => new HomebreweryView(leaf, this));
 
@@ -133,8 +139,9 @@ export default class BrewVaultPlugin extends Plugin {
 		registerBookCommands(this);
 		if (this.settings.monsterBlocksInNotes) {
 			this.registerEditorExtension(
-				monsterBlockPreviewExtension((host, sourcePath, markdown) =>
-					mountBrewMarkdown(this, host, sourcePath, markdown)
+				monsterBlockPreviewExtension(
+					(host, sourcePath, markdown) => mountBrewMarkdown(this, host, sourcePath, markdown),
+					() => this.settings.showBlockLabels
 				)
 			);
 			registerMonsterBlockReading(this);
@@ -607,6 +614,15 @@ export default class BrewVaultPlugin extends Plugin {
 		} finally {
 			this.syncCustomStyleSheet(selectedTheme);
 		}
+	}
+
+	/** Tells every open editor to re-read the "Show block labels" setting. */
+	refreshBlockLabels(): void {
+		this.app.workspace.iterateAllLeaves((leaf) => {
+			if (!(leaf.view instanceof MarkdownView)) return;
+			const cm = (leaf.view.editor as unknown as { cm?: EditorView }).cm;
+			if (cm) refreshBlockLabels(cm);
+		});
 	}
 
 	/** Re-render every open BrewVault preview leaf (e.g. after a settings change). */
