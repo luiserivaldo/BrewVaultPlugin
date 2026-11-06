@@ -42,6 +42,17 @@ CSS cannot affect the surrounding Obsidian interface. Custom styles are stored
 locally in the plugin settings. Removing the currently selected custom style
 returns **Choose theme** to the default Player's Handbook theme.
 
+## Stat blocks in notes
+
+**Monster blocks in notes** (on by default) draws `{{monster,frame}}` blocks as
+rendered stat blocks in Live Preview and Reading view. Reload Obsidian after
+changing it.
+
+**Statblock code blocks in notes** (on by default) draws ` ```statblock ` blocks
+as rendered monster blocks inside your notes. Turn it off, then reload Obsidian, if
+another plugin such as Fantasy Statblocks should draw them. Exports render
+stat blocks either way. See [Stat blocks](./statblocks.md).
+
 ## Theme per note
 
 A note can override **Choose theme** with a `bv_theme` property. See

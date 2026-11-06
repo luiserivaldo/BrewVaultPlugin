@@ -10,6 +10,15 @@ const EDITION_BLOCK_COMMANDS_DESC =
 	"Also add a command for each edition's version of a block, e.g. \"PHB 2014: Spell\", so it can have its own hotkey. " +
 	"Off keeps the command palette short; the 2014 and 2024 block pickers still offer every block.";
 
+const MONSTER_BLOCKS_IN_NOTES_DESC =
+	"Draw {{monster,frame}} blocks as rendered stat blocks in Live Preview and Reading view, without opening the preview pane. " +
+	"Click a block to edit its Markdown, which is never changed. Reload Obsidian after changing it.";
+
+const STATBLOCK_IN_NOTES_DESC =
+	"Also draw ```statblock YAML blocks as rendered stat blocks in notes, with a 2014/2024 switch. " +
+	"Turn this off if another plugin, such as Fantasy Statblocks, should draw them; exports still render them. " +
+	"Reload Obsidian after changing it.";
+
 const MOBILE_PDF_METHOD_DESC =
 	"Browser handoff saves a .brew.html file and opens it for Share → Print → Save as PDF, keeping selectable text. " +
 	"Direct PDF renders each page as an image and writes the PDF inside Obsidian, with no other app; text is not selectable. " +
@@ -60,6 +69,20 @@ export class BrewVaultSettingTab extends PluginSettingTab {
 				desc: EDITION_BLOCK_COMMANDS_DESC,
 				render: (setting) => {
 					this.addEditionBlockCommandsControl(setting);
+				},
+			},
+			{
+				name: "Monster blocks in notes",
+				desc: MONSTER_BLOCKS_IN_NOTES_DESC,
+				render: (setting) => {
+					this.addMonsterBlocksInNotesControl(setting);
+				},
+			},
+			{
+				name: "Statblock code blocks in notes",
+				desc: STATBLOCK_IN_NOTES_DESC,
+				render: (setting) => {
+					this.addStatblockInNotesControl(setting);
 				},
 			},
 			{
@@ -131,6 +154,14 @@ export class BrewVaultSettingTab extends PluginSettingTab {
 		this.addEditionBlockCommandsControl(new Setting(containerEl)
 			.setName("Edition-specific block commands")
 			.setDesc(EDITION_BLOCK_COMMANDS_DESC));
+
+		this.addMonsterBlocksInNotesControl(new Setting(containerEl)
+			.setName("Monster blocks in notes")
+			.setDesc(MONSTER_BLOCKS_IN_NOTES_DESC));
+
+		this.addStatblockInNotesControl(new Setting(containerEl)
+			.setName("Statblock code blocks in notes")
+			.setDesc(STATBLOCK_IN_NOTES_DESC));
 
 		this.addMobilePdfMethodControl(new Setting(containerEl)
 			.setName("Mobile PDF export")
@@ -250,6 +281,24 @@ export class BrewVaultSettingTab extends PluginSettingTab {
 			toggle.setValue(this.plugin.settings.editionBlockCommands).onChange(async (value) => {
 				this.plugin.settings.editionBlockCommands = value;
 				syncEditionBlockCommands(this.plugin, value);
+				await this.plugin.saveSettings();
+			})
+		);
+	}
+
+	private addMonsterBlocksInNotesControl(setting: Setting): void {
+		setting.addToggle((toggle) =>
+			toggle.setValue(this.plugin.settings.monsterBlocksInNotes).onChange(async (value) => {
+				this.plugin.settings.monsterBlocksInNotes = value;
+				await this.plugin.saveSettings();
+			})
+		);
+	}
+
+	private addStatblockInNotesControl(setting: Setting): void {
+		setting.addToggle((toggle) =>
+			toggle.setValue(this.plugin.settings.statblockInNotes).onChange(async (value) => {
+				this.plugin.settings.statblockInNotes = value;
 				await this.plugin.saveSettings();
 			})
 		);

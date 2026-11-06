@@ -1,6 +1,7 @@
 import { Notice, TFile, type Editor, type Plugin } from "obsidian";
 import { renderNotePages } from "../obsidian/renderNotePages";
 import type { BrewPage } from "../renderer/types";
+import type { Edition } from "../snippets/catalog";
 import { formatSnippetForCursor } from "../snippets/insertion";
 import {
 	buildTocBlock,
@@ -17,6 +18,8 @@ import { findTargetMarkdownView } from "./insertSnippet";
 /** How a note is laid out for export: the same pages its PDF would have. */
 export interface TocLayout {
 	readonly firstPageNumber: number;
+	/** Edition each note's `statblock` blocks print in, as in the export. */
+	readonly editionFor: (file: TFile) => Edition;
 	readonly paginate: (pages: BrewPage[]) => Promise<BrewPage[]>;
 }
 
@@ -82,6 +85,7 @@ async function generateTableOfContents(
 			const rendered = await renderNotePages(plugin.app, {
 				file,
 				source: candidate,
+				editionFor: layout.editionFor,
 				paginate: layout.paginate,
 			});
 			const headings = nestIncludedHeadings(detectHeadings(rendered.pages), file.path);
