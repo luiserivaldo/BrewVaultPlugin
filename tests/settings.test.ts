@@ -147,18 +147,6 @@ void test("installs saved before edition block commands existed get the trimmed 
 	assert.equal(result.shouldPersist, false);
 });
 
-void test("stat blocks render in notes by default and honor a stored choice", () => {
-	assert.equal(normalizeStoredSettings(null).settings.statblockInNotes, true);
-	for (const stored of [true, false]) {
-		const result = normalizeStoredSettings({ ...DEFAULT_SETTINGS, statblockInNotes: stored });
-		assert.equal(result.settings.statblockInNotes, stored);
-		assert.equal(result.shouldPersist, false);
-	}
-	const invalid = normalizeStoredSettings({ ...DEFAULT_SETTINGS, statblockInNotes: "no" });
-	assert.equal(invalid.settings.statblockInNotes, true);
-	assert.equal(invalid.shouldPersist, true);
-});
-
 void test("monster blocks render in notes by default and honor a stored choice", () => {
 	assert.equal(normalizeStoredSettings(null).settings.monsterBlocksInNotes, true);
 	for (const stored of [true, false]) {

@@ -42,7 +42,6 @@
   },
   "dependencies": {
     "@codemirror/view": "^6.38.6",
-    "markdown-it": "^14.3.3",
-    "yaml": "^2.9.1"
+    "markdown-it": "^14.3.3"
   }
 }

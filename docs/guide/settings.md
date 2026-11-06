@@ -42,17 +42,22 @@ CSS cannot affect the surrounding Obsidian interface. Custom styles are stored
 locally in the plugin settings. Removing the currently selected custom style
 returns **Choose theme** to the default Player's Handbook theme.
 
-## Stat blocks in notes
+## Rendered blocks in notes
 
-**Monster blocks in notes** (on by default) draws `{{monster,frame}}` stat blocks
-and `{{quote}}`, `{{note}}` and `{{descriptive}}` boxes as rendered in Live
-Preview and Reading view. Reload Obsidian after
+**Rendered blocks in notes** (on by default) draws `{{monster,frame}}` stat
+blocks and `{{quote}}`, `{{note}}` and `{{descriptive}}` boxes as rendered in
+Live Preview and Reading view, without the preview pane. Reload Obsidian after
 changing it.
 
-**Statblock code blocks in notes** (on by default) draws ` ```statblock ` blocks
-as rendered monster blocks inside your notes. Turn it off, then reload Obsidian, if
-another plugin such as Fantasy Statblocks should draw them. Exports render
-stat blocks either way. See [Stat blocks](./statblocks.md).
+The source stays plain Homebrewery Markdown, so it still pastes into
+Homebrewery and exports as before; BrewVault never rewrites it.
+
+- **Live Preview:** a block is drawn while the cursor is outside it, framed by
+  its start and end tags, with an edit icon on hover. Click it to see and edit
+  the source; move away to see it drawn again. Source mode always shows the text.
+- **Reading view:** the block is drawn once, as a card.
+- **Theme:** the note's `bv_theme`, else the theme setting. Add `wide` to the
+  classes (`{{monster,frame,wide`) for a two-column card.
 
 ## Theme per note
 

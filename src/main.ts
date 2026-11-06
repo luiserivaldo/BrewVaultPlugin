@@ -37,7 +37,6 @@ import { registerInsertSnippetCommands, syncEditionBlockCommands } from "./comma
 import { openBookContents, registerBookCommands } from "./commands/bookCommands";
 import { registerTocCommands } from "./commands/tocCommands";
 import { registerTocNavigation } from "./obsidian/tocNavigation";
-import { registerStatBlockEmbed } from "./obsidian/statblockEmbed";
 import { mountBrewMarkdown } from "./obsidian/brewBlockEmbed";
 import { registerMonsterBlockReading } from "./obsidian/monsterBlockReading";
 import { monsterBlockPreviewExtension } from "./editor/monsterBlockPreview";
@@ -132,7 +131,6 @@ export default class BrewVaultPlugin extends Plugin {
 		registerInsertSnippetCommands(this, () => this.getActiveNoteEdition());
 		syncEditionBlockCommands(this, this.settings.editionBlockCommands);
 		registerBookCommands(this);
-		if (this.settings.statblockInNotes) registerStatBlockEmbed(this);
 		if (this.settings.monsterBlocksInNotes) {
 			this.registerEditorExtension(
 				monsterBlockPreviewExtension((host, sourcePath, markdown) =>
@@ -147,7 +145,6 @@ export default class BrewVaultPlugin extends Plugin {
 			const size = pageDimensions(options.pageSize, this.settings);
 			return {
 				firstPageNumber: options.firstPageNumber,
-				editionFor: (note) => this.resolveNoteEditionFor(note).edition,
 				paginate: (pages) => this.paginateWithTheme(pages, options.theme, size),
 			};
 		});
@@ -454,12 +451,13 @@ export default class BrewVaultPlugin extends Plugin {
 	 */
 	renderNotePages(
 		file: TFile,
-		paginate: (pages: BrewPage[]) => Promise<BrewPage[]>
+		paginate: (pages: BrewPage[]) => Promise<BrewPage[]>,
+		source?: string
 	): Promise<RenderedNotePages> {
 		return renderNotePages(this.app, {
 			file,
+			source,
 			paginate,
-			editionFor: (note) => this.resolveNoteEditionFor(note).edition,
 		});
 	}
 

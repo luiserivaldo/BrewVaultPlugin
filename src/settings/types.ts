@@ -48,14 +48,9 @@ export interface BrewVaultSettings {
 	 */
 	editionBlockCommands: boolean;
 	/**
-	 * Show ```statblock blocks as rendered monster blocks inside notes. Off
-	 * leaves the fence to another plugin (such as Fantasy Statblocks); exports
-	 * always render it. Read once at load, so changing it needs a reload.
-	 */
-	statblockInNotes: boolean;
-	/**
-	 * Draw `{{monster ... }}` blocks as rendered stat blocks in Live Preview and
-	 * Reading view; the source stays plain Homebrewery Markdown. Read once at load.
+	 * Draw `{{monster}}`, `{{quote}}`, `{{note}}` and `{{descriptive}}` blocks
+	 * rendered in Live Preview and Reading view; the source stays plain
+	 * Homebrewery Markdown. Read once at load.
 	 */
 	monsterBlocksInNotes: boolean;
 }
@@ -73,7 +68,6 @@ export const DEFAULT_SETTINGS: BrewVaultSettings = {
 	defaultEdition: "2024",
 	mobilePdfMethod: "browser",
 	editionBlockCommands: false,
-	statblockInNotes: true,
 	monsterBlocksInNotes: true,
 };
 
@@ -127,12 +121,6 @@ export function normalizeStoredSettings(
 	const rawEditionBlockCommands = stored?.editionBlockCommands;
 	const editionBlockCommands = resolveEditionBlockCommands(rawEditionBlockCommands);
 
-	const rawStatblockInNotes = stored?.statblockInNotes;
-	const statblockInNotes =
-		typeof rawStatblockInNotes === "boolean"
-			? rawStatblockInNotes
-			: DEFAULT_SETTINGS.statblockInNotes;
-
 	const rawMonsterBlocksInNotes = stored?.monsterBlocksInNotes;
 	const monsterBlocksInNotes =
 		typeof rawMonsterBlocksInNotes === "boolean"
@@ -149,7 +137,6 @@ export function normalizeStoredSettings(
 		defaultEdition,
 		mobilePdfMethod,
 		editionBlockCommands,
-		statblockInNotes,
 		monsterBlocksInNotes,
 	};
 
@@ -162,7 +149,6 @@ export function normalizeStoredSettings(
 			(rawDefaultEdition !== undefined && rawDefaultEdition !== defaultEdition) ||
 			(rawMobilePdfMethod !== undefined && rawMobilePdfMethod !== mobilePdfMethod) ||
 			(rawEditionBlockCommands !== undefined && rawEditionBlockCommands !== editionBlockCommands) ||
-			(rawStatblockInNotes !== undefined && rawStatblockInNotes !== statblockInNotes) ||
 			(rawMonsterBlocksInNotes !== undefined && rawMonsterBlocksInNotes !== monsterBlocksInNotes) ||
 			rawNextCustomStyleNumber !== nextCustomStyleNumber ||
 			JSON.stringify(rawCustomStyles ?? []) !== JSON.stringify(customStyles),

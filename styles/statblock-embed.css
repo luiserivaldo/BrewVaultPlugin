@@ -1,6 +1,6 @@
 /* stylelint-disable plugin/no-unsupported-browser-features -- Resetting the page's CSS columns to one column needs the same multicolumn properties the themes use. */
 
-/* In-note stat blocks (```statblock). The block reuses the theme's `.monster`
+/* In-note Homebrewery blocks. The block reuses the theme's `.monster`
    styling, which is written for a printed page column; this file only gives
    the page element a column-sized, transparent frame so the stat block sits in
    the note like a card. Everything is scoped under .brewvault-statblock-embed. */
@@ -36,79 +36,6 @@
 .brewvault-statblock-embed .brewPage::before,
 .brewvault-statblock-embed .brewPage::after {
 	display: none;
-}
-
-/* The edition switch sits above the block and shows on hover or focus. */
-.brewvault-statblock-toolbar {
-	position: absolute;
-	top: -1.9em;
-	left: 0.32cm;
-	z-index: 2;
-	display: inline-flex;
-	gap: 0;
-	padding: 2px;
-	border: 1px solid var(--background-modifier-border);
-	border-radius: var(--radius-s);
-	background: var(--background-secondary);
-	opacity: 0;
-	transition: opacity 120ms ease-out;
-}
-
-.brewvault-statblock-embed:hover .brewvault-statblock-toolbar,
-.brewvault-statblock-embed:focus-within .brewvault-statblock-toolbar {
-	opacity: 1;
-}
-
-.brewvault-statblock-toolbar.is-hidden {
-	display: none;
-}
-
-.brewvault-statblock-edition {
-	height: auto;
-	padding: 1px 8px;
-	border: 0;
-	border-radius: calc(var(--radius-s) - 1px);
-	background: transparent;
-	box-shadow: none;
-	color: var(--text-muted);
-	font-family: var(--font-interface);
-	font-size: var(--font-ui-smaller);
-	font-weight: var(--font-semibold);
-	line-height: 1.5;
-	cursor: pointer;
-}
-
-.brewvault-statblock-edition.is-active {
-	background: var(--interactive-accent);
-	color: var(--text-on-accent);
-}
-
-.brewvault-statblock-notes {
-	margin-top: 0.25em;
-	color: var(--text-muted);
-	font-family: var(--font-interface);
-	font-size: var(--font-ui-smaller);
-}
-
-/* A block that cannot be drawn says why instead of showing raw YAML. */
-.brewvault-statblock-error {
-	max-width: 24em;
-	padding: 0.5em 0.75em;
-	border: 1px solid var(--text-error);
-	border-radius: var(--radius-m);
-	background: var(--background-secondary);
-	color: var(--text-normal);
-	font-family: var(--font-interface);
-	font-size: var(--font-ui-small);
-}
-
-.brewvault-statblock-error ul {
-	margin: 0.25em 0 0;
-	padding-left: 1.25em;
-}
-
-.brewvault-statblock-error strong {
-	color: var(--text-error);
 }
 
 /* Obsidian styles every table, cell and paragraph in rendered notes (wide
