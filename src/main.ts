@@ -83,6 +83,13 @@ class ExportProgressNotice {
 	}
 }
 
+/** A short reason for an export failure, so the notice is useful without the console. */
+function describeExportError(error: unknown): string {
+	const message = error instanceof Error ? error.message : String(error);
+	const text = message.replace(/\s+/g, " ").trim() || "unknown error";
+	return text.length > 200 ? `${text.slice(0, 197)}…` : text;
+}
+
 // The community reviewer analyzes source without running BrewVault's esbuild
 // virtual-module loader. Narrow through `unknown` so both that environment and
 // the production bundle have a verified string at every renderer call site.
@@ -256,7 +263,7 @@ export default class BrewVaultPlugin extends Plugin {
 			);
 		} catch (err) {
 			console.error("BrewVault export failed", err);
-			new Notice("BrewVault export failed — see console for details.");
+			new Notice(`BrewVault export failed: ${describeExportError(err)}`);
 		}
 	}
 
@@ -305,7 +312,7 @@ export default class BrewVaultPlugin extends Plugin {
 			new Notice(`Exported to ${outPath}`);
 		} catch (err) {
 			console.error("BrewVault PDF export failed", err);
-			new Notice("BrewVault PDF export failed — see console for details.");
+			new Notice(`BrewVault PDF export failed: ${describeExportError(err)}`);
 		}
 	}
 

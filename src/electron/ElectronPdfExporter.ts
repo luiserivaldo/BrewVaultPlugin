@@ -70,12 +70,21 @@ export class ElectronPdfExporter {
 
 		try {
 			printWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
-			const documentUrl = encodeHtmlAsDataUrl(html);
 
+			// The document is written into a blank page rather than loaded from a
+			// `data:` URL: Chromium rejects URLs over about 2 MB (ERR_INVALID_URL),
+			// and the inlined theme alone is most of that.
 			await withTimeout(
-				printWindow.loadURL(documentUrl),
+				printWindow.loadURL("about:blank"),
 				PDF_EXPORT_TIMEOUT_MS,
 				"loading the print renderer"
+			);
+			ensureUsable(printWindow);
+
+			await withTimeout(
+				printWindow.webContents.executeJavaScript<void>(buildDocumentWriteScript(html)),
+				PDF_EXPORT_TIMEOUT_MS,
+				"loading the document into the print renderer"
 			);
 			ensureUsable(printWindow);
 
@@ -108,19 +117,20 @@ export class ElectronPdfExporter {
 	}
 }
 
-/** Encode Unicode HTML without exposing Node's Buffer API to plugin code. */
-export function encodeHtmlAsDataUrl(html: string): string {
-	const bytes = new TextEncoder().encode(html);
-	let binary = "";
-	const chunkSize = 0x8000;
-	for (let offset = 0; offset < bytes.length; offset += chunkSize) {
-		binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
-	}
-	return `data:text/html;charset=utf-8;base64,${btoa(binary)}`;
+/**
+ * Script that replaces a blank page's contents with `html`. The document is a
+ * JSON string literal, which keeps any markup, Unicode, or `</script>` in it
+ * inert until `document.write` parses it.
+ */
+export function buildDocumentWriteScript(html: string): string {
+	return `document.open();document.write(${JSON.stringify(html)});document.close();`;
 }
 
 const PRINT_READY_SCRIPT = `
 (async () => {
+	if (document.readyState !== "complete") {
+		await new Promise((resolve) => window.addEventListener("load", resolve, { once: true }));
+	}
 	if (document.fonts && document.fonts.ready) {
 		await document.fonts.ready;
 	}
