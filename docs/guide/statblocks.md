@@ -15,6 +15,8 @@ still pastes into Homebrewery and exports as before; BrewVault never rewrites it
   block inserts differ), so it prints as written.
 - **Theme:** the note's `bv_theme`, else the theme setting. Add `wide` to the
   classes (`{{monster,frame,wide`) for a two-column card.
+- **Callout boxes:** `{{quote}}`, `{{note}}` and `{{descriptive}}` blocks are
+  drawn the same way, with the same tags and edit icon.
 - **Setting:** **Monster blocks in notes** (on by default; reload Obsidian after
   changing it).
 

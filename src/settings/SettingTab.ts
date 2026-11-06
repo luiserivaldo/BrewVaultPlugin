@@ -11,7 +11,7 @@ const EDITION_BLOCK_COMMANDS_DESC =
 	"Off keeps the command palette short; the 2014 and 2024 block pickers still offer every block.";
 
 const MONSTER_BLOCKS_IN_NOTES_DESC =
-	"Draw {{monster,frame}} blocks as rendered stat blocks in Live Preview and Reading view, without opening the preview pane. " +
+	"Draw {{monster,frame}} stat blocks and {{quote}}, {{note}} and {{descriptive}} boxes as rendered in Live Preview and Reading view, without opening the preview pane. " +
 	"Click a block to edit its Markdown, which is never changed. Reload Obsidian after changing it.";
 
 const STATBLOCK_IN_NOTES_DESC =

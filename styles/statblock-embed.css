@@ -11,6 +11,9 @@
 	width: fit-content;
 	max-width: 100%;
 	margin: 0.75em 0;
+	/* Slightly larger than printed size for on-screen reading; zoom scales the
+	   fixed-width page with the text so line breaks match the preview. */
+	zoom: 1.15;
 }
 
 .brewvault-statblock-embed .brewPage {
@@ -147,6 +150,13 @@
 /* A two-column `{{monster,frame,wide}}` block gets two printed columns. */
 .brewvault-statblock-embed.is-wide .brewPage {
 	width: calc(17.8cm + 0.64cm);
+}
+
+/* A bare quote is dark text meant for paper; in dark mode it takes Obsidian's
+   text colour so it stays legible on the editor background. */
+.theme-dark .brewvault-statblock-embed.is-quote .brewPage,
+.theme-dark .brewvault-statblock-embed.is-quote .brewPage * {
+	color: var(--text-normal);
 }
 
 /* Live Preview card; clicking it opens the block's source. It is framed by the

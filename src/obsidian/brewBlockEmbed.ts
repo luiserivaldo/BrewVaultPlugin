@@ -48,7 +48,12 @@ export function mountBrewMarkdown(
 ): void {
 	const abstract = sourcePath ? plugin.app.vault.getAbstractFileByPath(sourcePath) : null;
 	const file = abstract instanceof TFile ? abstract : null;
-	const classes = /^\{\{[^\n]*\bwide\b/.test(markdown) ? ["is-wide"] : [];
+	const opener = /^\{\{[^\n]*/.exec(markdown)?.[0] ?? "";
+	const classes = [
+		...(/\bwide\b/.test(opener) ? ["is-wide"] : []),
+		// A quote has no box of its own, so it is recoloured in dark mode to stay legible.
+		...(/\bquote\b/.test(opener) ? ["is-quote"] : []),
+	];
 	const { page } = createEmbedShell(plugin, host, file, classes);
 
 	appendRenderedHtml(page, renderBrewDocumentHtml(markdown));

@@ -44,8 +44,9 @@ returns **Choose theme** to the default Player's Handbook theme.
 
 ## Stat blocks in notes
 
-**Monster blocks in notes** (on by default) draws `{{monster,frame}}` blocks as
-rendered stat blocks in Live Preview and Reading view. Reload Obsidian after
+**Monster blocks in notes** (on by default) draws `{{monster,frame}}` stat blocks
+and `{{quote}}`, `{{note}}` and `{{descriptive}}` boxes as rendered in Live
+Preview and Reading view. Reload Obsidian after
 changing it.
 
 **Statblock code blocks in notes** (on by default) draws ` ```statblock ` blocks

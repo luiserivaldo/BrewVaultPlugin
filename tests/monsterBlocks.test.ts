@@ -26,9 +26,15 @@ void test("finds a monster block with its lines, classes, and Markdown", () => {
 	assert.equal(NOTE.slice(block.from, block.to), block.markdown);
 });
 
-void test("only blocks with the monster class count", () => {
-	assert.equal(findMonsterBlocks("{{note\nBody\n}}").length, 0);
-	assert.equal(findMonsterBlocks("{{descriptive,wide\nBody\n}}").length, 0);
+void test("only monster and callout classes count", () => {
+	assert.equal(findMonsterBlocks("{{wide\nBody\n}}").length, 0);
+	assert.equal(findMonsterBlocks("{{bonus\nBody\n}}").length, 0);
+	for (const name of ["note", "quote", "descriptive"]) {
+		assert.equal(findMonsterBlocks(`{{${name}\nBody\n}}`).length, 1, name);
+	}
+	assert.deepEqual(findMonsterBlocks("{{descriptive,wide\nBody\n}}")[0].classes, ["descriptive", "wide"]);
+	const quote = "{{quote\nText\n\n{{attribution Unknown, *Book*}}\n}}";
+	assert.equal(findMonsterBlocks(quote)[0].markdown, quote, "an inline span does not end the quote");
 	assert.equal(findMonsterBlocks("{{monster\nBody\n}}").length, 1);
 	assert.deepEqual(findMonsterBlocks("{{monster,frame,wide\nBody\n}}")[0].classes, ["monster", "frame", "wide"]);
 });
