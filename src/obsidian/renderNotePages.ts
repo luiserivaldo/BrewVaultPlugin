@@ -3,7 +3,7 @@ import { compileBook } from "../book/compile";
 import type { BookNoteFacts } from "../book/include";
 import { hasBookContent, parseBookManifest } from "../book/manifest";
 import { planBook, type BookPlan, type BookSegment } from "../book/plan";
-import { renderBrewDocumentHtml, renderBrewMarkdown } from "../renderer";
+import { renderBrewDocumentHtml, renderBrewMarkdown, stripObsidianComments } from "../renderer";
 import type { BrewPage } from "../renderer/types";
 import { readNoteFrontmatter } from "./readNoteFrontmatter";
 import { resolveVaultImageEmbeds } from "./resolveVaultImageEmbeds";
@@ -34,7 +34,8 @@ export interface PlannedBook {
  */
 export async function renderNotePages(app: App, request: NotePagesRequest): Promise<RenderedNotePages> {
 	const { file } = request;
-	const source = request.source ?? (await app.vault.cachedRead(file));
+	// Commented-out book blocks and image embeds must not take effect either.
+	const source = stripObsidianComments(request.source ?? (await app.vault.cachedRead(file)));
 	const dependencyPaths = new Set<string>();
 
 	if (!hasBookContent(source)) {
@@ -57,7 +58,7 @@ export async function renderNotePages(app: App, request: NotePagesRequest): Prom
 		const member = app.vault.getAbstractFileByPath(segment.note.path);
 		if (!(member instanceof TFile)) return "";
 		dependencyPaths.add(member.path);
-		const memberSource = await app.vault.cachedRead(member);
+		const memberSource = stripObsidianComments(await app.vault.cachedRead(member));
 		return renderWithImages(app, memberSource, member, dependencyPaths);
 	};
 

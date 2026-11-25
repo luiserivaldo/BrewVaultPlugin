@@ -2,6 +2,7 @@ import { Notice, TFile, type App, type Editor, type Plugin } from "obsidian";
 import { hasBookContent, parseIncludeLine } from "../book/manifest";
 import { BOOK_CONTENT_BLOCK, expandIncludeMarkdown, includeLine } from "../book/skeleton";
 import { planBookNote } from "../obsidian/renderNotePages";
+import { stripObsidianComments } from "../renderer/obsidianComments";
 import { BookContentsModal, FolderSuggestModal } from "../ui/BookModals";
 import { findTargetMarkdownView, insertBlock } from "./insertSnippet";
 
@@ -66,7 +67,8 @@ export function registerBookCommands(plugin: Plugin): void {
 
 /** Opens the notes a `{{bookContent}}` block includes, in order, and any problems. */
 export function openBookContents(app: App, file: TFile): void {
-	void app.vault.cachedRead(file).then((source) => {
+	void app.vault.cachedRead(file).then((raw) => {
+		const source = stripObsidianComments(raw);
 		if (!hasBookContent(source)) {
 			new Notice(`"${file.basename}" has no {{bookContent}} block, so it doesn't include other notes.`);
 			return;

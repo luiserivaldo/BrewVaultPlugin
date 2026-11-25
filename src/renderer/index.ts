@@ -1,6 +1,7 @@
 import { createBrewMarkdownEngine } from "./markdownEngine";
 import { splitIntoPages } from "./pageSplitter";
 import { stripYamlFrontmatter } from "./frontmatter";
+import { stripObsidianComments } from "./obsidianComments";
 import type { BrewPage } from "./types";
 import type { BrewRenderOptions, BrewRenderEnvironment } from "./imageEmbeds";
 
@@ -37,7 +38,8 @@ export function renderBrewDocumentHtml(
 		imageEmbeds: options.imageEmbeds,
 		headingSource: options.headingSource,
 	};
-	return engine.render(stripYamlFrontmatter(source), environment);
+	return engine.render(stripYamlFrontmatter(stripObsidianComments(source)), environment);
 }
 
 export { stripYamlFrontmatter } from "./frontmatter";
+export { stripObsidianComments } from "./obsidianComments";
