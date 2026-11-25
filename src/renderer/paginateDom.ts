@@ -51,13 +51,7 @@ export async function paginateBrewPages(
 ): Promise<BrewPage[]> {
 	if (typeof document === "undefined" || !document.body) return pages;
 
-	if (document.fonts) {
-		try {
-			await document.fonts.ready;
-		} catch {
-			// Font readiness is an optimization; pagination still works with fallbacks.
-		}
-	}
+	await settleFontLoading(document.fonts);
 
 	const host = createDiv({
 		cls: [
@@ -90,6 +84,12 @@ export async function paginateBrewPages(
 				const clone = node.cloneNode(true);
 				columnWrapper.appendChild(clone);
 				await waitForImages(clone);
+				// Bundled font faces load only once text first uses them, so a
+				// block that introduces a new face (a bold run, a heading font)
+				// would otherwise be measured with fallback metrics. Laying the
+				// page out starts those loads; wait for them before measuring.
+				measurementPage.getBoundingClientRect();
+				await settleFontLoading(document.fonts);
 
 				if (pageOverflows(measurementPage) && hasContent) {
 					columnWrapper.removeChild(clone);
@@ -146,6 +146,25 @@ export function dimensionsOverflow(dimensions: OverflowDimensions): boolean {
 		dimensions.scrollWidth > dimensions.clientWidth + HORIZONTAL_BLEED_TOLERANCE_PX ||
 		dimensions.scrollHeight > dimensions.clientHeight + 1
 	);
+}
+
+/** The part of `document.fonts` that pagination depends on. */
+export interface FontLoadingSet {
+	readonly status: "loading" | "loaded";
+	readonly ready: Promise<unknown>;
+}
+
+/**
+ * Waits for font faces that are currently loading. Resolves at once when none
+ * are, so measuring a block that needs no new face costs nothing extra.
+ */
+export async function settleFontLoading(fonts: FontLoadingSet | undefined): Promise<void> {
+	if (!fonts || fonts.status !== "loading") return;
+	try {
+		await fonts.ready;
+	} catch {
+		// Font readiness is an optimization; pagination still works with fallbacks.
+	}
 }
 
 async function waitForImages(root: Node): Promise<void> {
