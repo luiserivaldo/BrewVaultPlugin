@@ -6,6 +6,7 @@ import {
 } from "node:timers";
 import {
 	dimensionsOverflow,
+	settleFontLoading,
 	type TimerHost,
 	waitForImageReadiness,
 } from "../src/renderer/paginateDom";
@@ -81,4 +82,20 @@ void test("falls back to image load events when decode is unavailable", async ()
 	listeners.get("load")?.();
 	await waiting;
 	assert.equal(listeners.size, 0);
+});
+
+void test("waits for font faces that are still loading before measuring", async () => {
+	let loaded = false;
+	const ready = new Promise<void>((resolve) => setNodeTimeout(() => {
+		loaded = true;
+		resolve();
+	}, 5));
+	await settleFontLoading({ status: "loading", ready });
+	assert.equal(loaded, true);
+});
+
+void test("does not wait when no font face is loading", async () => {
+	const never = new Promise<never>(() => undefined);
+	await settleFontLoading({ status: "loaded", ready: never });
+	await settleFontLoading(undefined);
 });
