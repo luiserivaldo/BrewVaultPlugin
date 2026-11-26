@@ -50,6 +50,14 @@
 .brewvault-theme-phb .page .quote p.has-attribution { margin-top: 0; }
 .brewvault-theme-phb .page .quote + * { margin-top: .54cm; }
 
+/* Homebrewery groups consecutive `Label :: value` lines into one <dl> and
+   spaces it with `p + dl` and `dl + *`. BrewVault renders one div per line,
+   so the gap goes before the first line and after the last. Monster blocks
+   keep their own tight spacing, and a `:` spacer after the lines adds no gap,
+   as Homebrewery's `.blank` rule outranks `dl + *`. */
+.brewvault-theme-phb .page :not(.monster) > p + .brewDefinitionLine { margin-top: .17cm; }
+.brewvault-theme-phb .page :not(.monster) > .brewDefinitionLine + :not(.brewDefinitionLine, .blank) { margin-top: .17cm; }
+
 .brewvault-theme-phb .page :where(.note, .descriptive, .monster) { font-family: "ScalySansRemake"; font-size: .318cm; }
 .brewvault-theme-phb .page .note { padding: .13cm .16cm; margin-top: 9px; background-color: var(--HB_Color_Accent); border: 1px solid; border-image: url("../../vendor/homebrewery/assets/noteBorder.png") 12 stretch; border-image-width: 11px; border-image-outset: 9px 0; box-shadow: 1px 4px 14px #888; }
 .brewvault-theme-phb .page .descriptive { padding: .1em; margin-top: 4px; background: #faf7ea; border: 7px solid; border-image: url("../../vendor/homebrewery/assets/descriptiveBorder.png") 12 stretch; border-image-outset: 4px; box-shadow: 0 0 6px #faf7ea; }

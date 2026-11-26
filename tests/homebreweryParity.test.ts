@@ -3,7 +3,8 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { ELECTRON_PDF_PRINT_OPTIONS } from "../src/electron/ElectronPdfExporter";
 import { buildStandaloneHtml } from "../src/export/buildStandaloneHtml";
-import { renderBrewMarkdown } from "../src/renderer";
+import { renderBrewDocumentHtml, renderBrewMarkdown } from "../src/renderer";
+import { SNIPPET_CATALOG } from "../src/snippets/catalog";
 
 const fixture = readFileSync("tests/fixtures/homebrewery-parity.md", "utf8");
 const phbThemeCss = readFileSync("styles/homebrewery/5e-phb.css", "utf8");
@@ -66,4 +67,26 @@ void test("DMG inherits PHB layout and overrides official theme furniture", () =
 	assert.match(dmgThemeCss, /DMG_background\.jpg/);
 	assert.match(dmgThemeCss, /DMG_footerAccent\.png/);
 	assert.match(dmgThemeCss, /partCoverHeaderDMG\.svg/);
+});
+
+void test("PHB spell field lines are spaced from the text around them, as Homebrewery's <dl>", () => {
+	const spell = SNIPPET_CATALOG.find((snippet) => snippet.id === "spell");
+	assert.ok(spell);
+	const html = renderBrewDocumentHtml(spell.body);
+
+	// The subtitle paragraph, four sibling field lines, then the description.
+	assert.match(
+		html,
+		/<\/p>\n(?:<div class="brewDefinitionLine">.*?<\/div>\n){4}<p>A pale lantern-light/
+	);
+	assert.match(
+		phbThemeCss,
+		/\.page :not\(\.monster\) > p \+ \.brewDefinitionLine \{ margin-top: \.17cm; \}/
+	);
+	assert.match(
+		phbThemeCss,
+		/\.page :not\(\.monster\) > \.brewDefinitionLine \+ :not\(\.brewDefinitionLine, \.blank\) \{ margin-top: \.17cm; \}/
+	);
+	// Monster blocks keep their tight field spacing.
+	assert.match(phbThemeCss, /\.monster \.brewDefinitionLine \{ margin: 0; line-height: 1\.2em; \}/);
 });
